@@ -4,7 +4,11 @@
 #include <gl/glu.h>
 #include <config.hpp>
 
-void drawTri() {
+void drawTestGeo() {
+    static float g_rotation_angle = -0.5f;
+    g_rotation_angle += 0.5f;
+    glRotatef(g_rotation_angle, 1.0f, 1.0f, 1.0f);
+
     glBegin(GL_QUADS);
 
     glColor3f(1.0f, 0.0f, 0.0f);
@@ -56,9 +60,8 @@ int initGL(SDL_Window *window) {
     return 0;
 }
 
-int main(int argc, char *argv[])
+int main(int, char *[])
 {
-
     if (0 > SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s", SDL_GetError());
         return 1;
@@ -93,7 +96,6 @@ int main(int argc, char *argv[])
     }
 
 
-    SDL_Surface *surface;
     SDL_Event event;
     while (true) {
         SDL_PollEvent(&event);
@@ -101,6 +103,7 @@ int main(int argc, char *argv[])
             break;
         }
 
+        // TODO: (Fripe) actually look at this nonsense rather than just copy-paste it from the old project, there are probably some bad choices.
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
@@ -110,18 +113,15 @@ int main(int argc, char *argv[])
         const float right = top * aspectRatio;
         const float left = -right;
         glFrustum(left, right, bottom, top, 0.1f, 100.0f);
-
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
         glTranslatef(0.0f, 0.0f, -5.0f);
-
         glEnable(GL_DEPTH_TEST);
-
-        drawTri();
-
+        drawTestGeo();
 
         SDL_SetRenderDrawColor(renderer, 24, 27, 32, 255);
         SDL_RenderClear(renderer);
+        // TODO: (Fripe) Which one is the "correct" one?
         // SDL_RenderPresent(renderer);
         SDL_GL_SwapWindow(window);
     }
