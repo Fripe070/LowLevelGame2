@@ -3,15 +3,21 @@ project('lowlevelgame', 'cpp',
 
 sdl2_dep = dependency('sdl2')
 imgui_dep = dependency('imgui')
-dependencies = [sdl2_dep, imgui_dep]
+glew_dep = dependency('glew')
+dependencies = [sdl2_dep, imgui_dep, glew_dep]
 
 if host_machine.system() == 'windows'
   sdl2_main_dep = dependency('sdl2main')
-  dependencies += sdl2_main_dep
+  dependencies += [sdl2_main_dep]
 endif
 
-exe = executable('lowlevelgame', 'src/main.cpp',
-           win_subsystem: 'windows',
-           dependencies: dependencies)
+sources = [
+    'src/main.cpp',
+]
+
+exe = executable('lowlevelgame', sources,
+                 win_subsystem: 'windows',
+                 include_directories: include_directories('src'),
+                 dependencies: dependencies)
 
 test('basic', exe)
