@@ -1,8 +1,9 @@
 project('lowlevelgame', 'c',
-  version : '0.1',
-  default_options : ['warning_level=3'])
+        default_options: 'default_library=static')
 
-exe = executable('lowlevelgame', 'lowlevelgame.c',
-  install : true)
+sdl2_dep = dependency('sdl2')
+sdl2_main_dep = dependency('sdl2main')
 
-test('basic', exe)
+executable('lowlevelgame', 'lowlevelgame.c',
+           win_subsystem: 'windows',
+           dependencies: [sdl2_dep, sdl2_main_dep])
