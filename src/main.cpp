@@ -128,8 +128,8 @@ int main(int, char *[])
     glUseProgram(programID);
 
     float vertices[] = {
-        -0.5f, -0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
+        -1./3, -0.5f, 0.0f,
+         1./3, -0.5f, 0.0f,
          0.0f,  0.5f, 0.0f,
     };
     GLuint vao;
