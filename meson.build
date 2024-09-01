@@ -16,7 +16,7 @@ sources = [
 ]
 
 exe = executable('lowlevelgame', sources,
-                 win_subsystem: 'windows',
+#                 win_subsystem: 'windows',  # Supresses stdout on Windows
                  include_directories: include_directories('src'),
                  dependencies: dependencies)
 
