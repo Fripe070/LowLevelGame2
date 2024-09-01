@@ -151,11 +151,7 @@ int main(int, char *[])
         }
 
         glClear(GL_COLOR_BUFFER_BIT);
-
-        glUseProgram(programID);
-        glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 3);
-
         SDL_GL_SwapWindow(window);
     }
 
