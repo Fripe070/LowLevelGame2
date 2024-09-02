@@ -5,8 +5,7 @@
 #include <string>
 
 
-
-std::string getShaderInfoLog(GLuint shaderID) {
+std::string getShaderInfoLog(const GLuint shaderID) {
     GLint infoLogLength;
     glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
     std::string infoLog(infoLogLength, '\0');
@@ -14,7 +13,7 @@ std::string getShaderInfoLog(GLuint shaderID) {
     return infoLog;
 }
 
-std::string getProgramInfoLog(GLuint programID) {
+std::string getProgramInfoLog(const GLuint programID) {
     GLint infoLogLength;
     glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &infoLogLength);
     std::string infoLog(infoLogLength, '\0');
@@ -22,14 +21,19 @@ std::string getProgramInfoLog(GLuint programID) {
     return infoLog;
 }
 
+typedef struct {
+    enum {
+        position,
+    };
+} t_attribute_ids;
 
 bool initGlProgram(const GLuint &programID) {
-    GLuint vertShaderID = glCreateShader( GL_VERTEX_SHADER );
-    GLuint fragShaderID = glCreateShader( GL_FRAGMENT_SHADER );
+    const GLuint vertShaderID = glCreateShader( GL_VERTEX_SHADER );
+    const GLuint fragShaderID = glCreateShader( GL_FRAGMENT_SHADER );
 
     const auto vertShaderSrc = R"(
         #version 330 core
-        layout (location = 0) in vec3 aPos;
+        in vec3 aPos;
 
         void main() {
             gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
@@ -46,7 +50,7 @@ bool initGlProgram(const GLuint &programID) {
         return false;
     }
 
-    auto fragShaderSrc = R"(
+    const auto fragShaderSrc = R"(
         #version 330 core
         out vec4 FragColor;
 
@@ -68,6 +72,9 @@ bool initGlProgram(const GLuint &programID) {
     GLint progResult = GL_FALSE;
     glAttachShader(programID, vertShaderID);
     glAttachShader(programID, fragShaderID);
+
+    glBindAttribLocation(programID, t_attribute_ids::position, "aPos");
+
     glLinkProgram(programID);
 
     glGetProgramiv(programID, GL_LINK_STATUS, &progResult);
@@ -120,28 +127,38 @@ int main(int, char *[])
         return -1;
     }
 
-    GLuint programID = glCreateProgram();
+    const GLuint programID = glCreateProgram();
     if (!initGlProgram(programID)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize OpenGL");
         return -1;
     }
-    glUseProgram(programID);
 
-    float vertices[] = {
-        -1./3, -0.5f, 0.0f,
-         1./3, -0.5f, 0.0f,
-         0.0f,  0.5f, 0.0f,
+    const float vertices[] = {
+         0.5f,  0.5f, 0.0f, // top right
+         0.5f, -0.5f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f, // bottom left
+        -0.5f,  0.5f, 0.0f, // top left
     };
-    GLuint vao;
-    glGenVertexArrays(1, &vao);
-    GLuint vbo;
-    glGenBuffers(1, &vbo);
+    const unsigned int indices[] = {
+        0, 1, 3,
+        1, 2, 3,
+    };
 
+    // TODO: (Fripe) figure out what each of the buffers actually represent
+    GLuint vao, vbo, ebo;
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ebo);
     glBindVertexArray(vao);
+
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
-    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glVertexAttribPointer(t_attribute_ids::position, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+    glEnableVertexAttribArray(t_attribute_ids::position);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind vbo
 
     SDL_Event event;
     while (true) {
@@ -151,7 +168,10 @@ int main(int, char *[])
         }
 
         glClear(GL_COLOR_BUFFER_BIT);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        glUseProgram(programID);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
         SDL_GL_SwapWindow(window);
     }
 
