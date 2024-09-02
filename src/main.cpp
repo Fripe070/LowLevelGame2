@@ -149,16 +149,19 @@ int main(int, char *[])
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
     glGenBuffers(1, &ebo);
-    glBindVertexArray(vao);
+
+    glBindVertexArray(vao); // Bind our VAO, essentually our context/config
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    glVertexAttribPointer(t_attribute_ids::position, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+    glVertexAttribPointer(t_attribute_ids::position, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);  // 3 since vec3
     glEnableVertexAttribArray(t_attribute_ids::position);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind vbo
+    glBindVertexArray(0); // Unbind VAO
+    glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind VBO
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // Unbind EBO
 
     SDL_Event event;
     while (true) {
@@ -170,7 +173,9 @@ int main(int, char *[])
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(programID);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(vao);
+
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
         SDL_GL_SwapWindow(window);
     }
