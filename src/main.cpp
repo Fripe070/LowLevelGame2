@@ -1,8 +1,10 @@
-#include "SDL.h"
-#include <gl/glew.h>
-#include <SDL_opengl.h>
-#include <Shader.h>
 #include <string>
+#include <gl/glew.h>
+#include <SDL.h>
+#include <SDL_opengl.h>
+#include <imgui_impl_sdl2.h>
+#include "shader.h"
+#include "gui.h"
 
 namespace config {
     inline int window_size[2] = {1920/2, 1080/2};
@@ -112,13 +114,20 @@ int main(int, char *[])
 
     const auto shader = Shader("resources/vert.glsl", "resources/frag.glsl");
 
+    GUI gui;
+    gui.init(window, glContext);
+
+    SDL_Event event;
     while (true) {
-        SDL_PumpEvents(); // we might want to use SDL_PollEvent later
+        SDL_PollEvent(&event);
+        ImGui_ImplSDL2_ProcessEvent(&event);
+
         if (SDL_QuitRequested())
             break;
 
         glClear(GL_COLOR_BUFFER_BIT);
 
+        gui.frame();
         shader.use();
         glBindVertexArray(vao);
 
@@ -127,9 +136,9 @@ int main(int, char *[])
         SDL_GL_SwapWindow(window);
     }
 
+    gui.shutdown();
     SDL_GL_DeleteContext(glContext);
     SDL_DestroyWindow(window);
-
     SDL_Quit();
 
     return 0;

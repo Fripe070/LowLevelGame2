@@ -14,6 +14,7 @@ endif
 sources = [
     'src/main.cpp',
     'src/shader.cpp',
+    'src/gui.cpp',
 ]
 
 exe = executable('lowlevelgame', sources,
