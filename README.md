@@ -1,5 +1,8 @@
-Make sure you have [meson installed](https://mesonbuild.com/SimpleStart.html#installing-meson), then run `setup.ps1` or `setup.sh` depending on your system.
+Prerequisites:
+- [Meson](https://mesonbuild.com/SimpleStart.html#installing-meson)
+- [MinGW](https://www.mingw-w64.org/) (Windows only)
 
+Run `setup.ps1` or `setup.sh` (depending on your system) to set up the project.
 To compile and run the program:
 ```bash
 meson compile -C build
