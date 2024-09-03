@@ -1,9 +1,12 @@
 #include "SDL.h"
 #include <gl/glew.h>
 #include <SDL_opengl.h>
-#include <config.hpp>
+#include <Shader.h>
 #include <string>
 
+namespace config {
+    inline int window_size[2] = {1920/2, 1080/2};
+}
 
 std::string getShaderInfoLog(const GLuint shaderID) {
     GLint infoLogLength;
@@ -28,74 +31,6 @@ typedef struct {
     };
 } t_attribute_ids;
 
-bool initGlProgram(const GLuint &programID) {
-    const GLuint vertShaderID = glCreateShader( GL_VERTEX_SHADER );
-    const GLuint fragShaderID = glCreateShader( GL_FRAGMENT_SHADER );
-
-    const auto vertShaderSrc = R"(
-        #version 330 core
-        in vec3 aPos;
-        in vec3 aColour;
-
-        out vec4 vertexColor;
-
-        void main() {
-            gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-            vertexColor = vec4(aColour, 1.0);
-        }
-    )";
-    const auto vertShaderSrcLen = static_cast<GLint>(strlen(vertShaderSrc));
-    glShaderSource(vertShaderID, 1, &vertShaderSrc, &vertShaderSrcLen);
-    glCompileShader(vertShaderID);
-
-    GLint vertResult = GL_FALSE;
-    glGetShaderiv(vertShaderID, GL_COMPILE_STATUS, &vertResult);
-    if (vertResult == GL_FALSE) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Vertex shader compilation failed: %s", getShaderInfoLog(vertShaderID).c_str());
-        return false;
-    }
-
-    const auto fragShaderSrc = R"(
-        #version 330 core
-        in vec4 vertexColor;
-
-        out vec4 FragColor;
-
-        void main() {
-            FragColor = vertexColor;
-        }
-    )";
-    const auto fragShaderSrcLen = static_cast<GLint>(strlen(vertShaderSrc));
-    glShaderSource(fragShaderID, 1, &fragShaderSrc, &fragShaderSrcLen);
-    glCompileShader(fragShaderID);
-
-    GLint fragResult = GL_FALSE;
-    glGetShaderiv(fragShaderID, GL_COMPILE_STATUS, &fragResult);
-    if (fragResult == GL_FALSE) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Fragment shader compilation failed: %s", getShaderInfoLog(fragShaderID).c_str());
-        return false;
-    }
-
-    GLint progResult = GL_FALSE;
-    glAttachShader(programID, vertShaderID);
-    glAttachShader(programID, fragShaderID);
-
-    glBindAttribLocation(programID, t_attribute_ids::position, "aPos");
-
-    glLinkProgram(programID);
-
-    glGetProgramiv(programID, GL_LINK_STATUS, &progResult);
-    if (progResult == GL_FALSE) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Program linking failed: %s", getProgramInfoLog(programID).c_str());
-        return false;
-    }
-
-    glDeleteShader(vertShaderID);
-    glDeleteShader(fragShaderID);
-
-    return true;
-}
-
 
 int main(int, char *[])
 {
@@ -103,50 +38,58 @@ int main(int, char *[])
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s", SDL_GetError());
         return 1;
     }
+
+    SDL_Window *window = SDL_CreateWindow(
+        "LowLevelGame attempt 2 (million)",
+        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+        config::window_size[0], config::window_size[1],
+        SDL_WINDOW_OPENGL //| SDL_WINDOW_RESIZABLE
+    );
+    if (!window) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create window: %s", SDL_GetError());
+        SDL_Quit();
+        return 1;
+    }
+
     // Modern OpenGL with core profile
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    SDL_Window *window = SDL_CreateWindow(
-        "LowLevelGame attempt 2 (million)",
-        SDL_WINDOWPOS_UNDEFINED,
-        SDL_WINDOWPOS_UNDEFINED,
-        config::window_size[0],
-        config::window_size[1],
-        SDL_WINDOW_OPENGL //| SDL_WINDOW_RESIZABLE
-    );
-    if (!window) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create window: %s", SDL_GetError());
-        return 1;
-    }
-
     SDL_GLContext glContext = SDL_GL_CreateContext(window);
     if (!glContext) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create OpenGL context: %s", SDL_GetError());
+        SDL_DestroyWindow(window);
+        SDL_Quit();
         return -1;
     }
     SDL_GL_MakeCurrent(window, glContext);
 
-    GLenum glewError = glewInit();
+    const GLenum glewError = glewInit();
     if (glewError != GLEW_OK) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize GLEW: %s", glewGetErrorString(glewError));
+        SDL_GL_DeleteContext(glContext);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
         return -1;
     }
 
-    const GLuint programID = glCreateProgram();
-    if (!initGlProgram(programID)) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize OpenGL");
-        return -1;
-    }
+    // const GLuint programID = glCreateProgram();
+    // if (!initGlProgram(programID)) {
+    //     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize OpenGL");
+    //     SDL_GL_DeleteContext(glContext);
+    //     SDL_DestroyWindow(window);
+    //     SDL_Quit();
+    //     return -1;
+    // }
 
-    const float vertices[] = {
+    constexpr float vertices[] = {
          // Positions          // Colour
          0.0f,   0.5f, 0.0f,    1.0f, 0.0f, 0.0f,
          1.f/3, -0.5f, 0.0f,    0.0f, 1.0f, 0.0f,
         -1.f/3, -0.5f, 0.0f,    0.0f, 0.0f, 1.0f,
     };
-    const unsigned int indices[] = {
+    constexpr unsigned int indices[] = {
         0, 1, 2,
     };
 
@@ -176,16 +119,16 @@ int main(int, char *[])
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    SDL_Event event;
+    const auto shader = Shader("resources/vert.glsl", "resources/frag.glsl");
+
     while (true) {
-        SDL_PollEvent(&event);
-        if (event.type == SDL_QUIT) {
+        SDL_PumpEvents(); // we might want to use SDL_PollEvent later
+        if (SDL_QuitRequested())
             break;
-        }
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(programID);
+        glUseProgram(shader.programID);
         glBindVertexArray(vao);
 
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
