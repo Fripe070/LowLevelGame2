@@ -2,17 +2,20 @@
 
 #include <SDL.h>
 
+typedef struct {
+    bool limitFPS = true;
+    bool vsync = true;
+    int maxFPS = 100;
+} ProgState;
+
 class GUI {
 public:
     GUI() = default;
     ~GUI() = default;
 
     static void init(SDL_Window* window, SDL_GLContext glContext);
-    void frame();
+    static void frame(ProgState &progState);
     static void render();
     static void shutdown();
-    void showWindow();
-
-private:
-    bool checkboxState = false;
+    static void showWindow(ProgState &progState);
 };

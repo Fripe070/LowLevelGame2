@@ -2,7 +2,6 @@
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_sdl2.h>
 #include <SDL.h>
-#include <SDL_opengl.h>
 
 #include "gui.h"
 
@@ -14,12 +13,12 @@ void GUI::init(SDL_Window* window, SDL_GLContext glContext) {
     ImGui_ImplOpenGL3_Init("#version 330");
 }
 
-void GUI::frame() {
+void GUI::frame(ProgState &progState) {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
-    showWindow();
-    render();
+    showWindow(progState);
+    // render();
 }
 
 void GUI::render() {
@@ -33,8 +32,20 @@ void GUI::shutdown() {
     ImGui::DestroyContext();
 }
 
-void GUI::showWindow() {
+void GUI::showWindow(ProgState &progState) {
     ImGui::Begin("Window");
-    ImGui::Checkbox("Checkbox", &checkboxState);
+    ImGui::Checkbox("Limit FPS", &progState.limitFPS);
+    if (progState.limitFPS) {
+        if (ImGui::Checkbox("VSync", &progState.vsync)) {
+            // This looks so overcomplicated because passing -1 *might* work, but it's not guaranteed
+            if (progState.vsync) {
+                if (SDL_GL_SetSwapInterval(-1) == -1)
+                    SDL_GL_SetSwapInterval(1);
+            } else
+                SDL_GL_SetSwapInterval(0);
+        }
+        if (!progState.vsync)
+            ImGui::SliderInt("Max FPS", &progState.maxFPS, 1, 300);
+    }
     ImGui::End();
 }

@@ -6,6 +6,8 @@
 #include "shader.h"
 #include "gui.h"
 
+ProgState progState;
+
 namespace config {
     inline int window_size[2] = {1920/2, 1080/2};
 }
@@ -114,29 +116,46 @@ int main(int, char *[])
 
     const auto shader = Shader("resources/vert.glsl", "resources/frag.glsl");
 
-    GUI gui;
-    gui.init(window, glContext);
+    GUI::init(window, glContext);
 
+    Uint64 lastTimeSample;
+    Uint64 currentTimeSample = SDL_GetPerformanceCounter();
     SDL_Event event;
     while (true) {
-        SDL_PollEvent(&event);
-        ImGui_ImplSDL2_ProcessEvent(&event);
+        lastTimeSample = currentTimeSample;
+        currentTimeSample = SDL_GetPerformanceCounter();
+        const double deltaTime = (currentTimeSample - lastTimeSample) / static_cast<double>(SDL_GetPerformanceFrequency());
+        const double expected = 1.0 / progState.maxFPS;
+        if (progState.limitFPS && !progState.vsync && deltaTime < expected) {
+            SDL_Delay((expected - deltaTime) * 1000);
+            currentTimeSample = SDL_GetPerformanceCounter();
+        }
 
-        if (SDL_QuitRequested())
-            break;
+        while (SDL_PollEvent(&event)) {
+            ImGui_ImplSDL2_ProcessEvent(&event);
+            if (event.type == SDL_QUIT)
+                goto cleanup;  // I am so sorry
+        }
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-        gui.frame();
         shader.use();
         glBindVertexArray(vao);
-
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
+        GUI::frame(progState);
+        ImGui::SetNextWindowPos(ImVec2(5, 5));
+        ImGui::SetNextWindowSize(ImVec2(90, 0));
+        ImGui::Begin("FPS", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+        ImGui::End();
+
+        GUI::render();
         SDL_GL_SwapWindow(window);
     }
 
-    gui.shutdown();
+cleanup:
+    GUI::shutdown();
     SDL_GL_DeleteContext(glContext);
     SDL_DestroyWindow(window);
     SDL_Quit();
