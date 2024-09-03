@@ -74,15 +74,6 @@ int main(int, char *[])
         return -1;
     }
 
-    // const GLuint programID = glCreateProgram();
-    // if (!initGlProgram(programID)) {
-    //     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize OpenGL");
-    //     SDL_GL_DeleteContext(glContext);
-    //     SDL_DestroyWindow(window);
-    //     SDL_Quit();
-    //     return -1;
-    // }
-
     constexpr float vertices[] = {
          // Positions          // Colour
          0.0f,   0.5f, 0.0f,    1.0f, 0.0f, 0.0f,
