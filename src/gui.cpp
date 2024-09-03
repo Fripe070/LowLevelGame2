@@ -36,16 +36,14 @@ void GUI::showWindow(ProgState &progState) {
     ImGui::Begin("Settings");
     ImGui::Checkbox("Limit FPS", &progState.limitFPS);
     if (progState.limitFPS) {
-        if (ImGui::Checkbox("VSync", &progState.vsync)) {
-            // This looks so overcomplicated because passing -1 *might* work, but it's not guaranteed
-            if (progState.vsync) {
-                if (SDL_GL_SetSwapInterval(-1) == -1)
-                    SDL_GL_SetSwapInterval(1);
-            } else
-                SDL_GL_SetSwapInterval(0);
-        }
+        ImGui::Checkbox("VSync", &progState.vsync);
         if (!progState.vsync)
             ImGui::SliderInt("Max FPS", &progState.maxFPS, 1, 300);
     }
+    if (!progState.limitFPS || !progState.vsync)
+        SDL_GL_SetSwapInterval(0);
+    else
+        if (SDL_GL_SetSwapInterval(-1) == -1)
+            SDL_GL_SetSwapInterval(1);
     ImGui::End();
 }
