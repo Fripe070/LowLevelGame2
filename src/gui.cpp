@@ -33,7 +33,7 @@ void GUI::shutdown() {
 }
 
 void GUI::showWindow(ProgState &progState) {
-    ImGui::Begin("Window");
+    ImGui::Begin("Settings");
     ImGui::Checkbox("Limit FPS", &progState.limitFPS);
     if (progState.limitFPS) {
         if (ImGui::Checkbox("VSync", &progState.vsync)) {
