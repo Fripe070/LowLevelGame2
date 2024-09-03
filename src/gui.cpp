@@ -40,10 +40,8 @@ void GUI::showWindow(ProgState &progState) {
         if (!progState.vsync)
             ImGui::SliderInt("Max FPS", &progState.maxFPS, 1, 300);
     }
-    if (!progState.limitFPS || !progState.vsync)
-        SDL_GL_SetSwapInterval(0);
-    else
-        if (SDL_GL_SetSwapInterval(-1) == -1)
-            SDL_GL_SetSwapInterval(1);
+    if (SDL_GL_SetSwapInterval(progState.limitFPS && progState.vsync ? -1 : 0) == -1)
+        SDL_GL_SetSwapInterval(1);
+
     ImGui::End();
 }
