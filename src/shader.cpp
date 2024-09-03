@@ -76,3 +76,7 @@ Shader::Shader(const std::string &vertexFilePath, const std::string &fragmentFil
 Shader::~Shader() {
     glDeleteProgram(programID);
 }
+
+void Shader::use() const {
+    glUseProgram(programID);
+}

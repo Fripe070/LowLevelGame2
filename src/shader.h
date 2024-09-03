@@ -11,6 +11,7 @@ public:
 
   Shader(const std::string &vertexFilePath, const std::string &fragmentFilePath);
   ~Shader();
+  void use() const;
 
 private:
   static std::string readShaderFile(const std::string &filePath);
