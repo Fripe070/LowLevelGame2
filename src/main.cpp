@@ -118,17 +118,15 @@ int main(int, char *[])
 
     GUI::init(window, glContext);
 
-    Uint64 lastTimeSample;
-    Uint64 currentTimeSample = SDL_GetPerformanceCounter();
+    Uint64 frameStart = SDL_GetPerformanceCounter();
     SDL_Event event;
     while (true) {
-        lastTimeSample = currentTimeSample;
-        currentTimeSample = SDL_GetPerformanceCounter();
-        const double deltaTime = (currentTimeSample - lastTimeSample) / static_cast<double>(SDL_GetPerformanceFrequency());
-        const double expected = 1.0 / progState.maxFPS;
-        if (progState.limitFPS && !progState.vsync && deltaTime < expected) {
-            SDL_Delay((expected - deltaTime) * 1000);
-            currentTimeSample = SDL_GetPerformanceCounter();
+        const Uint64 lastFrameStart = frameStart;
+        frameStart = SDL_GetPerformanceCounter();
+        const double deltaTime = (frameStart - lastFrameStart) / static_cast<double>(SDL_GetPerformanceFrequency());
+        const double expectedDT = 1.0 / progState.maxFPS;
+        if (progState.limitFPS && !progState.vsync && deltaTime < expectedDT) {
+            SDL_Delay((expectedDT - deltaTime) * 1000);
         }
 
         while (SDL_PollEvent(&event)) {
@@ -147,7 +145,7 @@ int main(int, char *[])
         ImGui::SetNextWindowPos(ImVec2(5, 5));
         ImGui::SetNextWindowSize(ImVec2(90, 0));
         ImGui::Begin("FPS", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+        ImGui::Text("FPS: %.1f", 1.0 / deltaTime);
         ImGui::End();
 
         GUI::render();
