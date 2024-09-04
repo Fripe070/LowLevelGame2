@@ -43,5 +43,10 @@ void GUI::showWindow(ProgState &progState) {
     if (SDL_GL_SetSwapInterval(progState.limitFPS && progState.vsync ? -1 : 0) == -1)
         SDL_GL_SetSwapInterval(1);
 
+    if (ImGui::CollapsingHeader("Rotate")) {
+        ImGui::SliderFloat("Rot X", &progState.rotX, 0.0f, 360);
+        ImGui::SliderFloat("Rot Y", &progState.rotY, 0.0f, 360);
+        ImGui::SliderFloat("Rot Z", &progState.rotZ, 0.0f, 360);
+    }
     ImGui::End();
 }

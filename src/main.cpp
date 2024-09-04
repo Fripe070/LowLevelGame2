@@ -7,6 +7,11 @@
 #include "gui.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#define DEBUG
 
 ProgState progState;
 
@@ -146,11 +151,15 @@ int main(int, char *[])
 
     const auto shader = Shader("resources/vert.glsl", "resources/frag.glsl");
 
+    auto trans = glm::mat4(1.0f);
+    GLint transformLoc = glGetUniformLocation(shader.programID, "transform");
+
     GUI::init(window, glContext);
 
+    bool running = true;
     Uint64 frameStart = SDL_GetPerformanceCounter();
     SDL_Event event;
-    while (true) {
+    while (running) {
         const Uint64 lastFrameStart = frameStart;
         frameStart = SDL_GetPerformanceCounter();
         const double deltaTime = (frameStart - lastFrameStart) / static_cast<double>(SDL_GetPerformanceFrequency());
@@ -161,8 +170,10 @@ int main(int, char *[])
 
         while (SDL_PollEvent(&event)) {
             ImGui_ImplSDL2_ProcessEvent(&event);
-            if (event.type == SDL_QUIT)
-                goto cleanup;  // I am so sorry
+            if (event.type == SDL_QUIT){
+                running = false;
+                break;
+            }
         }
 
         glClear(GL_COLOR_BUFFER_BIT);
@@ -173,6 +184,20 @@ int main(int, char *[])
         glBindVertexArray(vao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
+        trans = glm::mat4(1.0f); // remove to make the rotation angles to spin speed
+
+        // TODO : use a single rotation matrix
+        trans = glm::rotate(trans, glm::radians(progState.rotX), glm::vec3(1.0, 0.0, 0.0)); // x
+        trans = glm::rotate(trans, glm::radians(progState.rotY), glm::vec3(0.0, 1.0, 0.0)); // y
+        trans = glm::rotate(trans, glm::radians(progState.rotZ), glm::vec3(0.0, 0.0, 1.0)); // z
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
+#ifdef DEBUG
+        if (GLenum error = glGetError(); error != GL_NO_ERROR) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "OpenGL error: %d", error);
+        }
+#endif
+
         GUI::frame(progState);
         ImGui::SetNextWindowPos(ImVec2(5, 5));
         ImGui::SetNextWindowSize(ImVec2(90, 0));
@@ -182,9 +207,11 @@ int main(int, char *[])
 
         GUI::render();
         SDL_GL_SwapWindow(window);
+
+        if (!running)
+            break;
     }
 
-cleanup:
     GUI::shutdown();
     SDL_GL_DeleteContext(glContext);
     SDL_DestroyWindow(window);

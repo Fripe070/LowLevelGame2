@@ -4,7 +4,9 @@ project('lowlevelgame', 'cpp',
 sdl2_dep = dependency('sdl2')
 imgui_dep = dependency('imgui')
 glew_dep = dependency('glew')
-dependencies = [sdl2_dep, imgui_dep, glew_dep]
+glm_dep = dependency('glm')
+
+dependencies = [sdl2_dep, imgui_dep, glew_dep, glm_dep]
 
 if host_machine.system() == 'windows'
   sdl2_main_dep = dependency('sdl2main')
