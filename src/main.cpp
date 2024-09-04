@@ -5,6 +5,8 @@
 #include <imgui_impl_sdl2.h>
 #include "shader.h"
 #include "gui.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 ProgState progState;
 
@@ -32,6 +34,7 @@ typedef struct {
     enum {
         position,
         colour,
+        uv,
     };
 } t_attribute_ids;
 
@@ -79,13 +82,15 @@ int main(int, char *[])
     }
 
     constexpr float vertices[] = {
-         // Positions          // Colour
-         0.0f,   0.5f, 0.0f,    1.0f, 0.0f, 0.0f,
-         1.f/3, -0.5f, 0.0f,    0.0f, 1.0f, 0.0f,
-        -1.f/3, -0.5f, 0.0f,    0.0f, 0.0f, 1.0f,
+        // positions          // colors           // texture coords
+        0.5f,  0.5f,  0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
+        0.5f, -0.5f,  0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
+       -0.5f, -0.5f,  0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
+       -0.5f,  0.5f,  0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f // top left
     };
     constexpr unsigned int indices[] = {
         0, 1, 2,
+        2, 3, 0
     };
 
     GLuint vao, vbo, ebo;
@@ -99,18 +104,42 @@ int main(int, char *[])
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    const unsigned int fstride = 8 * sizeof(float);
     glVertexAttribPointer(
         t_attribute_ids::position, 3, GL_FLOAT, GL_FALSE,
-        6 * sizeof(float), nullptr);
+        fstride, nullptr);
     glEnableVertexAttribArray(t_attribute_ids::position);
     glVertexAttribPointer(
         t_attribute_ids::colour, 3, GL_FLOAT, GL_FALSE,
-        6 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
+        fstride, reinterpret_cast<void*>(3 * sizeof(float)));
     glEnableVertexAttribArray(t_attribute_ids::colour);
+    glVertexAttribPointer(
+        t_attribute_ids::uv, 2, GL_FLOAT, GL_FALSE,
+        fstride, reinterpret_cast<void*>(6 * sizeof(float)));
+    glEnableVertexAttribArray(t_attribute_ids::uv);
 
     glBindVertexArray(0); // Unbind VAO
     glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind VBO
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // Unbind EBO
+
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    int width, height, nrChannels;
+    unsigned char* imgData = stbi_load("resources/brick.png", &width, &height, &nrChannels, 0);
+    if (!imgData) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load texture %s: %s", "resources/container.png", stbi_failure_reason());
+        return -1;
+    }
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, imgData);  // If consulting this code in regard to output being messed up, make sure to use alpha channel if present
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(imgData);
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -138,6 +167,8 @@ int main(int, char *[])
         glClear(GL_COLOR_BUFFER_BIT);
 
         shader.use();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(vao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
