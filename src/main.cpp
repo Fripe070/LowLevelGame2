@@ -130,6 +130,7 @@ int main(int, char *[])
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
+    stbi_set_flip_vertically_on_load(true);
     int width, height, nrChannels;
     unsigned char* imgData = stbi_load("resources/brick.png", &width, &height, &nrChannels, 0);
     if (!imgData) {
