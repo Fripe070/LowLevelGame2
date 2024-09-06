@@ -143,7 +143,8 @@ int main(int, char *[])
         return -1;
     }
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, imgData);  // If consulting this code in regard to output being messed up, make sure to use alpha channel if present
+    // If consulting this code in regard to output being messed up, make sure to use alpha channel if present
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, imgData);
     glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(imgData);
 
@@ -175,6 +176,8 @@ int main(int, char *[])
                 break;
             }
         }
+        if (!running)
+            break;
 
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -207,9 +210,6 @@ int main(int, char *[])
 
         GUI::render();
         SDL_GL_SwapWindow(window);
-
-        if (!running)
-            break;
     }
 
     GUI::shutdown();
@@ -219,4 +219,3 @@ int main(int, char *[])
 
     return 0;
 }
-
