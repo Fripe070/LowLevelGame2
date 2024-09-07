@@ -35,6 +35,33 @@ std::string getProgramInfoLog(const GLuint programID) {
     return infoLog;
 }
 
+std::string glErrorString(const GLenum errorCode) {
+    switch (errorCode) {
+        case GL_NO_ERROR:
+            return "No error";
+        case GL_INVALID_ENUM:
+            return "Invalid enum";
+        case GL_INVALID_VALUE:
+            return "Invalid value";
+        case GL_INVALID_OPERATION:
+            return "Invalid operation";
+        case GL_STACK_OVERFLOW:
+            return "Stack overflow";
+        case GL_STACK_UNDERFLOW:
+            return "Stack underflow";
+        case GL_OUT_OF_MEMORY:
+            return "Out of memory";
+        case GL_INVALID_FRAMEBUFFER_OPERATION:
+            return "Invalid framebuffer operation";
+        case GL_CONTEXT_LOST:
+            return "Context lost";
+        case GL_TABLE_TOO_LARGE:
+            return "Table too large";
+        default:
+            return "Unknown error " + errorCode;
+    }
+}
+
 typedef struct {
     enum {
         position,
@@ -42,7 +69,6 @@ typedef struct {
         uv,
     };
 } t_attribute_ids;
-
 
 int main(int, char *[])
 {
@@ -197,7 +223,7 @@ int main(int, char *[])
 
 #ifdef DEBUG
         if (GLenum error = glGetError(); error != GL_NO_ERROR) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "OpenGL error: %d", error);
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "OpenGL error: (%d) %s", error, glErrorString(error).c_str());
         }
 #endif
 
