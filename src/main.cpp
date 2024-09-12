@@ -113,41 +113,91 @@ int main(int, char *[])
     }
 
     constexpr float vertices[] = {
-        // positions          // colors           // texture coords
-        0.5f,  0.5f,  0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
-        0.5f, -0.5f,  0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
-       -0.5f, -0.5f,  0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-       -0.5f,  0.5f,  0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f // top left
+        // positions           // colors           // texture coords
+        -0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+
+         0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
     };
-    constexpr unsigned int indices[] = {
-        0, 1, 2,
-        2, 3, 0
+    // constexpr unsigned int indices[] = {
+    //     0, 1, 2,
+    //     2, 3, 0
+    // };
+    glm::vec3 cubePositions[] = {
+        glm::vec3( 0.0f,  0.0f,  0.0f),
+        glm::vec3( 2.0f,  5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3( 2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f,  3.0f, -7.5f),
+        glm::vec3( 1.3f, -2.0f, -2.5f),
+        glm::vec3( 1.5f,  2.0f, -2.5f),
+        glm::vec3( 1.5f,  0.2f, -1.5f),
+        glm::vec3(-1.3f,  1.0f, -1.5f)
     };
 
-    GLuint vao, vbo, ebo;
+    GLuint vao, vbo;//, ebo;
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
-    glGenBuffers(1, &ebo);
+    // glGenBuffers(1, &ebo);
 
     glBindVertexArray(vao); // Bind our VAO, essentially our context/config
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    const unsigned int fstride = 8 * sizeof(float);
+    constexpr unsigned int valueCount = 8;
+    constexpr unsigned int fStride = valueCount * sizeof(float);
     glVertexAttribPointer(
         t_attribute_ids::position, 3, GL_FLOAT, GL_FALSE,
-        fstride, nullptr);
+        fStride, nullptr);
     glEnableVertexAttribArray(t_attribute_ids::position);
     glVertexAttribPointer(
         t_attribute_ids::colour, 3, GL_FLOAT, GL_FALSE,
-        fstride, reinterpret_cast<void*>(3 * sizeof(float)));
+        fStride, reinterpret_cast<void*>(3 * sizeof(float)));
     glEnableVertexAttribArray(t_attribute_ids::colour);
     glVertexAttribPointer(
         t_attribute_ids::uv, 2, GL_FLOAT, GL_FALSE,
-        fstride, reinterpret_cast<void*>(6 * sizeof(float)));
+        fStride, reinterpret_cast<void*>(6 * sizeof(float)));
     glEnableVertexAttribArray(t_attribute_ids::uv);
 
     glBindVertexArray(0); // Unbind VAO
@@ -178,51 +228,89 @@ int main(int, char *[])
 
     const auto shader = Shader("resources/vert.glsl", "resources/frag.glsl");
 
-    auto trans = glm::mat4(1.0f);
-    GLint transformLoc = glGetUniformLocation(shader.programID, "transform");
-
+    glEnable(GL_DEPTH_TEST);
     GUI::init(window, glContext);
 
-    bool running = true;
+    glm::mat4 viewMatrix;
+    auto cameraPos = glm::vec3(0.0f, 0.0f,  3.0f);
+    auto cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+    auto cameraUp = glm::vec3(0.0f, 1.0f,  0.0f);
+
     Uint64 frameStart = SDL_GetPerformanceCounter();
     SDL_Event event;
-    while (running) {
+    while (true) {
         const Uint64 lastFrameStart = frameStart;
         frameStart = SDL_GetPerformanceCounter();
-        const double deltaTime = (frameStart - lastFrameStart) / static_cast<double>(SDL_GetPerformanceFrequency());
-        const double expectedDT = 1.0 / progState.maxFPS;
-        if (progState.limitFPS && !progState.vsync && deltaTime < expectedDT) {
-            SDL_Delay((expectedDT - deltaTime) * 1000);
+        const double deltaTime = static_cast<double>(frameStart - lastFrameStart) / static_cast<double>(SDL_GetPerformanceFrequency());
+        const auto fDeltaTime = static_cast<float>(deltaTime); // We need it as a float a lot
+
+        // TODO: Process inputs instead of sleeping, to mitigate some input lag
+        if (const double expectedDT = 1.0 / progState.maxFPS;
+            progState.limitFPS && !progState.vsync && deltaTime < expectedDT) {
+            SDL_Delay(static_cast<Uint32>((expectedDT - deltaTime) * 1000.0));
         }
 
         while (SDL_PollEvent(&event)) {
             ImGui_ImplSDL2_ProcessEvent(&event);
-            if (event.type == SDL_QUIT){
-                running = false;
-                break;
+            switch (event.type) {
+                default: break;
+                case SDL_QUIT:
+                    goto quit;
             }
         }
-        if (!running)
-            break;
 
-        glClear(GL_COLOR_BUFFER_BIT);
+        const Uint8* keyState = SDL_GetKeyboardState(nullptr);
+        auto inputDir = glm::vec3(0.0f, 0.0f,  0.0f);
+        if (keyState[SDL_SCANCODE_W])
+            inputDir += cameraFront;
+        if (keyState[SDL_SCANCODE_S])
+            inputDir -= cameraFront;
+        if (keyState[SDL_SCANCODE_A])
+            inputDir -= glm::normalize(glm::cross(cameraFront, cameraUp));
+        if (keyState[SDL_SCANCODE_D])
+            inputDir += glm::normalize(glm::cross(cameraFront, cameraUp));
+        if (keyState[SDL_SCANCODE_SPACE])
+            inputDir += cameraUp;
+        if (keyState[SDL_SCANCODE_LSHIFT])
+            inputDir -= cameraUp;
+        inputDir = glm::dot(inputDir, inputDir) > 0.0f ? glm::normalize(inputDir) : inputDir; // dot(v, v) is squared length
+        constexpr auto CAMERA_SPEED = 2.5f;
+        cameraPos += inputDir * CAMERA_SPEED * fDeltaTime;
 
+        viewMatrix = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+#pragma region Render
         shader.use();
+
+        GLint uniformModel = glGetUniformLocation(shader.programID, "model");
+        GLint uniformView = glGetUniformLocation(shader.programID, "view");
+        GLint uniformProjection = glGetUniformLocation(shader.programID, "projection");
+
+        glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+        auto projection = glm::perspective(
+            glm::radians(45.0f),
+            static_cast<float>(config::window_size[0]) / static_cast<float>(config::window_size[1]),
+            0.1f, 100.0f);
+        glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
+
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(vao);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
-        trans = glm::mat4(1.0f); // remove to make the rotation angles to spin speed
-
-        // TODO : use a single rotation matrix
-        trans = glm::rotate(trans, glm::radians(progState.rotX), glm::vec3(1.0, 0.0, 0.0)); // x
-        trans = glm::rotate(trans, glm::radians(progState.rotY), glm::vec3(0.0, 1.0, 0.0)); // y
-        trans = glm::rotate(trans, glm::radians(progState.rotZ), glm::vec3(0.0, 0.0, 1.0)); // z
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+        // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        for (unsigned int i = 0; i < 10; i++) {
+            auto model = glm::mat4(1.0f);
+            model = glm::translate(model, cubePositions[i]);
+            model = glm::rotate(model, glm::radians(20.0f * static_cast<float>(i)), glm::vec3(1.0f, 0.3f, 0.5f));
+            glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+            glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / sizeof(float) / valueCount);
+        }
+#pragma endregion
 
 #ifdef DEBUG
-        if (GLenum error = glGetError(); error != GL_NO_ERROR) {
+        if (const GLenum error = glGetError(); error != GL_NO_ERROR) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "OpenGL error: (%d) %s", error, glErrorString(error).c_str());
         }
 #endif
@@ -238,6 +326,7 @@ int main(int, char *[])
         SDL_GL_SwapWindow(window);
     }
 
+quit:
     GUI::shutdown();
     SDL_GL_DeleteContext(glContext);
     SDL_DestroyWindow(window);
