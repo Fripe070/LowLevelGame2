@@ -1,4 +1,4 @@
-Prerequisites:
+## Prerequisites
 - [Meson](https://mesonbuild.com/SimpleStart.html#installing-meson)
 - [MinGW](https://www.mingw-w64.org/) (Windows only)
 
@@ -8,3 +8,10 @@ To compile and run the program:
 meson compile -C build
 ./build/lowlevelgame  
 ```
+## Controls
+- WASD to move
+- Space to fly up
+- Shift to fly down
+- Mouse to look around
+- Mouse wheel to zoom
+- ESC to unlock cursor

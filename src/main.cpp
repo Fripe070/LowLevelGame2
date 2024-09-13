@@ -1,4 +1,5 @@
 #include <string>
+#include <unordered_map>
 #include <gl/glew.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
@@ -36,30 +37,57 @@ std::string getProgramInfoLog(const GLuint programID) {
 }
 
 std::string glErrorString(const GLenum errorCode) {
-    switch (errorCode) {
-        case GL_NO_ERROR:
-            return "No error";
-        case GL_INVALID_ENUM:
-            return "Invalid enum";
-        case GL_INVALID_VALUE:
-            return "Invalid value";
-        case GL_INVALID_OPERATION:
-            return "Invalid operation";
-        case GL_STACK_OVERFLOW:
-            return "Stack overflow";
-        case GL_STACK_UNDERFLOW:
-            return "Stack underflow";
-        case GL_OUT_OF_MEMORY:
-            return "Out of memory";
-        case GL_INVALID_FRAMEBUFFER_OPERATION:
-            return "Invalid framebuffer operation";
-        case GL_CONTEXT_LOST:
-            return "Context lost";
-        case GL_TABLE_TOO_LARGE:
-            return "Table too large";
-        default:
-            return "Unknown error " + errorCode;
-    }
+    static const std::unordered_map<GLenum, std::string> map = {
+        {GL_NO_ERROR, "No error"},
+        {GL_INVALID_ENUM, "Invalid enum"},
+        {GL_INVALID_VALUE, "Invalid value"},
+        {GL_INVALID_OPERATION, "Invalid operation"},
+        {GL_STACK_OVERFLOW, "Stack overflow"},
+        {GL_STACK_UNDERFLOW, "Stack underflow"},
+        {GL_OUT_OF_MEMORY, "Out of memory"},
+        {GL_INVALID_FRAMEBUFFER_OPERATION, "Invalid framebuffer operation"},
+        {GL_CONTEXT_LOST, "Context lost"},
+        {GL_TABLE_TOO_LARGE, "Table too large"}
+    };
+
+    auto err = map.find(errorCode);
+    return err!= map.end() ? err->second : "Unknown error: " + std::to_string(errorCode);
+}
+
+struct {
+    float lastX = config::window_size[0] / 2.0f;
+    float lastY = config::window_size[1] / 2.0f;
+    float yaw = -90.0f;
+    float pitch = 0.0f;
+} mouseState;
+
+void handle_mouse_movement(SDL_Event event, glm::vec3 &cameraFront)
+{
+    float xOffset = event.motion.xrel;
+    float yOffset = -event.motion.yrel;
+    xOffset *= progState.sensitivity;
+    yOffset *= progState.sensitivity;
+
+    mouseState.yaw += xOffset;
+    mouseState.pitch += yOffset;
+    mouseState.pitch = std::max(-89.0f, std::min(mouseState.pitch, 89.0f));
+
+    const float pitch = glm::radians(mouseState.pitch);
+    const float yaw = glm::radians(mouseState.yaw);
+    cameraFront = glm::vec3(
+        cos(yaw) * cos(pitch),
+        sin(pitch),
+        sin(yaw) * cos(pitch)
+    );
+}
+
+void handle_scroll(double yOffset)
+{
+    progState.fov -= static_cast<float>(yOffset);
+    progState.fov = std::max(progState.fov, 1.0f);
+    progState.fov = std::min(progState.fov, 45.0f);
+    // for some reason, while using clamp it crashes on startup
+    // progState.fov = std::clamp(progState.fov, 1.0f, 45.0f);
 }
 
 typedef struct {
@@ -111,6 +139,7 @@ int main(int, char *[])
         SDL_Quit();
         return -1;
     }
+    SDL_SetRelativeMouseMode(SDL_TRUE);
 
     constexpr float vertices[] = {
         // positions           // colors           // texture coords
@@ -250,15 +279,6 @@ int main(int, char *[])
             SDL_Delay(static_cast<Uint32>((expectedDT - deltaTime) * 1000.0));
         }
 
-        while (SDL_PollEvent(&event)) {
-            ImGui_ImplSDL2_ProcessEvent(&event);
-            switch (event.type) {
-                default: break;
-                case SDL_QUIT:
-                    goto quit;
-            }
-        }
-
         const Uint8* keyState = SDL_GetKeyboardState(nullptr);
         auto inputDir = glm::vec3(0.0f, 0.0f,  0.0f);
         if (keyState[SDL_SCANCODE_W])
@@ -273,9 +293,28 @@ int main(int, char *[])
             inputDir += cameraUp;
         if (keyState[SDL_SCANCODE_LSHIFT])
             inputDir -= cameraUp;
+        if (keyState[SDL_SCANCODE_ESCAPE])
+            SDL_SetRelativeMouseMode(SDL_FALSE);
+
         inputDir = glm::dot(inputDir, inputDir) > 0.0f ? glm::normalize(inputDir) : inputDir; // dot(v, v) is squared length
         constexpr auto CAMERA_SPEED = 2.5f;
         cameraPos += inputDir * CAMERA_SPEED * fDeltaTime;
+
+        while (SDL_PollEvent(&event)) {
+            ImGui_ImplSDL2_ProcessEvent(&event);
+            switch (event.type) {
+                default: break;
+                case SDL_MOUSEWHEEL:
+                    handle_scroll(event.wheel.y);
+                    break;
+                case SDL_MOUSEMOTION:
+                    handle_mouse_movement(event, cameraFront);
+                    break;
+                case SDL_QUIT:
+                    goto quit;
+
+            }
+        }
 
         viewMatrix = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
@@ -290,7 +329,7 @@ int main(int, char *[])
 
         glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(viewMatrix));
         auto projection = glm::perspective(
-            glm::radians(45.0f),
+            glm::radians(progState.fov),
             static_cast<float>(config::window_size[0]) / static_cast<float>(config::window_size[1]),
             0.1f, 100.0f);
         glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));

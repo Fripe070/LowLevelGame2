@@ -48,5 +48,12 @@ void GUI::showWindow(ProgState &progState) {
         ImGui::SliderFloat("Rot Y", &progState.rotY, 0.0f, 360);
         ImGui::SliderFloat("Rot Z", &progState.rotZ, 0.0f, 360);
     }
+    if (ImGui::CollapsingHeader("Mouse")) {
+        ImGui::SliderFloat("Sensitivity", &progState.sensitivity, 0.0f, 1.0f);
+    }
+    if (ImGui::Button("Capture Mouse")) {
+        SDL_SetRelativeMouseMode(SDL_TRUE);
+        ImGui::SetWindowCollapsed(true);
+    }
     ImGui::End();
 }

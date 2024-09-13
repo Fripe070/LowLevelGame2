@@ -9,6 +9,8 @@ typedef struct {
     float rotX = 0.0f;
     float rotY = 0.0f;
     float rotZ = 0.0f;
+    float fov = 45.0f;
+    float sensitivity = 0.1f;
 } ProgState;
 
 class GUI {
