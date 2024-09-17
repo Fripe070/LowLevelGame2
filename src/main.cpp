@@ -16,10 +16,6 @@
 
 ProgState progState;
 
-namespace config {
-    inline int window_size[2] = {1920/2, 1080/2};
-}
-
 std::string getShaderInfoLog(const GLuint shaderID) {
     GLint infoLogLength;
     glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
@@ -55,16 +51,16 @@ std::string glErrorString(const GLenum errorCode) {
 }
 
 struct {
-    float lastX = config::window_size[0] / 2.0f;
-    float lastY = config::window_size[1] / 2.0f;
+    float lastX = static_cast<float>(progState.windowWidth) / 2.0f;
+    float lastY = static_cast<float>(progState.windowHeight) / 2.0f;
     float yaw = -90.0f;
     float pitch = 0.0f;
 } mouseState;
 
 void handle_mouse_movement(SDL_Event event, glm::vec3 &cameraFront)
 {
-    float xOffset = event.motion.xrel;
-    float yOffset = -event.motion.yrel;
+    auto xOffset = static_cast<float>(event.motion.xrel);
+    auto yOffset = static_cast<float>(-event.motion.yrel);
     xOffset *= progState.sensitivity;
     yOffset *= progState.sensitivity;
 
@@ -108,8 +104,8 @@ int main(int, char *[])
     SDL_Window *window = SDL_CreateWindow(
         "LowLevelGame attempt 2 (million)",
         SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-        config::window_size[0], config::window_size[1],
-        SDL_WINDOW_OPENGL //| SDL_WINDOW_RESIZABLE
+        progState.windowWidth, progState.windowHeight,
+        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
     );
     if (!window) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create window: %s", SDL_GetError());
@@ -312,7 +308,12 @@ int main(int, char *[])
                     break;
                 case SDL_QUIT:
                     goto quit;
-
+                case SDL_WINDOWEVENT:
+                    if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                        progState.windowWidth = event.window.data1;
+                        progState.windowHeight = event.window.data2;
+                        glViewport(0, 0, progState.windowWidth, progState.windowHeight);
+                    }
             }
         }
 
@@ -330,7 +331,7 @@ int main(int, char *[])
         glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(viewMatrix));
         auto projection = glm::perspective(
             glm::radians(progState.fov),
-            static_cast<float>(config::window_size[0]) / static_cast<float>(config::window_size[1]),
+            static_cast<float>(progState.windowWidth) / static_cast<float>(progState.windowHeight),
             0.1f, 100.0f);
         glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
 
