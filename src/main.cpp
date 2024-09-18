@@ -57,7 +57,7 @@ struct {
     float pitch = 0.0f;
 } mouseState;
 
-void handle_mouse_movement(SDL_Event event, glm::vec3 &cameraFront)
+void handle_mouse_movement(const SDL_Event &event, glm::vec3 &cameraFront)
 {
     auto xOffset = static_cast<float>(event.motion.xrel);
     auto yOffset = static_cast<float>(-event.motion.yrel);
@@ -89,6 +89,7 @@ void handle_scroll(double yOffset)
 typedef struct {
     enum {
         position,
+        normal,
         colour,
         uv,
     };
@@ -138,65 +139,65 @@ int main(int, char *[])
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
     constexpr float vertices[] = {
-        // positions           // colors           // texture coords
-        -0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+        // positions           // Normals          // colors           // texture coords
+        -0.5f, -0.5f, -0.5f,   0.0f,  0.0f, -1.0f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,   0.0f,  0.0f, -1.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,   0.0f,  0.0f, -1.0f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,   0.0f,  0.0f, -1.0f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,   0.0f,  0.0f, -1.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,   0.0f,  0.0f, -1.0f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
 
-        -0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,   0.0f,  0.0f,  1.0f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,   0.0f,  0.0f,  1.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,   0.0f,  0.0f,  1.0f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,   0.0f,  0.0f,  1.0f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,   0.0f,  0.0f,  1.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,   0.0f,  0.0f,  1.0f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
 
-        -0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  -1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  -1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  -1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  -1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  -1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  -1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
 
-         0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,   1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,   1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,   1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,   1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,   1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,   1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
 
-        -0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,   0.0f, -1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,   0.0f, -1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,   0.0f, -1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,   0.0f, -1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,   0.0f, -1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,   0.0f, -1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
 
-        -0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,   0.0f,  1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,   0.0f,  1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,   0.0f,  1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,   0.0f,  1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,   0.0f,  1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,   0.0f,  1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
     };
     // constexpr unsigned int indices[] = {
     //     0, 1, 2,
     //     2, 3, 0
     // };
-    glm::vec3 cubePositions[] = {
-        glm::vec3( 0.0f,  0.0f,  0.0f),
-        glm::vec3( 2.0f,  5.0f, -15.0f),
-        glm::vec3(-1.5f, -2.2f, -2.5f),
-        glm::vec3(-3.8f, -2.0f, -12.3f),
-        glm::vec3( 2.4f, -0.4f, -3.5f),
-        glm::vec3(-1.7f,  3.0f, -7.5f),
-        glm::vec3( 1.3f, -2.0f, -2.5f),
-        glm::vec3( 1.5f,  2.0f, -2.5f),
-        glm::vec3( 1.5f,  0.2f, -1.5f),
-        glm::vec3(-1.3f,  1.0f, -1.5f)
-    };
+    // glm::vec3 cubePositions[] = {
+    //     glm::vec3( 0.0f,  0.0f,  0.0f),
+    //     glm::vec3( 2.0f,  5.0f, -15.0f),
+    //     glm::vec3(-1.5f, -2.2f, -2.5f),
+    //     glm::vec3(-3.8f, -2.0f, -12.3f),
+    //     glm::vec3( 2.4f, -0.4f, -3.5f),
+    //     glm::vec3(-1.7f,  3.0f, -7.5f),
+    //     glm::vec3( 1.3f, -2.0f, -2.5f),
+    //     glm::vec3( 1.5f,  2.0f, -2.5f),
+    //     glm::vec3( 1.5f,  0.2f, -1.5f),
+    //     glm::vec3(-1.3f,  1.0f, -1.5f)
+    // };
 
     GLuint vao, vbo;//, ebo;
     glGenVertexArrays(1, &vao);
@@ -210,20 +211,36 @@ int main(int, char *[])
     // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    constexpr unsigned int valueCount = 8;
+    constexpr unsigned int valueCount = 3*3 + 2;
     constexpr unsigned int fStride = valueCount * sizeof(float);
     glVertexAttribPointer(
         t_attribute_ids::position, 3, GL_FLOAT, GL_FALSE,
         fStride, nullptr);
     glEnableVertexAttribArray(t_attribute_ids::position);
     glVertexAttribPointer(
+        t_attribute_ids::normal, 3, GL_FLOAT, GL_FALSE,
+        fStride, reinterpret_cast<void *>(3 * sizeof(float)));
+    glEnableVertexAttribArray(t_attribute_ids::normal);
+    glVertexAttribPointer(
         t_attribute_ids::colour, 3, GL_FLOAT, GL_FALSE,
-        fStride, reinterpret_cast<void*>(3 * sizeof(float)));
+        fStride, reinterpret_cast<void*>(6 * sizeof(float)));
     glEnableVertexAttribArray(t_attribute_ids::colour);
     glVertexAttribPointer(
         t_attribute_ids::uv, 2, GL_FLOAT, GL_FALSE,
-        fStride, reinterpret_cast<void*>(6 * sizeof(float)));
+        fStride, reinterpret_cast<void*>(9 * sizeof(float)));
     glEnableVertexAttribArray(t_attribute_ids::uv);
+
+
+    // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
+    unsigned int lightVAO;
+    glGenVertexArrays(1, &lightVAO);
+    glBindVertexArray(lightVAO);
+    // we only need to _bind_ the VBO, it already contains the data we need
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    // note that we update the lamp's position attribute's stride to reflect the updated buffer data
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, fStride, nullptr);
+    glEnableVertexAttribArray(0);
+
 
     glBindVertexArray(0); // Unbind VAO
     glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind VBO
@@ -251,7 +268,8 @@ int main(int, char *[])
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    const auto shader = Shader("resources/vert.glsl", "resources/frag.glsl");
+    const auto shader = Shader("resources/vert.vert", "resources/frag.frag");
+    const auto lightShader = Shader("resources/vert.vert", "resources/light.frag");
 
     glEnable(GL_DEPTH_TEST);
     GUI::init(window, glContext);
@@ -260,6 +278,8 @@ int main(int, char *[])
     auto cameraPos = glm::vec3(0.0f, 0.0f,  3.0f);
     auto cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
     auto cameraUp = glm::vec3(0.0f, 1.0f,  0.0f);
+
+    auto lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
 
     Uint64 frameStart = SDL_GetPerformanceCounter();
     SDL_Event event;
@@ -322,31 +342,50 @@ int main(int, char *[])
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 #pragma region Render
+        auto lightColor = glm::vec3(0.6f, 0.8f, 0.8f);
+
         shader.use();
-
-        GLint uniformModel = glGetUniformLocation(shader.programID, "model");
-        GLint uniformView = glGetUniformLocation(shader.programID, "view");
-        GLint uniformProjection = glGetUniformLocation(shader.programID, "projection");
-
-        glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-        auto projection = glm::perspective(
-            glm::radians(progState.fov),
-            static_cast<float>(progState.windowWidth) / static_cast<float>(progState.windowHeight),
-            0.1f, 100.0f);
-        glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
+        shader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+        shader.setVec3("lightColor", lightColor);
+        shader.setVec3("lightPos", lightPos);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
-        glBindVertexArray(vao);
 
-        // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-        for (unsigned int i = 0; i < 10; i++) {
-            auto model = glm::mat4(1.0f);
-            model = glm::translate(model, cubePositions[i]);
-            model = glm::rotate(model, glm::radians(20.0f * static_cast<float>(i)), glm::vec3(1.0f, 0.3f, 0.5f));
-            glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-            glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / sizeof(float) / valueCount);
-        }
+        // view/projection transformations
+        glm::mat4 projection = glm::perspective(
+            glm::radians(progState.fov),
+            static_cast<float>(progState.windowWidth) / static_cast<float>(progState.windowHeight),
+            0.1f, 100.0f);
+        shader.setMat4("projection", projection);
+        shader.setMat4("view", viewMatrix);
+
+        // render the cubes
+        glBindVertexArray(vao);
+        shader.setMat4("model", glm::mat4(1.0f));
+        glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / fStride);
+        // for (unsigned int i = 0; i < sizeof(cubePositions) / sizeof(glm::vec3); i++) {
+        //     auto model = glm::mat4(1.0f);
+        //     model = glm::translate(model, cubePositions[i]);
+        //     model = glm::rotate(model, glm::radians(20.0f * static_cast<float>(i)), glm::vec3(1.0f, 0.3f, 0.5f));
+        //     shader.setMat4("model", model);
+        //     glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / fStride);
+        // }
+        // // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
+        // render the light
+        lightShader.use();
+        lightShader.setVec3("color", lightColor);
+        lightShader.setMat4("projection", projection);
+        lightShader.setMat4("view", viewMatrix);
+        auto model = glm::mat4(1.0f);
+        model = glm::translate(model, lightPos);
+        model = glm::scale(model, glm::vec3(0.2f));
+        lightShader.setMat4("model", model);
+
+        glBindVertexArray(lightVAO);
+        glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / fStride);
+
 #pragma endregion
 
 #ifdef DEBUG

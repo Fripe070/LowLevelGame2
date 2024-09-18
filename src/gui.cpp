@@ -5,7 +5,7 @@
 
 #include "gui.h"
 
-void GUI::init(SDL_Window* window, SDL_GLContext glContext) {
+void GUI::init(SDL_Window *window, SDL_GLContext glContext) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
