@@ -186,18 +186,18 @@ int main(int, char *[])
     //     0, 1, 2,
     //     2, 3, 0
     // };
-    glm::vec3 cubePositions[] = {
-        glm::vec3( 0.0f,  0.0f,  0.0f),
-        glm::vec3( 2.0f,  5.0f, -15.0f),
-        glm::vec3(-1.5f, -2.2f, -2.5f),
-        glm::vec3(-3.8f, -2.0f, -12.3f),
-        glm::vec3( 2.4f, -0.4f, -3.5f),
-        glm::vec3(-1.7f,  3.0f, -7.5f),
-        glm::vec3( 1.3f, -2.0f, -2.5f),
-        glm::vec3( 1.5f,  2.0f, -2.5f),
-        glm::vec3( 1.5f,  0.2f, -1.5f),
-        glm::vec3(-1.3f,  1.0f, -1.5f)
-    };
+    // glm::vec3 cubePositions[] = {
+    //     glm::vec3( 0.0f,  0.0f,  0.0f),
+    //     glm::vec3( 2.0f,  5.0f, -15.0f),
+    //     glm::vec3(-1.5f, -2.2f, -2.5f),
+    //     glm::vec3(-3.8f, -2.0f, -12.3f),
+    //     glm::vec3( 2.4f, -0.4f, -3.5f),
+    //     glm::vec3(-1.7f,  3.0f, -7.5f),
+    //     glm::vec3( 1.3f, -2.0f, -2.5f),
+    //     glm::vec3( 1.5f,  2.0f, -2.5f),
+    //     glm::vec3( 1.5f,  0.2f, -1.5f),
+    //     glm::vec3(-1.3f,  1.0f, -1.5f)
+    // };
 
     GLuint vao, vbo;//, ebo;
     glGenVertexArrays(1, &vao);
@@ -211,7 +211,7 @@ int main(int, char *[])
     // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    constexpr unsigned int valueCount = 11;
+    constexpr unsigned int valueCount = 3*3 + 2;
     constexpr unsigned int fStride = valueCount * sizeof(float);
     glVertexAttribPointer(
         t_attribute_ids::position, 3, GL_FLOAT, GL_FALSE,
@@ -231,12 +231,13 @@ int main(int, char *[])
     glEnableVertexAttribArray(t_attribute_ids::uv);
 
 
+    // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
     unsigned int lightVAO;
     glGenVertexArrays(1, &lightVAO);
     glBindVertexArray(lightVAO);
-    // we only need to bind to the VBO, the container's VBO's data already contains the data.
+    // we only need to _bind_ the VBO, it already contains the data we need
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    // set the vertex attribute
+    // note that we update the lamp's position attribute's stride to reflect the updated buffer data
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, fStride, nullptr);
     glEnableVertexAttribArray(0);
 
@@ -341,60 +342,49 @@ int main(int, char *[])
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 #pragma region Render
+        auto lightColor = glm::vec3(0.6f, 0.8f, 0.8f);
+
         shader.use();
-        GLint uniformLightColor = glGetUniformLocation(shader.programID, "lightColor");
-        GLint uniformObjectColor = glGetUniformLocation(shader.programID, "objectColor");
-        glm::vec3 lightColor = glm::vec3(1.0f, 0.8f, 0.8f);
-        glUniform3f(uniformLightColor, lightColor.r, lightColor.g, lightColor.b);
-        glUniform3f(uniformObjectColor, 1.0f, 0.5f, 0.31f);
-
-        GLint uniformModel = glGetUniformLocation(shader.programID, "model");
-        GLint uniformView = glGetUniformLocation(shader.programID, "view");
-        GLint uniformProjection = glGetUniformLocation(shader.programID, "projection");
-
-        glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-        auto projection = glm::perspective(
-            glm::radians(progState.fov),
-            static_cast<float>(progState.windowWidth) / static_cast<float>(progState.windowHeight),
-            0.1f, 100.0f);
-        glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
+        shader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+        shader.setVec3("lightColor", lightColor);
+        shader.setVec3("lightPos", lightPos);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
+
+        // view/projection transformations
+        glm::mat4 projection = glm::perspective(
+            glm::radians(progState.fov),
+            static_cast<float>(progState.windowWidth) / static_cast<float>(progState.windowHeight),
+            0.1f, 100.0f);
+        shader.setMat4("projection", projection);
+        shader.setMat4("view", viewMatrix);
+
+        // render the cubes
         glBindVertexArray(vao);
+        shader.setMat4("model", glm::mat4(1.0f));
+        glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / fStride);
+        // for (unsigned int i = 0; i < sizeof(cubePositions) / sizeof(glm::vec3); i++) {
+        //     auto model = glm::mat4(1.0f);
+        //     model = glm::translate(model, cubePositions[i]);
+        //     model = glm::rotate(model, glm::radians(20.0f * static_cast<float>(i)), glm::vec3(1.0f, 0.3f, 0.5f));
+        //     shader.setMat4("model", model);
+        //     glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / fStride);
+        // }
+        // // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
-        // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-        for (unsigned int i = 0; i < 10; i++) {
-            auto model = glm::mat4(1.0f);
-            model = glm::translate(model, cubePositions[i]);
-            model = glm::rotate(model, glm::radians(20.0f * static_cast<float>(i)), glm::vec3(1.0f, 0.3f, 0.5f));
-            glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-            glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / sizeof(float) / valueCount);
-        }
+        // render the light
+        lightShader.use();
+        lightShader.setVec3("color", lightColor);
+        lightShader.setMat4("projection", projection);
+        lightShader.setMat4("view", viewMatrix);
+        auto model = glm::mat4(1.0f);
+        model = glm::translate(model, lightPos);
+        model = glm::scale(model, glm::vec3(0.2f));
+        lightShader.setMat4("model", model);
 
-        {
-            lightShader.use();
-            GLint lCol = glGetUniformLocation(lightShader.programID, "color");
-            glUniform3f(lCol, lightColor.r, lightColor.g, lightColor.b);
-
-            GLint luniformModel = glGetUniformLocation(lightShader.programID, "model");
-            GLint luniformView = glGetUniformLocation(lightShader.programID, "view");
-            GLint luniformProjection = glGetUniformLocation(lightShader.programID, "projection");
-
-            glUniformMatrix4fv(luniformView, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-            glUniformMatrix4fv(luniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
-            auto model = glm::mat4(1.0f);
-            model = glm::mat4(1.0f);
-            model = glm::translate(model, lightPos);
-            model = glm::scale(model, glm::vec3(0.2f));
-            glUniformMatrix4fv(luniformModel, 1, GL_FALSE, glm::value_ptr(model));
-
-            GLint uniformLightPos = glGetUniformLocation(lightShader.programID, "lightPos");
-            glUniform3f(uniformLightPos, lightPos.x, lightPos.y, lightPos.z);
-
-            glBindVertexArray(lightVAO);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+        glBindVertexArray(lightVAO);
+        glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / fStride);
 
 #pragma endregion
 
