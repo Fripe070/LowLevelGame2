@@ -275,6 +275,7 @@ int main(int, char *[])
     GUI::init(window, glContext);
 
     glm::mat4 viewMatrix;
+    // TODO: Break camera into its own class
     auto cameraPos = glm::vec3(0.0f, 0.0f,  3.0f);
     auto cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
     auto cameraUp = glm::vec3(0.0f, 1.0f,  0.0f);
@@ -345,9 +346,10 @@ int main(int, char *[])
         auto lightColor = glm::vec3(0.6f, 0.8f, 0.8f);
 
         shader.use();
-        shader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+        shader.setVec3("objectColor", 1, 1, 1);
         shader.setVec3("lightColor", lightColor);
         shader.setVec3("lightPos", lightPos);
+        shader.setVec3("viewPos", cameraPos);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
