@@ -1,7 +1,3 @@
-//
-// Created by fripe on 03/09/2024.
-//
-
 #include "Shader.h"
 #include <fstream>
 #include <vector>
@@ -83,4 +79,47 @@ Shader::~Shader() {
 
 void Shader::use() const {
     glUseProgram(programID);
+}
+
+GLint Shader::getUniformLoc(const std::string &name) const {
+    return glGetUniformLocation(programID, name.c_str());
+}
+
+void Shader::setBool(const std::string &name, bool value) const {
+    glUniform1i(getUniformLoc(name), static_cast<int>(value));
+}
+void Shader::setInt(const std::string &name, int value) const {
+    glUniform1i(getUniformLoc(name), value);
+}
+void Shader::setFloat(const std::string &name, float value) const {
+    glUniform1f(getUniformLoc(name), value);
+}
+
+void Shader::setVec2(const std::string &name, const glm::vec2 &value) const {
+    glUniform2fv(getUniformLoc(name), 1, &value[0]);
+}
+void Shader::setVec3(const std::string &name, const glm::vec3 &value) const {
+    glUniform3fv(getUniformLoc(name), 1, &value[0]);
+}
+void Shader::setVec4(const std::string &name, const glm::vec4 &value) const {
+    glUniform4fv(getUniformLoc(name), 1, &value[0]);
+}
+void Shader::setVec2(const std::string &name, float x, float y) const {
+    glUniform2f(getUniformLoc(name), x, y);
+}
+void Shader::setVec3(const std::string &name, float x, float y, float z) const {
+    glUniform3f(getUniformLoc(name), x, y, z);
+}
+void Shader::setVec4(const std::string &name, float x, float y, float z, float w) const {
+    glUniform4f(getUniformLoc(name), x, y, z, w);
+}
+
+void Shader::setMat2(const std::string &name, const glm::mat2 &mat) const {
+    glUniformMatrix2fv(getUniformLoc(name), 1, GL_FALSE, &mat[0][0]);
+}
+void Shader::setMat3(const std::string &name, const glm::mat3 &mat) const {
+    glUniformMatrix3fv(getUniformLoc(name), 1, GL_FALSE, &mat[0][0]);
+}
+void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const {
+    glUniformMatrix4fv(getUniformLoc(name), 1, GL_FALSE, &mat[0][0]);
 }
