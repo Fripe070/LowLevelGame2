@@ -12,6 +12,7 @@ typedef struct {
     float rotZ = 0.0f;
     float fov = 45.0f;
     float sensitivity = 0.1f;
+    bool wireframe = false;
 
     int windowWidth = 1920 / 2;
     int windowHeight = 1080 / 2;

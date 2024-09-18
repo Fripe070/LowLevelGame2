@@ -2,6 +2,7 @@
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_sdl2.h>
 #include <SDL.h>
+#include <GL/glew.h>
 
 #include "gui.h"
 
@@ -55,5 +56,9 @@ void GUI::showWindow(ProgState &progState) {
         SDL_SetRelativeMouseMode(SDL_TRUE);
         ImGui::SetWindowCollapsed(true);
     }
+    if (ImGui::Checkbox("Wireframe", &progState.wireframe)) {
+        glPolygonMode(GL_FRONT_AND_BACK, progState.wireframe ? GL_LINE : GL_FILL);
+    }
+
     ImGui::End();
 }
