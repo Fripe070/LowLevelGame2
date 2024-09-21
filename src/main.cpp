@@ -346,10 +346,17 @@ int main(int, char *[])
         auto lightColor = glm::vec3(0.6f, 0.8f, 0.8f);
 
         shader.use();
-        shader.setVec3("objectColor", 1, 1, 1);
-        shader.setVec3("lightColor", lightColor);
-        shader.setVec3("lightPos", lightPos);
         shader.setVec3("viewPos", cameraPos);
+
+        shader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
+        shader.setVec3("material.diffuse", 1.0f, 1.0f, 1.0f);
+        shader.setVec3("material.specular", 1.0f, 1.0f, 1.0f);
+        shader.setFloat("material.shininess", 32.0f);
+
+        shader.setVec3("light.position", lightPos);
+        shader.setVec3("light.ambient",  0.1, 0.1, 0.1);
+        shader.setVec3("light.diffuse",  0.6f, 0.8f, 0.8f);
+        shader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
