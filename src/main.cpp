@@ -1,5 +1,4 @@
 #include <string>
-#include <unordered_map>
 #include <gl/glew.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
@@ -11,6 +10,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <logging.h>
 
 #define DEBUG
 
@@ -32,23 +32,6 @@ std::string getProgramInfoLog(const GLuint programID) {
     return infoLog;
 }
 
-std::string glErrorString(const GLenum errorCode) {
-    static const std::unordered_map<GLenum, std::string> map = {
-        {GL_NO_ERROR, "No error"},
-        {GL_INVALID_ENUM, "Invalid enum"},
-        {GL_INVALID_VALUE, "Invalid value"},
-        {GL_INVALID_OPERATION, "Invalid operation"},
-        {GL_STACK_OVERFLOW, "Stack overflow"},
-        {GL_STACK_UNDERFLOW, "Stack underflow"},
-        {GL_OUT_OF_MEMORY, "Out of memory"},
-        {GL_INVALID_FRAMEBUFFER_OPERATION, "Invalid framebuffer operation"},
-        {GL_CONTEXT_LOST, "Context lost"},
-        {GL_TABLE_TOO_LARGE, "Table too large"}
-    };
-
-    auto err = map.find(errorCode);
-    return err!= map.end() ? err->second : "Unknown error: " + std::to_string(errorCode);
-}
 
 GLuint loadTexture(const char* filePath) {
     GLuint texture;
@@ -57,7 +40,7 @@ GLuint loadTexture(const char* filePath) {
     int width, height, channelCount;
     stbi_uc* imgData = stbi_load(filePath, &width, &height, &channelCount, 0);
     if (!imgData) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load texture \"%s\": %s", filePath, stbi_failure_reason());
+        logError("Failed to load texture \"%s\": %s", filePath, stbi_failure_reason());
         return -1;
     }
     GLint format;
@@ -128,7 +111,7 @@ typedef struct {
 int main(int, char *[])
 {
     if (0 > SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s", SDL_GetError());
+        logError("Couldn't initialize SDL: %s", SDL_GetError());
         return 1;
     }
 
@@ -139,7 +122,7 @@ int main(int, char *[])
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
     );
     if (!window) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create window: %s", SDL_GetError());
+        logError("Couldn't create window: %s", SDL_GetError());
         SDL_Quit();
         return 1;
     }
@@ -151,7 +134,7 @@ int main(int, char *[])
 
     SDL_GLContext glContext = SDL_GL_CreateContext(window);
     if (!glContext) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create OpenGL context: %s", SDL_GetError());
+        logError("Couldn't create OpenGL context: %s", SDL_GetError());
         SDL_DestroyWindow(window);
         SDL_Quit();
         return -1;
@@ -160,7 +143,7 @@ int main(int, char *[])
 
     const GLenum glewError = glewInit();
     if (glewError != GLEW_OK) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize GLEW: %s", glewGetErrorString(glewError));
+        logError("Couldn't initialize GLEW: %s", glewGetErrorString(glewError));
         SDL_GL_DeleteContext(glContext);
         SDL_DestroyWindow(window);
         SDL_Quit();
@@ -411,11 +394,7 @@ int main(int, char *[])
 
 #pragma endregion
 
-#ifdef DEBUG
-        if (const GLenum error = glGetError(); error != GL_NO_ERROR) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "OpenGL error: (%d) %s", error, glErrorString(error).c_str());
-        }
-#endif
+        glLogErrors();
 
         GUI::frame(progState);
         ImGui::SetNextWindowPos(ImVec2(5, 5));

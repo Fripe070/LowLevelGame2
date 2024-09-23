@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <SDL.h>
+#include <logging.h>
 
 bool Shader::logShaderError(const GLuint &shaderID) {
     GLint result = GL_FALSE;
@@ -13,7 +14,7 @@ bool Shader::logShaderError(const GLuint &shaderID) {
     glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
     std::vector<char> infoLog(infoLogLength);
     glGetShaderInfoLog(shaderID, infoLogLength, nullptr, infoLog.data());
-    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Shader compilation failed: %s", infoLog.data());
+    logError("Shader compilation failed: %s", infoLog.data());
     return true;
 }
 
@@ -27,7 +28,7 @@ bool Shader::logProgramError(const GLuint &programID) {
     glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &infoLogLength);
     std::vector<char> infoLog(infoLogLength);
     glGetProgramInfoLog(programID, infoLogLength, nullptr, infoLog.data());
-    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Program linking failed: %s", infoLog.data());
+    logError("Program linking failed: %s", infoLog.data());
     return true;
 }
 
@@ -35,7 +36,7 @@ bool Shader::logProgramError(const GLuint &programID) {
 std::string Shader::readShaderFile(const std::string &filePath) {
     std::ifstream file(filePath);
     if (!file.is_open()) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to open shader file: %s", filePath.c_str());
+        logError("Failed to open shader file: %s", filePath.c_str());
         return "";
     }
     SDL_Log("Reading file: %s\n", filePath.c_str());
