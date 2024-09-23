@@ -27,7 +27,7 @@ inline std::string glErrorString(const GLenum errorCode) {
 inline GLenum glLogErrors_(const char* file, int line) {
     GLenum errorCode;
     while ((errorCode = glGetError()) != GL_NO_ERROR) {
-        logError( "OpenGL error: (%d) %s at %s:%d", errorCode, glErrorString(errorCode).c_str(), file, line);
+        logError("OpenGL error: (%d) %s at %s:%d", errorCode, glErrorString(errorCode).c_str(), file, line);
     }
     return errorCode;
 }
