@@ -17,6 +17,7 @@ sources = [
     'src/main.cpp',
     'src/shader.cpp',
     'src/gui.cpp',
+    'src/logging.cpp',
 ]
 
 exe = executable('lowlevelgame', sources,

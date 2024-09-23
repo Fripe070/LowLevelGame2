@@ -1,3 +1,6 @@
+#define DEBUG
+#define STB_IMAGE_IMPLEMENTATION
+
 #include <string>
 #include <gl/glew.h>
 #include <SDL.h>
@@ -5,14 +8,12 @@
 #include <imgui_impl_sdl2.h>
 #include "shader.h"
 #include "gui.h"
-#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <logging.h>
 
-#define DEBUG
 
 ProgState progState;
 
