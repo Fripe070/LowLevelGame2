@@ -50,6 +50,36 @@ std::string glErrorString(const GLenum errorCode) {
     return err!= map.end() ? err->second : "Unknown error: " + std::to_string(errorCode);
 }
 
+GLuint loadTexture(const char* filePath) {
+    GLuint texture;
+    glGenTextures(1, &texture);
+
+    int width, height, channelCount;
+    stbi_uc* imgData = stbi_load(filePath, &width, &height, &channelCount, 0);
+    if (!imgData) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load texture \"%s\": %s", filePath, stbi_failure_reason());
+        return -1;
+    }
+    GLint format;
+    switch (channelCount) {
+        case 1: format = GL_RED; break;
+        case 3: format = GL_RGB; break;
+        case 4: format = GL_RGBA; break;
+        default: format = GL_RGB;
+    }
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, imgData);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(imgData);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    return texture;
+}
+
 struct {
     float lastX = static_cast<float>(progState.windowWidth) / 2.0f;
     float lastY = static_cast<float>(progState.windowHeight) / 2.0f;
@@ -246,27 +276,10 @@ int main(int, char *[])
     glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind VBO
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // Unbind EBO
 
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    stbi_set_flip_vertically_on_load(true);
-    int width, height, nrChannels;
-    unsigned char* imgData = stbi_load("resources/brick.png", &width, &height, &nrChannels, 0);
-    if (!imgData) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load texture %s: %s", "resources/container.png", stbi_failure_reason());
-        return -1;
-    }
-    glBindTexture(GL_TEXTURE_2D, texture);
-    // If consulting this code in regard to output being messed up, make sure to use alpha channel if present
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, imgData);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    stbi_image_free(imgData);
-
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    GLuint diffuseTex = loadTexture("resources/brick.png");
+    GLuint specularTex = loadTexture("resources/brick_specular.png");
 
     const auto shader = Shader("resources/vert.vert", "resources/frag.frag");
     const auto lightShader = Shader("resources/vert.vert", "resources/light.frag");
@@ -348,18 +361,19 @@ int main(int, char *[])
         shader.use();
         shader.setVec3("viewPos", cameraPos);
 
-        shader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
-        shader.setVec3("material.diffuse", 1.0f, 1.0f, 1.0f);
-        shader.setVec3("material.specular", 1.0f, 1.0f, 1.0f);
-        shader.setFloat("material.shininess", 32.0f);
-
         shader.setVec3("light.position", lightPos);
         shader.setVec3("light.ambient",  0.1, 0.1, 0.1);
         shader.setVec3("light.diffuse",  0.6f, 0.8f, 0.8f);
         shader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
+        shader.setInt("material.diffuse", 0);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture);
+        glBindTexture(GL_TEXTURE_2D, diffuseTex);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, specularTex);
+        shader.setInt("material.specular", 1)
+
+        shader.setFloat("material.shininess", 32.0f);
 
         // view/projection transformations
         glm::mat4 projection = glm::perspective(
