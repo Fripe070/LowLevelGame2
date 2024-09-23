@@ -371,7 +371,7 @@ int main(int, char *[])
         glBindTexture(GL_TEXTURE_2D, diffuseTex);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, specularTex);
-        shader.setInt("material.specular", 1)
+        shader.setInt("material.specular", 1);
 
         shader.setFloat("material.shininess", 32.0f);
 
