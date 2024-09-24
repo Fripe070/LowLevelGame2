@@ -18,6 +18,8 @@ public:
 
 private:
     static std::string readShaderFile(const std::string &filePath);
+    static std::string preprocessShader(std::string shaderSrc);
+
     static bool logShaderError(const GLuint &shaderID);
     static bool logProgramError(const GLuint &programID);
 

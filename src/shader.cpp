@@ -45,9 +45,50 @@ std::string Shader::readShaderFile(const std::string &filePath) {
     return fileContents;
 }
 
+std::string Shader::preprocessShader(std::string shaderSrc) {
+    constexpr auto includeDirective = "//!include";
+    constexpr auto includeDirectiveLength = strlen(includeDirective);
+
+    std::string::size_type pos = 0;
+    while ((pos = shaderSrc.find(includeDirective, pos)) != std::string::npos) {
+        const auto includeStart = pos;
+        pos += includeDirectiveLength;
+
+        while (shaderSrc[pos] == ' ' || shaderSrc[pos] == '\t')
+            pos++;
+        if (shaderSrc[pos] != '"') {
+            logError("Invalid include directive in shader source. Expected leading quote");
+            continue;
+        }
+        pos++;
+
+        const auto pathStart = pos;
+        while (shaderSrc[pos] != '"' && shaderSrc[pos] != '\n')
+            pos++;
+        if (shaderSrc[pos] != '"') {
+            logError("Invalid include directive in shader source. Expected trailing quote");
+            continue;
+        }
+
+        const auto pathLength = pos - pathStart;
+        pos++;
+        const auto includeLength = pos - includeStart;
+
+        const auto includePath = shaderSrc.substr(pathStart, pathLength);
+        const auto includeSrc = readShaderFile(includePath);
+        if (includeSrc.empty()) {
+            logError("Failed to include file: %s", includePath.c_str());
+            continue;
+        }
+        shaderSrc.replace(includeStart, includeLength, includeSrc);
+    }
+
+    return shaderSrc;
+}
+
 Shader::Shader(const std::string &vertexFilePath, const std::string &fragmentFilePath) {
-    const auto vertShaderSrc = readShaderFile(vertexFilePath);
-    const auto fragShaderSrc = readShaderFile(fragmentFilePath);
+    const auto vertShaderSrc = preprocessShader(readShaderFile(vertexFilePath));
+    const auto fragShaderSrc = preprocessShader(readShaderFile(fragmentFilePath));
 
     const GLuint vertShaderID = glCreateShader(GL_VERTEX_SHADER);
     const char *vertexSource = vertShaderSrc.c_str();
