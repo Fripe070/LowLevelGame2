@@ -1,5 +1,9 @@
 project('lowlevelgame', 'cpp',
-        default_options: ['default_library=static', 'warning_level=3'])
+        default_options: [
+            'cpp_std=c++23',
+            'default_library=static',
+            'warning_level=3'
+        ])
 
 sdl2_dep = dependency('sdl2')
 imgui_dep = dependency('imgui')
