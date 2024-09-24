@@ -345,10 +345,29 @@ int main(int, char *[])
         shader.use();
         shader.setVec3("viewPos", cameraPos);
 
-        shader.setVec3("light.position", lightPos);
-        shader.setVec3("light.ambient",  0.1, 0.1, 0.1);
-        shader.setVec3("light.diffuse",  0.6f, 0.8f, 0.8f);
-        shader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+        shader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+        shader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
+        shader.setVec3("pointLights.diffuse", 0.4f, 0.4f, 0.4f);
+        shader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+
+        shader.setVec3("pointLights[0].position", lightPos);
+        shader.setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
+        shader.setVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
+        shader.setVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
+        shader.setFloat("pointLights[0].constant", 1.0f);
+        shader.setFloat("pointLights[0].linear", 0.09f);
+        shader.setFloat("pointLights[0].quadratic", 0.032f);
+
+        shader.setVec3("spotLight.position", cameraPos);
+        shader.setVec3("spotLight.direction", cameraFront);
+        shader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        shader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+        shader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+        shader.setFloat("spotLight.constant", 1.0f);
+        shader.setFloat("spotLight.linear", 0.09f);
+        shader.setFloat("spotLight.quadratic", 0.032f);
+        shader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        shader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
         shader.setInt("material.diffuse", 0);
         glActiveTexture(GL_TEXTURE0);
