@@ -2,7 +2,7 @@ project('lowlevelgame', 'cpp',
         default_options: [
             'cpp_std=c++23',
             'default_library=static',
-            'warning_level=3'
+            'warning_level=3',
         ])
 
 sdl2_dep = dependency('sdl2')
@@ -24,9 +24,12 @@ sources = [
     'src/logging.cpp',
 ]
 
-exe = executable('lowlevelgame', sources,
-#                 win_subsystem: 'windows',  # Supresses stdout on Windows
-                 include_directories: include_directories('src', 'include'),
-                 dependencies: dependencies)
+exe = executable(
+    'lowlevelgame', sources,
+    # win_subsystem: 'windows',  # Supresses stdout on Windows
+    include_directories: include_directories('src', 'include'),
+    dependencies: dependencies,
+    cpp_args: ['-std=c++23']
+)
 
 test('basic', exe)
