@@ -22,6 +22,7 @@ sources = [
     'src/shader.cpp',
     'src/gui.cpp',
     'src/logging.cpp',
+    'src/utility.cpp',
 ]
 
 exe = executable(

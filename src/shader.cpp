@@ -3,6 +3,7 @@
 #include <vector>
 #include <SDL.h>
 #include <logging.h>
+#include <utility.h>
 
 bool Shader::logShaderError(const GLuint &shaderID) {
     GLint result = GL_FALSE;
@@ -33,31 +34,28 @@ bool Shader::logProgramError(const GLuint &programID) {
 }
 
 
-std::string Shader::readShaderFile(const std::string &filePath) {
-    std::ifstream file(filePath);
-    if (!file.is_open()) {
-        logError("Failed to open shader file: %s", filePath.c_str());
-        return "";
-    }
-    SDL_Log("Reading file: %s\n", filePath.c_str());
-
-    std::string fileContents((std::istreambuf_iterator(file)), std::istreambuf_iterator<char>());
-    return fileContents;
-}
-
 Shader::Shader(const std::string &vertexFilePath, const std::string &fragmentFilePath) {
-    const auto vertShaderSrc = readShaderFile(vertexFilePath);
-    const auto fragShaderSrc = readShaderFile(fragmentFilePath);
+    const auto vertShaderSrc = readTextFile(vertexFilePath);
+    if (!vertShaderSrc) {
+        logError("Failed to read vertex shader file: %s", vertexFilePath.c_str());
+        return;
+    }
+    const auto fragShaderSrc = readTextFile(fragmentFilePath);
+    if (!fragShaderSrc) {
+        logError("Failed to read fragment shader file: %s", fragmentFilePath.c_str());
+        return;
+    }
 
     const GLuint vertShaderID = glCreateShader(GL_VERTEX_SHADER);
-    const char *vertexSource = vertShaderSrc.c_str();
+    const GLuint fragShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+
+    const char *vertexSource = vertShaderSrc.value().c_str();
     glShaderSource(vertShaderID, 1, &vertexSource, nullptr);
     glCompileShader(vertShaderID);
     if (logShaderError(vertShaderID))
         return;
 
-    const GLuint fragShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-    const char *fragmentSource = fragShaderSrc.c_str();
+    const char *fragmentSource = fragShaderSrc.value().c_str();
     glShaderSource(fragShaderID, 1, &fragmentSource, nullptr);
     glCompileShader(fragShaderID);
     if (logShaderError(fragShaderID))

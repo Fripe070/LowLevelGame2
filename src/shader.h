@@ -17,7 +17,6 @@ public:
     GLint getUniformLoc(const std::string &name) const;
 
 private:
-    static std::string readShaderFile(const std::string &filePath);
     static bool logShaderError(const GLuint &shaderID);
     static bool logProgramError(const GLuint &programID);
 
