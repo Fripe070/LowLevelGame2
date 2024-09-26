@@ -26,7 +26,7 @@ if not assimp_dep.found()
     assimp_dep = cmake.subproject('assimp', options : assimp_opt).dependency('assimp')
 endif
 
-dependencies = [sdl2_dep, imgui_dep, glew_dep, glm_dep]
+dependencies = [sdl2_dep, imgui_dep, glew_dep, glm_dep, assimp_dep]
 
 if host_machine.system() == 'windows'
     sdl2_main_dep = dependency('sdl2main')
