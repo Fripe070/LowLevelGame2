@@ -4,7 +4,6 @@
 #include <string>
 #include <gl/glew.h>
 #include <SDL.h>
-#include <SDL_opengl.h>
 #include <imgui_impl_sdl2.h>
 #include "shader.h"
 #include "gui.h"
@@ -13,6 +12,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <logging.h>
+#include <scene_loader.h>
+#include <utility.h>
 
 
 ProgState progState;
@@ -33,36 +34,6 @@ std::string getProgramInfoLog(const GLuint programID) {
     return infoLog;
 }
 
-
-GLuint loadTexture(const char* filePath) {
-    GLuint texture;
-    glGenTextures(1, &texture);
-
-    int width, height, channelCount;
-    stbi_uc* imgData = stbi_load(filePath, &width, &height, &channelCount, 0);
-    if (!imgData) {
-        logError("Failed to load texture \"%s\": %s", filePath, stbi_failure_reason());
-        return -1;
-    }
-    GLint format;
-    switch (channelCount) {
-        case 1: format = GL_RED; break;
-        case 3: format = GL_RGB; break;
-        case 4: format = GL_RGBA; break;
-        default: format = GL_RGB;
-    }
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, imgData);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    stbi_image_free(imgData);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    return texture;
-}
 
 struct {
     float lastX = static_cast<float>(progState.windowWidth) / 2.0f;
@@ -262,11 +233,13 @@ int main(int, char *[])
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    GLuint diffuseTex = loadTexture("resources/brick.png");
-    GLuint specularTex = loadTexture("resources/brick_specular.png");
+    GLuint diffuseTex = loadTexture("resources/brick.png").value();  // TODO: This will throw if the texture isn't found, but im removing it soon anyway
+    GLuint specularTex = loadTexture("resources/brick_specular.png").value();
 
     const auto shader = Shader("resources/vert.vert", "resources/frag.frag");
     const auto lightShader = Shader("resources/vert.vert", "resources/light.frag");
+
+    SceneLoader::Model ourModel("resources/monkey.obj");
 
     glEnable(GL_DEPTH_TEST);
     GUI::init(window, glContext);
@@ -340,9 +313,11 @@ int main(int, char *[])
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 #pragma region Render
+        shader.use();
+        ourModel.Draw(shader);
+
         auto lightColor = glm::vec3(0.6f, 0.8f, 0.8f);
 
-        shader.use();
         shader.setVec3("viewPos", cameraPos);
 
         shader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);

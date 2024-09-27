@@ -39,6 +39,7 @@ sources = [
     'src/gui.cpp',
     'src/logging.cpp',
     'src/utility.cpp',
+    'src/scene_loader.cpp',
 ]
 
 exe = executable(

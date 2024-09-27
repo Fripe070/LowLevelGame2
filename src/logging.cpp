@@ -2,7 +2,6 @@
 #include <string>
 #include <unordered_map>
 #include <gl/glew.h>
-#include <SDL.h>
 
 
 std::string glErrorString(const GLenum errorCode) {
@@ -23,7 +22,7 @@ std::string glErrorString(const GLenum errorCode) {
     return err != map.end() ? err->second : "Unknown error: " + std::to_string(errorCode);
 }
 
-GLenum glLogErrors_(const char *file, int line) {
+GLenum glLogErrors_(const char *file, const int line) {
     GLenum errorCode;
     while ((errorCode = glGetError()) != GL_NO_ERROR) {
         logError("OpenGL error: (%d) %s %s:%d", errorCode, glErrorString(errorCode).c_str(), file, line);
