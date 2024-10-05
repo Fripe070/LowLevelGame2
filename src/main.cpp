@@ -123,123 +123,12 @@ int main(int, char *[])
     }
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
-    constexpr float vertices[] = {
-        // positions           // Normals          // colors           // texture coords
-        -0.5f, -0.5f, -0.5f,   0.0f,  0.0f, -1.0f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,   0.0f,  0.0f, -1.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,   0.0f,  0.0f, -1.0f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,   0.0f,  0.0f, -1.0f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,   0.0f,  0.0f, -1.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,   0.0f,  0.0f, -1.0f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
-
-        -0.5f, -0.5f,  0.5f,   0.0f,  0.0f,  1.0f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,   0.0f,  0.0f,  1.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,   0.0f,  0.0f,  1.0f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,   0.0f,  0.0f,  1.0f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,   0.0f,  0.0f,  1.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,   0.0f,  0.0f,  1.0f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
-
-        -0.5f,  0.5f,  0.5f,  -1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  -1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  -1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  -1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  -1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  -1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-
-         0.5f,  0.5f,  0.5f,   1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,   1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,   1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,   1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,   1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,   1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-
-        -0.5f, -0.5f, -0.5f,   0.0f, -1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,   0.0f, -1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,   0.0f, -1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,   0.0f, -1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,   0.0f, -1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,   0.0f, -1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-
-        -0.5f,  0.5f, -0.5f,   0.0f,  1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,   0.0f,  1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,   0.0f,  1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,   0.0f,  1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,   0.0f,  1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,   0.0f,  1.0f,  0.0f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-    };
-    // constexpr unsigned int indices[] = {
-    //     0, 1, 2,
-    //     2, 3, 0
-    // };
-    glm::vec3 cubePositions[] = {
-        glm::vec3( 0.0f,  0.0f,  0.0f),
-        glm::vec3( 2.0f,  5.0f, -15.0f),
-        glm::vec3(-1.5f, -2.2f, -2.5f),
-        glm::vec3(-3.8f, -2.0f, -12.3f),
-        glm::vec3( 2.4f, -0.4f, -3.5f),
-        glm::vec3(-1.7f,  3.0f, -7.5f),
-        glm::vec3( 1.3f, -2.0f, -2.5f),
-        glm::vec3( 1.5f,  2.0f, -2.5f),
-        glm::vec3( 1.5f,  0.2f, -1.5f),
-        glm::vec3(-1.3f,  1.0f, -1.5f)
-    };
-
-    GLuint vao, vbo;//, ebo;
-    glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
-    // glGenBuffers(1, &ebo);
-
-    glBindVertexArray(vao); // Bind our VAO, essentially our context/config
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    constexpr unsigned int valueCount = 3*3 + 2;
-    constexpr unsigned int fStride = valueCount * sizeof(float);
-    glVertexAttribPointer(
-        t_attribute_ids::position, 3, GL_FLOAT, GL_FALSE,
-        fStride, nullptr);
-    glEnableVertexAttribArray(t_attribute_ids::position);
-    glVertexAttribPointer(
-        t_attribute_ids::normal, 3, GL_FLOAT, GL_FALSE,
-        fStride, reinterpret_cast<void *>(3 * sizeof(float)));
-    glEnableVertexAttribArray(t_attribute_ids::normal);
-    glVertexAttribPointer(
-        t_attribute_ids::colour, 3, GL_FLOAT, GL_FALSE,
-        fStride, reinterpret_cast<void*>(6 * sizeof(float)));
-    glEnableVertexAttribArray(t_attribute_ids::colour);
-    glVertexAttribPointer(
-        t_attribute_ids::uv, 2, GL_FLOAT, GL_FALSE,
-        fStride, reinterpret_cast<void*>(9 * sizeof(float)));
-    glEnableVertexAttribArray(t_attribute_ids::uv);
-
-
-    // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
-    unsigned int lightVAO;
-    glGenVertexArrays(1, &lightVAO);
-    glBindVertexArray(lightVAO);
-    // we only need to _bind_ the VBO, it already contains the data we need
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    // note that we update the lamp's position attribute's stride to reflect the updated buffer data
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, fStride, nullptr);
-    glEnableVertexAttribArray(0);
-
-
-    glBindVertexArray(0); // Unbind VAO
-    glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind VBO
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // Unbind EBO
-
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
     GLuint diffuseTex = loadTexture("resources/brick.png").value();  // TODO: This will throw if the texture isn't found, but im removing it soon anyway
     GLuint specularTex = loadTexture("resources/brick_specular.png").value();
 
     const auto shader = Shader("resources/vert.vert", "resources/frag.frag");
-    const auto lightShader = Shader("resources/vert.vert", "resources/light.frag");
 
-    SceneLoader::Model ourModel("resources/monkey.obj");
+    SceneLoader::Model ourModel("resources/test_mtl.obj");
 
     glEnable(GL_DEPTH_TEST);
     GUI::init(window, glContext);
@@ -249,8 +138,6 @@ int main(int, char *[])
     auto cameraPos = glm::vec3(0.0f, 0.0f,  3.0f);
     auto cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
     auto cameraUp = glm::vec3(0.0f, 1.0f,  0.0f);
-
-    auto lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
 
     Uint64 frameStart = SDL_GetPerformanceCounter();
     SDL_Event event;
@@ -314,18 +201,15 @@ int main(int, char *[])
 
 #pragma region Render
         shader.use();
-        ourModel.Draw(shader);
-
-        auto lightColor = glm::vec3(0.6f, 0.8f, 0.8f);
 
         shader.setVec3("viewPos", cameraPos);
 
         shader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
-        shader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
+        shader.setVec3("dirLight.ambient", 0.5f, 0.5f, 0.5f);
         shader.setVec3("pointLights.diffuse", 0.4f, 0.4f, 0.4f);
         shader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
 
-        shader.setVec3("pointLights[0].position", lightPos);
+        shader.setVec3("pointLights[0].position", 1.2f, 1.0f, 2.0f);
         shader.setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
         shader.setVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
         shader.setVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
@@ -361,31 +245,8 @@ int main(int, char *[])
         shader.setMat4("projection", projection);
         shader.setMat4("view", viewMatrix);
 
-        // render the cubes
-        glBindVertexArray(vao);
-        // shader.setMat4("model", glm::mat4(1.0f));
-        // glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / fStride);
-        for (unsigned int i = 0; i < sizeof(cubePositions) / sizeof(glm::vec3); i++) {
-            auto model = glm::mat4(1.0f);
-            model = glm::translate(model, cubePositions[i]);
-            model = glm::rotate(model, glm::radians(20.0f * static_cast<float>(i)), glm::vec3(1.0f, 0.3f, 0.5f));
-            shader.setMat4("model", model);
-            glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / fStride);
-        }
-        // // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-
-        // render the light
-        lightShader.use();
-        lightShader.setVec3("color", lightColor);
-        lightShader.setMat4("projection", projection);
-        lightShader.setMat4("view", viewMatrix);
-        auto model = glm::mat4(1.0f);
-        model = glm::translate(model, lightPos);
-        model = glm::scale(model, glm::vec3(0.2f));
-        lightShader.setMat4("model", model);
-
-        glBindVertexArray(lightVAO);
-        glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / fStride);
+        shader.setMat4("model", glm::mat4(1.0f));
+        ourModel.Draw(shader);
 
 #pragma endregion
 
