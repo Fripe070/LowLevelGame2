@@ -197,7 +197,7 @@ int main(int, char *[])
 
         shader.setFloat("material.shininess", 32.0f);
 
-        shader.setMat4("projection", camera.getProjectionMatrix(static_cast<float>(progState.windowWidth) / progState.windowHeight));
+        shader.setMat4("projection", camera.getProjectionMatrix(progState.windowWidth / static_cast<float>(progState.windowHeight)));
         shader.setMat4("view", camera.getViewMatrix());
         shader.setMat4("model", glm::mat4(1.0f));
         ourModel.Draw(shader);

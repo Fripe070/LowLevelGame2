@@ -3,6 +3,7 @@
 #include <SDL_events.h>
 #include <glm/fwd.hpp>
 #include <glm/vec3.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
 
 typedef float Radians;
 typedef float Degrees;
@@ -30,7 +31,13 @@ public:
         Degrees fov = DEFAULT_FOV);
 
     [[nodiscard]] glm::mat4 getViewMatrix() const;
-    [[nodiscard]] glm::mat4 getProjectionMatrix(float aspectRatio) const;
+    // Witchcraft to not accept ints and only floating point types for aspectRatio
+    template<typename T>
+    [[nodiscard]]
+    std::enable_if_t<std::is_floating_point_v<T>, glm::mat4>
+    getProjectionMatrix(const T aspectRatio) const {
+        return glm::perspective(glm::radians(fov), aspectRatio, clipNear, clipFar);
+    }
 
 private:
     bool anglesChanged = false;

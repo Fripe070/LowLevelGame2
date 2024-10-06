@@ -26,10 +26,6 @@ glm::mat4 Camera::getViewMatrix() const {
     return glm::lookAt(position, position + forward_, up_);
 }
 
-glm::mat4 Camera::getProjectionMatrix(const float aspectRatio) const {
-    return glm::perspective(glm::radians(fov), aspectRatio, clipNear, clipFar);
-}
-
 void CameraController::look(const SDL_MouseMotionEvent &event) const {
     const auto xOffset = static_cast<float>(event.xrel) * sensitivity;
     const auto yOffset = static_cast<float>(-event.yrel) * sensitivity;
