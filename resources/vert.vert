@@ -6,7 +6,6 @@ out vec3 FragPos;
 
 in vec3 iPos;
 in vec3 iNormal;
-in vec3 iColour;
 in vec2 iTexCoord;
 
 uniform mat4 model;
@@ -19,6 +18,5 @@ void main() {
 
     gl_Position = projection * view * vec4(FragPos, 1.0);
 
-    VertexColor = vec4(iColour, 1.0);
     TexCoord = iTexCoord;
 }
