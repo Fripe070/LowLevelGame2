@@ -7,11 +7,7 @@ typedef struct {
     bool limitFPS = true;
     bool vsync = true;
     int maxFPS = 100;
-    float rotX = 0.0f;
-    float rotY = 0.0f;
-    float rotZ = 0.0f;
-    float fov = 45.0f;
-    float sensitivity = 0.1f;
+    float *sensitivity;
     bool wireframe = false;
 
     int windowWidth = 1920 / 2;

@@ -40,6 +40,7 @@ sources = [
     'src/logging.cpp',
     'src/utility.cpp',
     'src/scene_loader.cpp',
+    'src/camera.cpp',
 ]
 
 exe = executable(

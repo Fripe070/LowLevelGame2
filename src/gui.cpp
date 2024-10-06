@@ -44,13 +44,8 @@ void GUI::showWindow(ProgState &progState) {
     if (SDL_GL_SetSwapInterval(progState.limitFPS && progState.vsync ? -1 : 0) == -1)
         SDL_GL_SetSwapInterval(1);
 
-    if (ImGui::CollapsingHeader("Rotate")) {
-        ImGui::SliderFloat("Rot X", &progState.rotX, 0.0f, 360);
-        ImGui::SliderFloat("Rot Y", &progState.rotY, 0.0f, 360);
-        ImGui::SliderFloat("Rot Z", &progState.rotZ, 0.0f, 360);
-    }
     if (ImGui::CollapsingHeader("Mouse")) {
-        ImGui::SliderFloat("Sensitivity", &progState.sensitivity, 0.0f, 1.0f);
+        ImGui::SliderFloat("Sensitivity", progState.sensitivity, 0.01f, 1.0f);
     }
     if (ImGui::Button("Capture Mouse")) {
         SDL_SetRelativeMouseMode(SDL_TRUE);

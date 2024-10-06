@@ -1,6 +1,7 @@
 #define DEBUG
 #define STB_IMAGE_IMPLEMENTATION
 
+#include <camera.h>
 #include <string>
 #include <gl/glew.h>
 #include <SDL.h>
@@ -17,6 +18,8 @@
 
 
 ProgState progState;
+Camera camera;
+CameraController cController(camera, 0.1);
 
 std::string getShaderInfoLog(const GLuint shaderID) {
     GLint infoLogLength;
@@ -32,43 +35,6 @@ std::string getProgramInfoLog(const GLuint programID) {
     std::string infoLog(infoLogLength, '\0');
     glGetProgramInfoLog(programID, infoLogLength, nullptr, infoLog.data());
     return infoLog;
-}
-
-
-struct {
-    float lastX = static_cast<float>(progState.windowWidth) / 2.0f;
-    float lastY = static_cast<float>(progState.windowHeight) / 2.0f;
-    float yaw = -90.0f;
-    float pitch = 0.0f;
-} mouseState;
-
-void handle_mouse_movement(const SDL_Event &event, glm::vec3 &cameraFront)
-{
-    auto xOffset = static_cast<float>(event.motion.xrel);
-    auto yOffset = static_cast<float>(-event.motion.yrel);
-    xOffset *= progState.sensitivity;
-    yOffset *= progState.sensitivity;
-
-    mouseState.yaw += xOffset;
-    mouseState.pitch += yOffset;
-    mouseState.pitch = std::max(-89.0f, std::min(mouseState.pitch, 89.0f));
-
-    const float pitch = glm::radians(mouseState.pitch);
-    const float yaw = glm::radians(mouseState.yaw);
-    cameraFront = glm::vec3(
-        cos(yaw) * cos(pitch),
-        sin(pitch),
-        sin(yaw) * cos(pitch)
-    );
-}
-
-void handle_scroll(double yOffset)
-{
-    progState.fov -= static_cast<float>(yOffset);
-    progState.fov = std::max(progState.fov, 1.0f);
-    progState.fov = std::min(progState.fov, 45.0f);
-    // for some reason, while using clamp it crashes on startup
-    // progState.fov = std::clamp(progState.fov, 1.0f, 45.0f);
 }
 
 typedef struct {
@@ -133,11 +99,7 @@ int main(int, char *[])
     glEnable(GL_DEPTH_TEST);
     GUI::init(window, glContext);
 
-    glm::mat4 viewMatrix;
-    // TODO: Break camera into its own class
-    auto cameraPos = glm::vec3(0.0f, 0.0f,  3.0f);
-    auto cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-    auto cameraUp = glm::vec3(0.0f, 1.0f,  0.0f);
+    progState.sensitivity = &cController.sensitivity;
 
     Uint64 frameStart = SDL_GetPerformanceCounter();
     SDL_Event event;
@@ -156,33 +118,33 @@ int main(int, char *[])
         const Uint8* keyState = SDL_GetKeyboardState(nullptr);
         auto inputDir = glm::vec3(0.0f, 0.0f,  0.0f);
         if (keyState[SDL_SCANCODE_W])
-            inputDir += cameraFront;
+            inputDir += camera.forward();
         if (keyState[SDL_SCANCODE_S])
-            inputDir -= cameraFront;
+            inputDir -= camera.forward();
         if (keyState[SDL_SCANCODE_A])
-            inputDir -= glm::normalize(glm::cross(cameraFront, cameraUp));
+            inputDir -= glm::normalize(glm::cross(camera.forward(), camera.up()));
         if (keyState[SDL_SCANCODE_D])
-            inputDir += glm::normalize(glm::cross(cameraFront, cameraUp));
+            inputDir += glm::normalize(glm::cross(camera.forward(), camera.up()));
         if (keyState[SDL_SCANCODE_SPACE])
-            inputDir += cameraUp;
+            inputDir += camera.up();
         if (keyState[SDL_SCANCODE_LSHIFT])
-            inputDir -= cameraUp;
+            inputDir -= camera.up();
         if (keyState[SDL_SCANCODE_ESCAPE])
             SDL_SetRelativeMouseMode(SDL_FALSE);
 
         inputDir = glm::dot(inputDir, inputDir) > 0.0f ? glm::normalize(inputDir) : inputDir; // dot(v, v) is squared length
         constexpr auto CAMERA_SPEED = 2.5f;
-        cameraPos += inputDir * CAMERA_SPEED * fDeltaTime;
+        camera.position += inputDir * CAMERA_SPEED * fDeltaTime;
 
         while (SDL_PollEvent(&event)) {
             ImGui_ImplSDL2_ProcessEvent(&event);
             switch (event.type) {
                 default: break;
                 case SDL_MOUSEWHEEL:
-                    handle_scroll(event.wheel.y);
+                    cController.zoom(event.wheel.y);
                     break;
                 case SDL_MOUSEMOTION:
-                    handle_mouse_movement(event, cameraFront);
+                    cController.look(event.motion);
                     break;
                 case SDL_QUIT:
                     goto quit;
@@ -195,14 +157,12 @@ int main(int, char *[])
             }
         }
 
-        viewMatrix = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 #pragma region Render
         shader.use();
 
-        shader.setVec3("viewPos", cameraPos);
+        shader.setVec3("viewPos", camera.position);
 
         shader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
         shader.setVec3("dirLight.ambient", 0.5f, 0.5f, 0.5f);
@@ -217,8 +177,8 @@ int main(int, char *[])
         shader.setFloat("pointLights[0].linear", 0.09f);
         shader.setFloat("pointLights[0].quadratic", 0.032f);
 
-        shader.setVec3("spotLight.position", cameraPos);
-        shader.setVec3("spotLight.direction", cameraFront);
+        shader.setVec3("spotLight.position", camera.position);
+        shader.setVec3("spotLight.direction", camera.forward());
         shader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
         shader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
         shader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
@@ -237,14 +197,8 @@ int main(int, char *[])
 
         shader.setFloat("material.shininess", 32.0f);
 
-        // view/projection transformations
-        glm::mat4 projection = glm::perspective(
-            glm::radians(progState.fov),
-            static_cast<float>(progState.windowWidth) / static_cast<float>(progState.windowHeight),
-            0.1f, 100.0f);
-        shader.setMat4("projection", projection);
-        shader.setMat4("view", viewMatrix);
-
+        shader.setMat4("projection", camera.getProjectionMatrix(static_cast<float>(progState.windowWidth) / progState.windowHeight));
+        shader.setMat4("view", camera.getViewMatrix());
         shader.setMat4("model", glm::mat4(1.0f));
         ourModel.Draw(shader);
 
