@@ -1,6 +1,5 @@
 #include "camera.h"
 
-#include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
 Camera::Camera(const glm::vec3 position, const float yaw, const float pitch, const float roll, const float fov) {

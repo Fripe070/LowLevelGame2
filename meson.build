@@ -35,12 +35,15 @@ endif
 
 sources = [
     'src/main.cpp',
-    'src/shader.cpp',
-    'src/gui.cpp',
-    'src/logging.cpp',
-    'src/utility.cpp',
-    'src/scene_loader.cpp',
-    'src/camera.cpp',
+    'src/engine/logging.cpp',
+    'src/engine/shader.cpp',
+    'src/engine/loader/mesh.cpp',
+    'src/engine/loader/model.cpp',
+    'src/engine/loader/texture.cpp',
+    'src/engine/loader/generic.cpp',
+
+    'src/game/game.cpp',
+    'src/game/camera.cpp',
 ]
 
 exe = executable(
