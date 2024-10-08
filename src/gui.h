@@ -5,6 +5,7 @@
 
 typedef struct {
     bool limitFPS = true;
+    double deltaTimeLimit = 3;
     bool vsync = true;
     int maxFPS = 100;
     float *sensitivity;

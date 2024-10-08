@@ -106,7 +106,10 @@ int main(int, char *[])
     while (true) {
         const Uint64 lastFrameStart = frameStart;
         frameStart = SDL_GetPerformanceCounter();
-        const double deltaTime = static_cast<double>(frameStart - lastFrameStart) / static_cast<double>(SDL_GetPerformanceFrequency());
+        double deltaTime = static_cast<double>(frameStart - lastFrameStart) / static_cast<double>(SDL_GetPerformanceFrequency());
+        if (progState.deltaTimeLimit > 0 && deltaTime > progState.deltaTimeLimit) // Things may get a bit weird if our deltaTime is like 10 seconds
+            deltaTime = progState.deltaTimeLimit;
+
         const auto fDeltaTime = static_cast<float>(deltaTime); // We need it as a float a lot
 
         // TODO: Process inputs instead of sleeping, to mitigate some input lag
