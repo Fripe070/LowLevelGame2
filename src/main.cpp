@@ -75,6 +75,7 @@ int main(int argv, char** args)
 #pragma endregion
 
             physicsAccumulator += deltaTime;
+            physicsAccumulator = fmin(physicsAccumulator, 0.1); // Prevent spiral of death
             const double desiredPhysicsDT = 1.0 / config.physicsTPS;
             while (physicsAccumulator >= desiredPhysicsDT) {
                 if (!physicsUpdate(desiredPhysicsDT)) {
@@ -82,6 +83,19 @@ int main(int argv, char** args)
                     goto quit;
                 }
                 physicsAccumulator -= desiredPhysicsDT;
+            }
+
+            SDL_Event event;
+            while (SDL_PollEvent(&event)) {
+                if (handleEvent(event)) continue;
+
+                switch (event.type) {
+                    case SDL_QUIT: {
+                        logDebug("Received quit signal");
+                        goto quit;
+                    }
+                    default: break;
+                }
             }
 
             if (!renderUpdate(deltaTime, windowSize)) {
