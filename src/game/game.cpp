@@ -6,7 +6,7 @@ bool setupGame() {
 void shutdownGame() {
 }
 
-bool renderUpdate(double deltaTime, WindowSize &windowSize) {
+bool renderUpdate(double deltaTime, const WindowSize &windowSize) {
     return true;
 }
 bool physicsUpdate(double deltaTime) {

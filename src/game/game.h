@@ -6,7 +6,7 @@
 bool setupGame();
 void shutdownGame();
 
-bool renderUpdate(double deltaTime, WindowSize &windowSize);
+bool renderUpdate(double deltaTime, const WindowSize &windowSize);
 bool physicsUpdate(double deltaTime);
 
 bool handleEvent(SDL_Event &event);
