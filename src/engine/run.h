@@ -14,6 +14,6 @@ struct WindowSize {
     int height = 1080 / 2;
 };
 
-int run(int argv, char** args);
+int run();
 
 #endif //RUNNER_H

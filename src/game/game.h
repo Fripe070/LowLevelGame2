@@ -1,6 +1,6 @@
 #ifndef GAME_H
 #define GAME_H
-#include <main.h>
+#include "engine/run.h"
 #include <SDL_events.h>
 
 bool setupGame();

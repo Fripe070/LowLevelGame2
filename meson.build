@@ -35,6 +35,7 @@ endif
 
 sources = [
     'src/main.cpp',
+    'src/engine/run.cpp',
     'src/engine/logging.cpp',
     'src/engine/shader.cpp',
     'src/engine/loader/mesh.cpp',
