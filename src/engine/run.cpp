@@ -4,7 +4,7 @@
 #include "run.h"
 #include "logging.h"
 
-#include "../game/game.h"
+#include "game/game.h"
 
 Config config;
 WindowSize windowSize;
@@ -90,11 +90,17 @@ int run()
                 if (handleEvent(event)) continue;
 
                 switch (event.type) {
+                    default: break;
                     case SDL_QUIT: {
                         logDebug("Received quit signal");
                         goto quit;
                     }
-                    default: break;
+                    case SDL_WINDOWEVENT:
+                        if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                            windowSize.width = event.window.data1;
+                            windowSize.height = event.window.data2;
+                            glViewport(0, 0, windowSize.width, windowSize.height);
+                        }
                 }
             }
 

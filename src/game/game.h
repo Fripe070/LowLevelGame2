@@ -9,6 +9,6 @@ void shutdownGame();
 bool renderUpdate(double deltaTime, const WindowSize &windowSize);
 bool physicsUpdate(double deltaTime);
 
-bool handleEvent(SDL_Event &event);
+bool handleEvent(const SDL_Event &event);
 
 #endif //GAME_H

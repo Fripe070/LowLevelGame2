@@ -6,10 +6,9 @@
 #include <assimp/scene.h>
 #include "engine/shader.h"
 
-namespace Engine::Loader {
-    struct Texture;
-    class Mesh;
+#include "mesh.h"
 
+namespace Engine::Loader {
     class Model {
     public:
         explicit Model(const char *path);

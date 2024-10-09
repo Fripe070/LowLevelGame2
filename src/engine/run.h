@@ -1,5 +1,5 @@
-#ifndef RUNNER_H
-#define RUNNER_H
+#ifndef RUN_H
+#define RUN_H
 
 struct Config {
     double deltaTimeLimit = 3.0;
@@ -16,4 +16,4 @@ struct WindowSize {
 
 int run();
 
-#endif //RUNNER_H
+#endif //RUN_H
