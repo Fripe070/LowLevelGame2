@@ -3,6 +3,7 @@ project('lowlevelgame', 'cpp',
             'cpp_std=c++23',
             'default_library=static',
             'warning_level=3',
+            'b_ndebug=if-release',
         ])
 
 sdl2_dep = dependency('sdl2')
