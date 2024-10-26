@@ -4,9 +4,15 @@
 #include <engine/logging.h>
 #include <stb_image.h>
 #include <gl/glew.h>
+#ifndef NDEBUG
+#include <chrono>
+#endif
 
 namespace Engine::Loader {
     std::expected<unsigned int, std::string> loadTexture(const char *filePath) {
+#ifndef NDEBUG
+        const auto startTimer = std::chrono::high_resolution_clock::now();
+#endif
         unsigned int textureID;
         glGenTextures(1, &textureID);
 
@@ -16,7 +22,12 @@ namespace Engine::Loader {
             logError("Failed to load texture \"%s\": %s", filePath, stbi_failure_reason());
             return std::unexpected("Failed to load texture: " + std::string(stbi_failure_reason()));
         }
-        logDebug("Loaded texture \"%s\" with dimensions %dx%d and %d channels", filePath, width, height, channelCount);
+#ifndef NDEBUG
+        logDebug("Loaded texture \"%s\" with dimensions %dx%d and %d channels in %dms",
+            filePath, width, height, channelCount,
+            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTimer).count());
+#endif
+
         GLint format;
         switch (channelCount) {
             case 1: format = GL_RED; break;
