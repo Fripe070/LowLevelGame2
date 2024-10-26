@@ -11,6 +11,10 @@ WindowSize windowSize;
 
 int run()
 {
+#ifndef NDEBUG
+    SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);
+#endif
+
     if (0 > SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
         logError("Couldn't initialize SDL: %s", SDL_GetError());
         return 1;
