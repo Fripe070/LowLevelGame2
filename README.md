@@ -2,16 +2,12 @@
 - [Meson](https://mesonbuild.com/SimpleStart.html#installing-meson)
 - [MinGW](https://www.mingw-w64.org/) (Windows only)
 
-Run `setup.ps1` or `setup.sh` (depending on your system) to set up the project.
-To compile and run the program:
-```bash
-meson compile -C build
-./build/lowlevelgame  
-```
+## Building
+Run `debug.ps1` or `debug.sh` (depending on your system) to set up the project for development.
+You can then run the binary located at `./build/debug/lowlevelgame.exe` or `./build/debug/lowlevelgame` (depending on your system).
+
+Release builds are similar, with the scripts `release.ps1` and `release.sh`, and their executable in `build/release/` rather than `build/debug/`.
+
+
 ## Controls
-- WASD to move
-- Space to fly up
-- Shift to fly down
-- Mouse to look around
-- Mouse wheel to zoom
-- ESC to unlock cursor
+Figure them out yourself
