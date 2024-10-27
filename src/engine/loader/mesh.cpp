@@ -1,5 +1,6 @@
 #include "mesh.h"
 
+#include <stdexcept>
 #include <gl/glew.h>
 
 namespace Engine::Loader {
@@ -30,21 +31,34 @@ namespace Engine::Loader {
 
         // Set all the properties of the vertices
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
-                              sizeof(Vertex), nullptr); // first so offset is 0
+        glVertexAttribPointer(
+            0,
+            sizeof(Vertex::Position) / sizeof(float), GL_FLOAT,
+            GL_FALSE,
+            sizeof(Vertex),
+            nullptr); // first so offset is 0
 
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
-                              sizeof(Vertex), reinterpret_cast<void *>(offsetof(Vertex, Normal)));
+        glVertexAttribPointer(
+            1,
+            sizeof(Vertex::Normal) / sizeof(float), GL_FLOAT,
+            GL_FALSE,
+            sizeof(Vertex),
+            reinterpret_cast<void *>(offsetof(Vertex, Normal)));
 
         glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE,
-                              sizeof(Vertex), reinterpret_cast<void *>(offsetof(Vertex, TexCoords)));
+        glVertexAttribPointer(
+            2,
+            sizeof(Vertex::TexCoords) / sizeof(float), GL_FLOAT,
+            GL_FALSE,
+            sizeof(Vertex),
+            reinterpret_cast<void *>(offsetof(Vertex, TexCoords)));
 
-        glBindVertexArray(0);
+        glBindVertexArray(0);  // Unbind VAO
     }
 
-    void Mesh::Draw(const Shader &shader) const {
+    void Mesh::Draw(Manager::TextureManager &textureManager, const ShaderProgram &shader) const {
+        // TODO: Flawed logic here makes textures "bleed over" to other materials if they don't have any.
         unsigned int diffuseNr = 1;
         unsigned int specularNr = 1;
         for (unsigned int i = 0; i < textures.size(); i++) {
@@ -57,7 +71,11 @@ namespace Engine::Loader {
                 number = std::to_string(specularNr++);
 
             shader.setInt(("material." + name + number).c_str(), i); // material.texture_diffuse1
-            glBindTexture(GL_TEXTURE_2D, textures[i].id);
+
+            const auto texture = textureManager.loadTexture(textures[i].path);
+            if (!texture.has_value())
+                throw std::runtime_error("Failed to load texture: " + textures[i].path);
+            glBindTexture(GL_TEXTURE_2D, texture.value());
         }
         glActiveTexture(GL_TEXTURE0);
 

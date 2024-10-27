@@ -3,20 +3,23 @@
 #include <memory>
 #include <gl/glew.h>
 #include <engine/loader/model.h>
+#include <engine/loader/shader.h>
+#include "engine/managers.h"
 #include <glm/glm.hpp>
 
 #include "camera.h"
 
 std::unique_ptr<Engine::Loader::Model> model;
-std::unique_ptr<Engine::Shader> shader;
-std::unique_ptr<Camera> camera;
-std::unique_ptr<CameraController> cController;
+std::unique_ptr<Engine::ShaderProgram> shader;
+
+Camera camera;
+CameraController cController = CameraController(camera, 0.1);
+Engine::Manager::TextureManager textureManager;
+
 
 bool setupGame() {
     model = std::make_unique<Engine::Loader::Model>("resources/test_mtl.obj");
-    shader = std::make_unique<Engine::Shader>("resources/vert.vert", "resources/frag.frag");
-    camera = std::make_unique<Camera>();
-    cController = std::make_unique<CameraController>(*camera, 0.1);
+    shader = std::make_unique<Engine::ShaderProgram>("resources/vert.vert", "resources/frag.frag");
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
     glEnable(GL_DEPTH_TEST);
@@ -25,30 +28,29 @@ bool setupGame() {
 void shutdownGame() {
     model.reset();
     shader.reset();
-    camera.reset();
 }
 
 bool renderUpdate(const double deltaTime, const WindowSize &windowSize) {
     const Uint8* keyState = SDL_GetKeyboardState(nullptr);
     auto inputDir = glm::vec3(0.0f, 0.0f,  0.0f);
     if (keyState[SDL_SCANCODE_W])
-        inputDir += camera->forward();
+        inputDir += camera.forward();
     if (keyState[SDL_SCANCODE_S])
-        inputDir -= camera->forward();
+        inputDir -= camera.forward();
     if (keyState[SDL_SCANCODE_A])
-        inputDir -= glm::normalize(glm::cross(camera->forward(), camera->up()));
+        inputDir -= glm::normalize(glm::cross(camera.forward(), camera.up()));
     if (keyState[SDL_SCANCODE_D])
-        inputDir += glm::normalize(glm::cross(camera->forward(), camera->up()));
+        inputDir += glm::normalize(glm::cross(camera.forward(), camera.up()));
     if (keyState[SDL_SCANCODE_SPACE])
-        inputDir += camera->up();
+        inputDir += camera.up();
     if (keyState[SDL_SCANCODE_LSHIFT])
-        inputDir -= camera->up();
+        inputDir -= camera.up();
     if (keyState[SDL_SCANCODE_ESCAPE])
         SDL_SetRelativeMouseMode(SDL_FALSE);
 
     inputDir = glm::dot(inputDir, inputDir) > 0.0f ? glm::normalize(inputDir) : inputDir; // dot(v, v) is squared length
     constexpr auto CAMERA_SPEED = 2.5f;
-    camera->position += inputDir * CAMERA_SPEED * static_cast<float>(deltaTime);
+    camera.position += inputDir * CAMERA_SPEED * static_cast<float>(deltaTime);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -67,8 +69,8 @@ bool renderUpdate(const double deltaTime, const WindowSize &windowSize) {
     shader->setFloat("pointLights[0].linear", 0.09f);
     shader->setFloat("pointLights[0].quadratic", 0.032f);
 
-    shader->setVec3("spotLight.position", camera->position);
-    shader->setVec3("spotLight.direction", camera->forward());
+    shader->setVec3("spotLight.position", camera.position);
+    shader->setVec3("spotLight.direction", camera.forward());
     shader->setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
     shader->setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
     shader->setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
@@ -80,13 +82,13 @@ bool renderUpdate(const double deltaTime, const WindowSize &windowSize) {
 
     shader->setFloat("material.shininess", 32.0f);
 
-    shader->setVec3("viewPos", camera->position);
-    shader->setMat4("projection", camera->getProjectionMatrix(static_cast<float>(windowSize.width) / windowSize.height));
-    shader->setMat4("view", camera->getViewMatrix());
+    shader->setVec3("viewPos", camera.position);
+    shader->setMat4("projection", camera.getProjectionMatrix(static_cast<float>(windowSize.width) / windowSize.height));
+    shader->setMat4("view", camera.getViewMatrix());
     shader->setMat4("model", glm::mat4(1.0f));
 
 
-    model->Draw(*shader);
+    model->Draw(textureManager, *shader);
     return true;
 }
 bool physicsUpdate(const double deltaTime) {
@@ -97,10 +99,10 @@ bool handleEvent(const SDL_Event &event) {
     switch (event.type) {
         default: break;
         case SDL_MOUSEWHEEL:
-            cController->zoom(event.wheel.y);
+            cController.zoom(event.wheel.y);
             break;
         case SDL_MOUSEMOTION:
-            cController->look(event.motion);
+            cController.look(event.motion);
             break;
     }
 

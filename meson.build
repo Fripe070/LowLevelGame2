@@ -17,7 +17,7 @@ if not assimp_dep.found()
     assimp_opt = cmake.subproject_options()
     assimp_opt.add_cmake_defines({
         'BUILD_SHARED_LIBS' : false,
-        'CMAKE_BUILD_TYPE' : get_option('buildtype') == 'debug' ? 'Debug' : 'Release',
+        'CMAKE_BUILD_TYPE' : get_option('buildtype') == 'release' ? 'Release' : 'Debug',
         'ASSIMP_BUILD_TESTS' : false,
         'ASSIMP_BUILD_ALL_EXPORTERS_BY_DEFAULT' : false,  # We won't be exporting
         'ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT' : false,  # There are like a million of them
@@ -38,11 +38,12 @@ sources = [
     'src/main.cpp',
     'src/engine/run.cpp',
     'src/engine/logging.cpp',
-    'src/engine/shader.cpp',
+    'src/engine/loader/shader.cpp',
     'src/engine/loader/mesh.cpp',
     'src/engine/loader/model.cpp',
     'src/engine/loader/texture.cpp',
     'src/engine/loader/generic.cpp',
+    'src/engine/managers.cpp',
 
     'src/game/game.cpp',
     'src/game/camera.cpp',

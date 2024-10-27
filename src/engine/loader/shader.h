@@ -1,23 +1,34 @@
 #ifndef SHADER_H
 #define SHADER_H
+#include <expected>
 #include <string>
+#include <vector>
 #include <glm/fwd.hpp>
 
 namespace Engine {
-    class Shader {
+    class ShaderProgram {
     public:
         unsigned int programID;
 
-        Shader(const std::string &vertexFilePath, const std::string &fragmentFilePath);
-        ~Shader();
+        ShaderProgram(const std::string &vertexFilePath, const std::string &fragmentFilePath);
+        ShaderProgram(const std::string &vertexFilePath, const std::string &geometryFilePath, const std::string &fragmentFilePath);
+        ShaderProgram(const std::vector<std::pair<std::string, unsigned int>> &filePaths);
+        ~ShaderProgram();
 
         void use() const;
 
         unsigned int getUniformLoc(const std::string &name) const;
 
     private:
-        static bool logShaderError(const unsigned int &shaderID);
-        static bool logProgramError(const unsigned int &programID);
+        void Constructor(const std::vector<std::pair<std::string, unsigned int>> &filePaths);
+
+        static std::expected<unsigned int, std::string> loadShader(
+            const std::string &filePath,
+            const unsigned int shaderType
+        );
+        static std::expected<unsigned int, std::string> programFromMultiple(
+            const std::vector<std::pair<std::string, unsigned int>> &shaders
+        );
 
     public:
         void setBool(const std::string &name, bool value) const;

@@ -1,31 +1,24 @@
 #include "model.h"
 
+#include <stdexcept>
 #include <engine/logging.h>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include "mesh.h"
-#include "texture.h"
 
 namespace Engine::Loader {
-    Model::Model(const char *path) {
-        loadModel(path);
-    }
+    Model::Model(const std::string &path) {
+        // TODO: Is there a better way to do this? We really need to sort out paths in general...
+        directory = path.substr(0, path.find_last_of('/'));
 
-    void Model::loadModel(const std::string &path) {
         Assimp::Importer import;
         const aiScene *scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
-
-        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-            logError("Assimp error: %s", import.GetErrorString());
-            return; // TODO: Should we do more than just log? Throw? Expected?
-        }
-        directory = path.substr(0, path.find_last_of('/'));
-        // TODO: Is there a better way to do this? We really need to sort out paths in general...
+        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+            throw std::runtime_error(std::string("Failed to load model: ") + import.GetErrorString());
 
         auto result = processNode(scene->mRootNode, scene);
-        if (!result.has_value()) {
-            logError("Failed to process node: %s", result.error().c_str());
-        }
+        if (!result.has_value())
+            throw std::runtime_error("Failed to process node: " + result.error());
     }
 
     std::expected<void, std::string> Model::processNode(const aiNode *node, const aiScene *scene) {
@@ -49,12 +42,12 @@ namespace Engine::Loader {
 #define UNPACK_VEC3(aiVec) {aiVec.x, aiVec.y, aiVec.z}
 
     std::expected<Mesh, std::string> Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
-        std::vector<Vertex> vertices;
+        std::vector<Mesh::Vertex> vertices;
         std::vector<unsigned int> indices;
-        std::vector<Texture> textures;
+        std::vector<Mesh::Texture> textures;
 
         for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
-            Vertex vertex;
+            Mesh::Vertex vertex;
             vertex.Position = UNPACK_VEC3(mesh->mVertices[i]);
 
             if (mesh->mNormals == nullptr)
@@ -77,18 +70,18 @@ namespace Engine::Loader {
         }
 
         const aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
-        std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, DIFFUSE_TEX_NAME);
+        std::vector<Mesh::Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, DIFFUSE_TEX_NAME);
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-        std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, SPECULAR_TEX_NAME);
+        std::vector<Mesh::Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, SPECULAR_TEX_NAME);
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
         return Mesh(vertices, indices, textures);
     }
 
-    std::vector<Texture> Model::loadMaterialTextures(
+    std::vector<Mesh::Texture> Model::loadMaterialTextures(
         const aiMaterial *mat, const aiTextureType type, const std::string &typeName
     ) {
-        std::vector<Texture> textures;
+        std::vector<Mesh::Texture> textures;
         for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
             aiString tPath;
             mat->GetTexture(type, i, &tPath);
@@ -101,17 +94,16 @@ namespace Engine::Loader {
                 }
             if (skip) continue;
 
-            Texture texture;
-            texture.id = loadTexture(directory + '/' + tPath.C_Str()).value();  // TODO: Path horror
+            Mesh::Texture texture;
             texture.type = typeName;
-            texture.path = tPath.C_Str();
+            texture.path = directory + '/' + tPath.C_Str();  // Will be loaded on first draw call using it
             textures.push_back(texture);
         }
         return textures;
     }
 
-    void Model::Draw(const Shader &shader) const {
+    void Model::Draw(Manager::TextureManager &textureManager, const ShaderProgram &shader) const {
         for (auto mesh: meshes)
-            mesh.Draw(shader);
+            mesh.Draw(textureManager, shader);
     }
 }
