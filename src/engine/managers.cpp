@@ -38,4 +38,12 @@ namespace Engine::Manager {
         return textures[texturePath] = texture.value();
     }
 
+    bool TextureManager::unloadTexture(const std::string &texturePath) {
+        if (!textures.contains(texturePath))
+            return false;
+        glDeleteTextures(1, &textures[texturePath]);
+        textures.erase(texturePath);
+        return true;
+    }
+
 }

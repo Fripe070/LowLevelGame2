@@ -22,9 +22,7 @@ namespace Engine::Manager {
 
         void clear();
         std::expected<unsigned int, std::string> loadTexture(const std::string &texturePath);
-        std::expected<unsigned int, std::string> loadTexture(const char *texturePath) {
-            return loadTexture(std::string(texturePath));
-        }
+        bool unloadTexture(const std::string &texturePath);
     };
 
 }
