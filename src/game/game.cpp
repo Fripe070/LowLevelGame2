@@ -11,15 +11,16 @@
 
 std::unique_ptr<Engine::Loader::Model> model;
 std::unique_ptr<Engine::ShaderProgram> shader;
+std::unique_ptr<Engine::Manager::TextureManager> textureManager;
 
 Camera camera;
 CameraController cController = CameraController(camera, 0.1);
-Engine::Manager::TextureManager textureManager;
 
 
 bool setupGame() {
     model = std::make_unique<Engine::Loader::Model>("resources/test_mtl.obj");
     shader = std::make_unique<Engine::ShaderProgram>("resources/vert.vert", "resources/frag.frag");
+    textureManager = std::make_unique<Engine::Manager::TextureManager>();
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
     glEnable(GL_DEPTH_TEST);
@@ -28,6 +29,7 @@ bool setupGame() {
 void shutdownGame() {
     model.reset();
     shader.reset();
+    textureManager.reset();
 }
 
 bool renderUpdate(const double deltaTime, const WindowSize &windowSize) {
@@ -88,7 +90,7 @@ bool renderUpdate(const double deltaTime, const WindowSize &windowSize) {
     shader->setMat4("model", glm::mat4(1.0f));
 
 
-    model->Draw(textureManager, *shader);
+    model->Draw(*textureManager, *shader);
     return true;
 }
 bool physicsUpdate(const double deltaTime) {

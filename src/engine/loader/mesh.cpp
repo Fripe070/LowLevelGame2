@@ -1,6 +1,7 @@
 #include "mesh.h"
 
 #include <stdexcept>
+#include <engine/logging.h>
 #include <gl/glew.h>
 
 namespace Engine::Loader {
@@ -63,8 +64,8 @@ namespace Engine::Loader {
 
             const auto texture = textureManager.loadTexture(textures[i].path);
             if (!texture.has_value())
-                throw std::runtime_error("Failed to load texture: " + textures[i].path);
-            glBindTexture(GL_TEXTURE_2D, texture.value());
+                logError("Failed to render texture " + textures[i].path + ": " + texture.error());
+            glBindTexture(GL_TEXTURE_2D, texture.value_or(textureManager.errorTexture));
         }
         glActiveTexture(GL_TEXTURE0);
 
