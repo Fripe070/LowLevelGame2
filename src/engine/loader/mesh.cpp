@@ -30,29 +30,18 @@ namespace Engine::Loader {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
 
         // Set all the properties of the vertices
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(
-            0,
-            sizeof(Vertex::Position) / sizeof(float), GL_FLOAT,
-            GL_FALSE,
-            sizeof(Vertex),
-            nullptr); // first so offset is 0
+#define ENABLE_F_VERTEX_ATTRIB(index, member) \
+        glEnableVertexAttribArray(index); \
+        glVertexAttribPointer(index, \
+            sizeof(Vertex::member) / sizeof(float), GL_FLOAT, \
+            GL_FALSE, \
+            sizeof(Vertex), \
+            reinterpret_cast<void *>(offsetof(Vertex, member)))
 
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(
-            1,
-            sizeof(Vertex::Normal) / sizeof(float), GL_FLOAT,
-            GL_FALSE,
-            sizeof(Vertex),
-            reinterpret_cast<void *>(offsetof(Vertex, Normal)));
-
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(
-            2,
-            sizeof(Vertex::TexCoords) / sizeof(float), GL_FLOAT,
-            GL_FALSE,
-            sizeof(Vertex),
-            reinterpret_cast<void *>(offsetof(Vertex, TexCoords)));
+        ENABLE_F_VERTEX_ATTRIB(0, Position);
+        ENABLE_F_VERTEX_ATTRIB(1, Normal);
+        ENABLE_F_VERTEX_ATTRIB(2, TexCoords);
+#undef ENABLE_F_VERTEX_ATTRIB
 
         glBindVertexArray(0);  // Unbind VAO
     }
