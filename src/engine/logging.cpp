@@ -1,8 +1,6 @@
-#include <logging.h>
-#include <string>
-#include <unordered_map>
-#include <gl/glew.h>
+#include "logging.h"
 
+#include <unordered_map>
 
 std::string glErrorString(const GLenum errorCode) {
     static const std::unordered_map<GLenum, std::string> map = {
