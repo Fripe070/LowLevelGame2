@@ -1,12 +1,12 @@
 #ifndef LOGGING_H
 #define LOGGING_H
-
-// ReSharper disable once CppUnusedIncludeDirective
-#include <SDL_log.h>
 #include <string>
 #include <gl/glew.h>
+// ReSharper disable once CppUnusedIncludeDirective // Used in macros
+#include <SDL_log.h>
 
 std::string glErrorString(GLenum errorCode);
+
 GLenum glLogErrors_(const char *file, int line);
 
 #define logError(fmt, ...) SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, \
