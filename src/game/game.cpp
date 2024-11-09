@@ -18,7 +18,7 @@ CameraController cController = CameraController(camera, 0.1);
 
 
 bool setupGame() {
-    model = std::make_unique<Engine::Loader::Model>("resources/test_mtl.obj");
+    model = std::make_unique<Engine::Loader::Model>("resources/map.obj");
     shader = std::make_unique<Engine::ShaderProgram>("resources/vert.vert", "resources/frag.frag");
     textureManager = std::make_unique<Engine::Manager::TextureManager>();
 

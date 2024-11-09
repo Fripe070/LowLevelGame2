@@ -47,6 +47,7 @@ sources = [
 
     'src/game/game.cpp',
     'src/game/camera.cpp',
+    'src/game/gui.cpp',
 ]
 
 exe = executable(
