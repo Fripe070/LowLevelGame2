@@ -1,11 +1,12 @@
-#include "game.h"
-
 #include <memory>
 #include <gl/glew.h>
 #include <glm/glm.hpp>
 
 #include "camera.h"
 #include "gui.h"
+#include <game/state.h>
+
+#include "game.h"
 
 
 std::unique_ptr<GameState> gameState;

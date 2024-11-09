@@ -4,9 +4,10 @@
 #include <SDL.h>
 #include <GL/glew.h>
 
-#include "gui.h"
-
 #include "game.h"
+#include <game/state.h>
+
+#include "gui.h"
 
 
 namespace DebugGUI {
