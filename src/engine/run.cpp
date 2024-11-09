@@ -9,6 +9,8 @@
 Config config;
 WindowSize windowSize;
 
+StatePackage statePackage = {&config, &windowSize};
+
 int run()
 {
 #ifndef NDEBUG
@@ -55,7 +57,7 @@ int run()
         return -1;
     }
 
-    if (!setupGame()) {
+    if (!setupGame(statePackage, sdlWindow, glContext)) {
         logError("Setup failed");
         goto quitNoShutdown;
     }
@@ -72,17 +74,17 @@ int run()
                 deltaTime = config.deltaTimeLimit;
 
             // TODO: Process inputs instead of sleeping, to mitigate some input lag
-            if (const double expectedDT = 1.0 / config.maxFPS;
-                config.limitFPS && !config.vsync && deltaTime < expectedDT) {
+            const double expectedDT = 1.0 / config.maxFPS;
+            if (config.limitFPS && !config.vsync && deltaTime < expectedDT) {
                 SDL_Delay(static_cast<Uint32>((expectedDT - deltaTime) * 1000.0));
-                }
+            }
 #pragma endregion
 
             physicsAccumulator += deltaTime;
             physicsAccumulator = fmin(physicsAccumulator, 0.1); // Prevent spiral of death
             const double desiredPhysicsDT = 1.0 / config.physicsTPS;
             while (physicsAccumulator >= desiredPhysicsDT) {
-                if (!physicsUpdate(desiredPhysicsDT)) {
+                if (!physicsUpdate(desiredPhysicsDT, statePackage)) {
                     logError("Physics update failed");
                     goto quit;
                 }
@@ -91,7 +93,7 @@ int run()
 
             SDL_Event event;
             while (SDL_PollEvent(&event)) {
-                if (handleEvent(event)) continue;
+                if (handleEvent(event, statePackage)) continue;
 
                 switch (event.type) {
                     default: break;
@@ -108,7 +110,7 @@ int run()
                 }
             }
 
-            if (!renderUpdate(deltaTime, windowSize)) {
+            if (!renderUpdate(deltaTime, statePackage)) {
                 logError("Render update failed");
                 goto quit;
             }
@@ -118,7 +120,7 @@ int run()
     }
 
 quit:
-    shutdownGame();
+    shutdownGame(statePackage);
 quitNoShutdown:
     SDL_GL_DeleteContext(glContext);
     SDL_DestroyWindow(sdlWindow);

@@ -2,31 +2,11 @@
 
 #include <memory>
 #include <gl/glew.h>
-#include <engine/loader/model.h>
-#include <engine/loader/shader.h>
-#include "engine/managers.h"
 #include <glm/glm.hpp>
 
 #include "camera.h"
+#include "gui.h"
 
-
-struct PlayerState {
-    Camera camera;
-    CameraController cController = CameraController(camera, 0.1);
-};
-
-
-struct LevelState {
-    std::vector<Engine::Loader::Model> models;
-    std::vector<Engine::ShaderProgram> shaders;
-    Engine::Manager::TextureManager textureManager;
-
-    PlayerState player;
-};
-
-struct GameState {
-    LevelState level;
-};
 
 std::unique_ptr<GameState> gameState;
 
@@ -34,22 +14,23 @@ std::unique_ptr<GameState> gameState;
 #define PLAYER LEVEL.player
 #define CAMERA PLAYER.camera
 
-bool setupGame() {
-    gameState = std::make_unique<GameState>();
+bool setupGame(StatePackage &statePackage, SDL_Window *sdlWindow, SDL_GLContext glContext) {
+    gameState = std::make_unique<GameState>(statePackage);
 
     LEVEL.models.emplace_back("resources/map.obj");
     LEVEL.shaders.emplace_back("resources/vert.vert", "resources/frag.frag");
+
+    DebugGUI::init(*sdlWindow, glContext);
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
     glEnable(GL_DEPTH_TEST);
     return true;
 }
-void shutdownGame() {
+void shutdownGame(StatePackage &statePackage) {
     gameState.reset();
 }
 
-
-bool renderUpdate(const double deltaTime, const WindowSize &windowSize) {
+bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     const Uint8* keyState = SDL_GetKeyboardState(nullptr);
     auto inputDir = glm::vec3(0.0f, 0.0f,  0.0f);
     if (keyState[SDL_SCANCODE_W])
@@ -102,19 +83,24 @@ bool renderUpdate(const double deltaTime, const WindowSize &windowSize) {
     LEVEL.shaders[0].setFloat("material.shininess", 32.0f);
 
     LEVEL.shaders[0].setVec3("viewPos", CAMERA.position);
-    LEVEL.shaders[0].setMat4("projection", CAMERA.getProjectionMatrix(static_cast<float>(windowSize.width) / windowSize.height));
+    LEVEL.shaders[0].setMat4("projection", CAMERA.getProjectionMatrix(static_cast<float>(statePackage.windowSize->width) / statePackage.windowSize->height));
     LEVEL.shaders[0].setMat4("view", CAMERA.getViewMatrix());
     LEVEL.shaders[0].setMat4("model", glm::mat4(1.0f));
 
     for (auto &model : LEVEL.models)
         model.Draw(LEVEL.textureManager, LEVEL.shaders[0]);
+
+    DebugGUI::render(*gameState, statePackage);
+
     return true;
 }
-bool physicsUpdate(const double deltaTime) {
+bool physicsUpdate(const double deltaTime, StatePackage &statePackage) {
     return true;
 }
 
-bool handleEvent(const SDL_Event &event) {
+bool handleEvent(const SDL_Event &event, StatePackage &statePackage) {
+    DebugGUI::handleEvent(event);
+
     switch (event.type) {
         default: break;
         case SDL_MOUSEWHEEL:

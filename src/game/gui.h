@@ -2,29 +2,17 @@
 #define GUI_H
 
 #include <SDL.h>
+#include <engine/run.h>
 
-typedef struct {
-    bool limitFPS = true;
-    double deltaTimeLimit = 3;
-    bool vsync = true;
-    int maxFPS = 100;
-    float *sensitivity;
-    bool wireframe = false;
+struct GameState;
 
-    int windowWidth = 1920 / 2;
-    int windowHeight = 1080 / 2;
-} ProgState;
+namespace DebugGUI {
+    void init(SDL_Window &window, SDL_GLContext glContext);
+    void shutdown();
 
-class GUI {
-public:
-    GUI() = default;
-    ~GUI() = default;
+    void render(GameState &gameState, StatePackage &statePackage);
+    void handleEvent(const SDL_Event &event);
+}
 
-    static void init(SDL_Window *window, SDL_GLContext glContext);
-    static void frame(ProgState &progState);
-    static void render();
-    static void shutdown();
-    static void showWindow(ProgState &progState);
-};
 
 #endif //GUI_H

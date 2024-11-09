@@ -14,6 +14,11 @@ struct WindowSize {
     int height = 1080 / 2;
 };
 
+struct StatePackage {
+    Config *config;
+    WindowSize *windowSize;
+};
+
 int run();
 
 #endif //RUN_H
