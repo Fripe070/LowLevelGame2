@@ -5,9 +5,9 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "generic.h"
+#include <engine/logging.h>
 #ifndef NDEBUG
 #include <chrono>
-#include <engine/logging.h>
 #endif
 
 namespace Engine {
@@ -37,8 +37,10 @@ namespace Engine {
 
     void ShaderProgram::Constructor(const std::vector<std::pair<std::string, unsigned int>> &filePaths) {
         const std::expected<unsigned int, std::string> programID = programFromMultiple(filePaths);
-        if (!programID.has_value())
+        if (!programID.has_value()) {
+            logError("Failed to create shader program: %s", programID.error().c_str());
             throw std::runtime_error(programID.error());
+        }
         this->programID = programID.value();
     }
     ShaderProgram::~ShaderProgram() {

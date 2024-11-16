@@ -35,8 +35,8 @@ int run()
     }
 
     // Modern OpenGL with core profile
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, LLG_GL_VER_MAJOR);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, LLG_GL_VER_MINOR);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     const SDL_GLContext glContext = SDL_GL_CreateContext(sdlWindow);
@@ -110,7 +110,9 @@ int run()
                 }
             }
 
-            if (!renderUpdate(deltaTime, statePackage)) {
+            const bool renderSuccess = renderUpdate(deltaTime, statePackage);
+            glLogErrors_(__FILE__, __LINE__);
+            if (!renderSuccess) {
                 logError("Render update failed");
                 goto quit;
             }

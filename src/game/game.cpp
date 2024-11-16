@@ -18,8 +18,8 @@ std::unique_ptr<GameState> gameState;
 bool setupGame(StatePackage &statePackage, SDL_Window *sdlWindow, SDL_GLContext glContext) {
     gameState = std::make_unique<GameState>(statePackage);
 
-    LEVEL.models.emplace_back("resources/map.obj");
-    LEVEL.shaders.emplace_back("resources/vert.vert", "resources/frag.frag");
+    LEVEL.models.emplace_back(Engine::Loader::Model("resources/map.obj"));
+    LEVEL.shaders.emplace_back(Engine::ShaderProgram("resources/vert.vert", "resources/frag.frag"));
 
     DebugGUI::init(*sdlWindow, glContext);
 

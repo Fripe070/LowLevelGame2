@@ -18,7 +18,7 @@ GLenum glLogErrors_(const char *file, int line);
 #define logDebug(fmt, ...) SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, \
     (__FILE__ ":" + std::to_string(__LINE__) + " " + fmt).c_str(), ##__VA_ARGS__)
 
-#ifdef DEBUG
+#ifndef NDEBUG
 #define glLogErrors() glLogErrors_(__FILE__, __LINE__)  // glGetError is a bit slow
 #else
 #define glLogErrors()

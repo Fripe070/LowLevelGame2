@@ -1,6 +1,9 @@
 #ifndef RUN_H
 #define RUN_H
 
+#define LLG_GL_VER_MAJOR 3
+#define LLG_GL_VER_MINOR 3
+
 struct Config {
     double deltaTimeLimit = 3.0;
     bool limitFPS = true;
