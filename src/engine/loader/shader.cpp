@@ -77,15 +77,17 @@ namespace Engine {
         glGetShaderiv(shaderID, GL_COMPILE_STATUS, &result);
         if (result == GL_TRUE)
             return shaderID;
-        glDeleteShader(shaderID);  // Prevent leak if we failed to compile
 
         int infoLogLength = 0;
         glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
-        if (infoLogLength == 0)
+        if (infoLogLength == 0) {
+            glDeleteShader(shaderID);  // Prevent leak if we failed to compile
             return std::unexpected("Shader compilation failed: No info log available");
+        }
 
         std::vector<char> infoLog(infoLogLength);
         glGetShaderInfoLog(shaderID, infoLogLength, nullptr, infoLog.data());
+        glDeleteShader(shaderID);  // Prevent leak if we failed to compile
         return std::unexpected("Shader compilation failed: " + std::string(infoLog.data()));
     }
 

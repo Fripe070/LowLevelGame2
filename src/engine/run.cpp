@@ -111,7 +111,7 @@ int run()
             }
 
             const bool renderSuccess = renderUpdate(deltaTime, statePackage);
-            glLogErrors_(__FILE__, __LINE__);
+            glLogErrors();
             if (!renderSuccess) {
                 logError("Render update failed");
                 goto quit;

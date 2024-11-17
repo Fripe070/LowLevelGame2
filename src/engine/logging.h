@@ -8,6 +8,16 @@
 std::string glErrorString(GLenum errorCode);
 
 GLenum glLogErrors_(const char *file, int line);
+GLenum glLogErrorsExtra_(const char *file, int line, const char *extra);
+GLenum glLogErrorsExtra_(const char *file, int line, const std::string &extra);
+
+#ifndef NDEBUG
+#define glLogErrors() glLogErrors_(__FILE__, __LINE__)  // glGetError is a bit slow
+#define glLogErrorsExtra(extra) glLogErrorsExtra_(__FILE__, __LINE__, extra)
+#else
+#define glLogErrors()
+#define glLogErrorsExtra(extra)
+#endif
 
 #define logError(fmt, ...) SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, \
     (__FILE__ ":" + std::to_string(__LINE__) + " " + fmt).c_str(), ##__VA_ARGS__)
@@ -17,12 +27,6 @@ GLenum glLogErrors_(const char *file, int line);
     (__FILE__ ":" + std::to_string(__LINE__) + " " + fmt).c_str(), ##__VA_ARGS__)
 #define logDebug(fmt, ...) SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, \
     (__FILE__ ":" + std::to_string(__LINE__) + " " + fmt).c_str(), ##__VA_ARGS__)
-
-#ifndef NDEBUG
-#define glLogErrors() glLogErrors_(__FILE__, __LINE__)  // glGetError is a bit slow
-#else
-#define glLogErrors()
-#endif
 
 
 #endif //LOGGING_H

@@ -27,3 +27,14 @@ GLenum glLogErrors_(const char *file, const int line) {
     }
     return errorCode;
 }
+
+GLenum glLogErrorsExtra_(const char *file, const int line, const char *extra) {
+    GLenum errorCode;
+    while ((errorCode = glGetError()) != GL_NO_ERROR) {
+        logError("OpenGL error %s: (%d) %s %s:%d", extra, errorCode, glErrorString(errorCode).c_str(), file, line);
+    }
+    return errorCode;
+}
+GLenum glLogErrorsExtra_(const char *file, const int line, const std::string &extra) {
+    return glLogErrorsExtra_(file, line, extra.c_str());
+}
