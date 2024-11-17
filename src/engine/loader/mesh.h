@@ -18,19 +18,19 @@ namespace Engine::Loader {
             glm::vec3 Normal;
             glm::vec2 TexCoords;
         };
-        struct Texture {
+        struct TextureRef {
             std::string type;
             std::string path;
         };
 
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
-        std::vector<Texture> textures;
+        std::vector<TextureRef> textures;
 
         Mesh(
             const std::vector<Vertex> &vertices,
             const std::vector<unsigned int> &indices,
-            const std::vector<Texture> &textures
+            const std::vector<TextureRef> &textures
         );
 
         void Draw(Manager::TextureManager &textureManager, const ShaderProgram &shader) const;

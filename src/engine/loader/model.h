@@ -20,14 +20,14 @@ namespace Engine::Loader {
 
     private:
         std::vector<Mesh> meshes;
-        std::vector<Mesh::Texture> loaded_textures;
+        std::vector<Mesh::TextureRef> loaded_textures;
         std::string directory;
 
         std::expected<void, std::string> processNode(const aiNode *node, const aiScene *scene);
 
         std::expected<Mesh, std::string> processMesh(const aiMesh *mesh, const aiScene *scene);
 
-        std::vector<Mesh::Texture> loadMaterialTextures(const aiMaterial *mat, aiTextureType type, const std::string &typeName);
+        std::vector<Mesh::TextureRef> loadMaterialTextures(const aiMaterial *mat, aiTextureType type, const std::string &typeName);
     };
 }
 

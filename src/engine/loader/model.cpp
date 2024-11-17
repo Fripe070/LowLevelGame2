@@ -46,7 +46,7 @@ namespace Engine::Loader {
     std::expected<Mesh, std::string> Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
         std::vector<Mesh::Vertex> vertices;
         std::vector<unsigned int> indices;
-        std::vector<Mesh::Texture> textures;
+        std::vector<Mesh::TextureRef> textures;
 
         for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
             Mesh::Vertex vertex;
@@ -72,19 +72,19 @@ namespace Engine::Loader {
         }
 
         const aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
-        std::vector<Mesh::Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, DIFFUSE_TEX_NAME);
+        std::vector<Mesh::TextureRef> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, DIFFUSE_TEX_NAME);
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-        std::vector<Mesh::Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, SPECULAR_TEX_NAME);
+        std::vector<Mesh::TextureRef> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, SPECULAR_TEX_NAME);
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
         logDebug("Loaded mesh with %d vertices", vertices.size(), indices.size());
         return Mesh(vertices, indices, textures);
     }
 
-    std::vector<Mesh::Texture> Model::loadMaterialTextures(
+    std::vector<Mesh::TextureRef> Model::loadMaterialTextures(
         const aiMaterial *mat, const aiTextureType type, const std::string &typeName
     ) {
-        std::vector<Mesh::Texture> textures;
+        std::vector<Mesh::TextureRef> textures;
         for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
             aiString tPath;
             mat->GetTexture(type, i, &tPath);
@@ -97,7 +97,7 @@ namespace Engine::Loader {
                 }
             if (skip) continue;
 
-            Mesh::Texture texture;
+            Mesh::TextureRef texture;
             texture.type = typeName;
             texture.path = directory + '/' + tPath.C_Str();  // Will be loaded on first draw call using it
             textures.push_back(texture);
