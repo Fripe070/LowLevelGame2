@@ -47,6 +47,19 @@ namespace Engine {
         glDeleteProgram(programID);
     }
 
+    ShaderProgram::ShaderProgram(ShaderProgram &&other) noexcept {
+        programID = other.programID;
+        other.programID = 0;
+    }
+    ShaderProgram &ShaderProgram::operator=(ShaderProgram &&other) noexcept {
+        if (this != &other) {
+            glDeleteProgram(programID);
+            programID = other.programID;
+            other.programID = 0;
+        }
+        return *this;
+    }
+
     std::expected<unsigned int, std::string> ShaderProgram::loadShader(
         const std::string &filePath,
         const unsigned int shaderType

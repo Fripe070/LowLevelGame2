@@ -12,11 +12,21 @@ namespace Engine {
 
         ShaderProgram(const std::string &vertexFilePath, const std::string &fragmentFilePath);
         ShaderProgram(const std::string &vertexFilePath, const std::string &geometryFilePath, const std::string &fragmentFilePath);
+        /*!
+         * @brief Construct a shader program from multiple files
+         * @param filePaths A vector of pairs of file paths and shader types (GL_VERTEX_SHADER, GL_FRAGMENT_SHADER...)
+         */
         ShaderProgram(const std::vector<std::pair<std::string, unsigned int>> &filePaths);
         ~ShaderProgram();
 
-        void use() const;
+        // Non-copyable
+        ShaderProgram(const ShaderProgram&) = delete;
+        ShaderProgram& operator=(const ShaderProgram&) = delete;
+        // Moveable
+        ShaderProgram(ShaderProgram&& other) noexcept;
+        ShaderProgram& operator=(ShaderProgram&& other) noexcept;
 
+        void use() const;
         unsigned int getUniformLoc(const std::string &name) const;
 
     private:
