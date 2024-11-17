@@ -21,6 +21,11 @@ namespace Engine::Manager {
         ~TextureManager();
 
         void clear();
+        /*!
+         * @brief Get the OpenGL texture ID associated with a texture path, loading it if necessary
+         * @param texturePath The path to the texture
+         * @return The texture ID or an error message
+         */
         std::expected<unsigned int, std::string> loadTexture(const std::string &texturePath);
         bool unloadTexture(const std::string &texturePath);
     };
