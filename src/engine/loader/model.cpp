@@ -19,6 +19,8 @@ namespace Engine::Loader {
         auto result = processNode(scene->mRootNode, scene);
         if (!result.has_value())
             throw std::runtime_error("Failed to process node: " + result.error());
+
+        logDebug("Loaded model \"%s\" with %d meshes", path.c_str(), meshes.size());
     }
 
     std::expected<void, std::string> Model::processNode(const aiNode *node, const aiScene *scene) {
@@ -75,6 +77,7 @@ namespace Engine::Loader {
         std::vector<Mesh::Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, SPECULAR_TEX_NAME);
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
+        logDebug("Loaded mesh with %d vertices", vertices.size(), indices.size());
         return Mesh(vertices, indices, textures);
     }
 

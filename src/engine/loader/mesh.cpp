@@ -66,11 +66,13 @@ namespace Engine::Loader {
             if (!texture.has_value())
                 logError("Failed to render texture " + textures[i].path + ": " + texture.error());
             glBindTexture(GL_TEXTURE_2D, texture.value_or(textureManager.errorTexture));
+            glLogErrorsExtra("binding texture " + textures[i].path);
         }
         glActiveTexture(GL_TEXTURE0);
 
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
+        glLogErrorsExtra("drawing mesh " + std::to_string(VAO));
         glBindVertexArray(GL_ZERO);
     }
 }
