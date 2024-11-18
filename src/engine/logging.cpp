@@ -48,7 +48,7 @@ void GLAPIENTRY MessageCallback(
     const GLchar* message,
     const void* userParam
 ) {
-    std::unordered_map<GLenum, std::string> sourceMap = {
+    std::unordered_map<GLenum, const char*> sourceMap = {
         {GL_DEBUG_SOURCE_API, "API"},
         {GL_DEBUG_SOURCE_WINDOW_SYSTEM, "Window system"},
         {GL_DEBUG_SOURCE_SHADER_COMPILER, "Shader compiler"},
@@ -56,7 +56,7 @@ void GLAPIENTRY MessageCallback(
         {GL_DEBUG_SOURCE_APPLICATION, "Application"},
         {GL_DEBUG_SOURCE_OTHER, "Other"}
     };
-    std::unordered_map<GLenum, std::string> typeMap = {
+    std::unordered_map<GLenum, const char*> typeMap = {
         {GL_DEBUG_TYPE_ERROR, "Error"},
         {GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR, "Deprecated behavior"},
         {GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR, "Undefined behavior"},
@@ -67,7 +67,7 @@ void GLAPIENTRY MessageCallback(
         {GL_DEBUG_TYPE_POP_GROUP, "Pop group"},
         {GL_DEBUG_TYPE_OTHER, "Other"}
     };
-    std::unordered_map<GLenum, std::string> severityMap = {
+    std::unordered_map<GLenum, const char*> severityMap = {
         {GL_DEBUG_SEVERITY_HIGH, "High"},
         {GL_DEBUG_SEVERITY_MEDIUM, "Medium"},
         {GL_DEBUG_SEVERITY_LOW, "Low"},
@@ -80,18 +80,14 @@ void GLAPIENTRY MessageCallback(
         {GL_DEBUG_SEVERITY_NOTIFICATION, SDL_LOG_PRIORITY_INFO}
     };
 
-    std::string sourceStr = sourceMap[source];
-    if (sourceStr.empty())
-        sourceStr = "Unknown";
-    std::string typeStr = typeMap[type];
-    if (typeStr.empty())
-        typeStr = "Unknown";
-    std::string severityStr = severityMap[severity];
-    if (severityStr.empty())
-        severityStr = "Unknown";
-    const std::string idStr = glErrorString(id);
-
+#define KEY_OR_UNKNOWN(map, key) (map.find(key) != map.end() ? map[key] : "Unknown")
     logSeverity(severitySDLMap[severity],
         "OpenGL %s [%s] (%d) %s %s",
-        sourceStr.c_str(), typeStr.c_str(), severityStr.c_str(), idStr.c_str(), message);
+        KEY_OR_UNKNOWN(sourceMap, source),
+        KEY_OR_UNKNOWN(typeMap, type),
+        id,
+        KEY_OR_UNKNOWN(severityMap, severity),
+        message
+    );
+#undef KEY_OR_UNKNOWN
 }
