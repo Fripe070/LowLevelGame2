@@ -38,6 +38,9 @@ int run()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, LLG_GL_VER_MAJOR);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, LLG_GL_VER_MINOR);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+#ifndef NDEBUG
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+#endif
 
     const SDL_GLContext glContext = SDL_GL_CreateContext(sdlWindow);
     if (!glContext) {
@@ -56,6 +59,19 @@ int run()
         SDL_Quit();
         return -1;
     }
+
+#ifndef NDEBUG
+    int flags;
+    glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+    if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+        logInfo("OpenGL debug context enabled");
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallback(MessageCallback, 0);
+    } else {
+        logWarn("OpenGL debug context not enabled");
+    }
+#endif
 
     if (!setupGame(statePackage, sdlWindow, glContext)) {
         logError("Setup failed");
