@@ -12,11 +12,11 @@ namespace Engine::Loader {
         directory = path.substr(0, path.find_last_of('/'));
 
         Assimp::Importer import;
-        const aiScene *scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+        const aiScene *scene = import.ReadFile(path.c_str(), aiProcess_Triangulate | aiProcess_FlipUVs);
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
             throw std::runtime_error(std::string("Failed to load model: ") + import.GetErrorString());
 
-        auto result = processNode(scene->mRootNode, scene);
+        std::expected<void, std::string> result = processNode(scene->mRootNode, scene);
         if (!result.has_value())
             throw std::runtime_error("Failed to process node: " + result.error());
 

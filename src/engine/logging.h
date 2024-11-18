@@ -19,14 +19,16 @@ GLenum glLogErrorsExtra_(const char *file, int line, const std::string &extra);
 #define glLogErrorsExtra(extra)
 #endif
 
+#define FILE_REF (__FILE__ ":" + std::to_string(__LINE__))
+
 #define logError(fmt, ...) SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, \
-    (__FILE__ ":" + std::to_string(__LINE__) + " " + fmt).c_str(), ##__VA_ARGS__)
+    (FILE_REF + " " + fmt).c_str(), ##__VA_ARGS__)
 #define logWarn(fmt, ...) SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, \
-    (__FILE__ ":" + std::to_string(__LINE__) + " " + fmt).c_str(), ##__VA_ARGS__)
+    (FILE_REF + " " + fmt).c_str(), ##__VA_ARGS__)
 #define logInfo(fmt, ...) SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, \
-    (__FILE__ ":" + std::to_string(__LINE__) + " " + fmt).c_str(), ##__VA_ARGS__)
+    (FILE_REF + " " + fmt).c_str(), ##__VA_ARGS__)
 #define logDebug(fmt, ...) SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, \
-    (__FILE__ ":" + std::to_string(__LINE__) + " " + fmt).c_str(), ##__VA_ARGS__)
+    (FILE_REF + " " + fmt).c_str(), ##__VA_ARGS__)
 
 
 #endif //LOGGING_H

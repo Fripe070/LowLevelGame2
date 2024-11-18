@@ -5,6 +5,7 @@
 #include <assimp/material.h>
 #include <assimp/scene.h>
 #include "engine/loader/shader.h"
+#include <glm/glm.hpp>
 
 #include "mesh.h"
 
@@ -28,6 +29,9 @@ namespace Engine::Loader {
         std::expected<Mesh, std::string> processMesh(const aiMesh *mesh, const aiScene *scene);
 
         std::vector<Mesh::TextureRef> loadMaterialTextures(const aiMaterial *mat, aiTextureType type, const std::string &typeName);
+    };
+
+    class NewModel {
     };
 }
 

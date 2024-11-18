@@ -8,6 +8,8 @@
 
 #include "game.h"
 
+#include <engine/logging.h>
+
 
 std::unique_ptr<GameState> gameState;
 
@@ -18,7 +20,6 @@ std::unique_ptr<GameState> gameState;
 bool setupGame(StatePackage &statePackage, SDL_Window *sdlWindow, SDL_GLContext glContext) {
     gameState = std::make_unique<GameState>(statePackage);
 
-    LEVEL.models.emplace_back("resources/map.obj");
     LEVEL.shaders.emplace_back("resources/vert.vert", "resources/frag.frag");
 
     DebugGUI::init(*sdlWindow, glContext);
@@ -88,8 +89,12 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     LEVEL.shaders[0].setMat4("view", CAMERA.getViewMatrix());
     LEVEL.shaders[0].setMat4("model", glm::mat4(1.0f));
 
-    for (auto &model : LEVEL.models)
-        model.Draw(LEVEL.textureManager, LEVEL.shaders[0]);
+    auto scene = LEVEL.modelManager.getScene("resources/map.obj");
+    if (!scene.has_value())
+        logError("Failed to load scene: %s", scene.error().c_str());
+    auto drawRet = scene.value().Draw(LEVEL.textureManager, LEVEL.shaders[0]);
+    if (!drawRet.has_value())
+        logError("Failed to draw scene: %s", drawRet.error().c_str());
 
     DebugGUI::render(*gameState, statePackage);
 

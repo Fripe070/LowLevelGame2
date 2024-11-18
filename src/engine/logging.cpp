@@ -23,7 +23,7 @@ std::string glErrorString(const GLenum errorCode) {
 GLenum glLogErrors_(const char *file, const int line) {
     GLenum errorCode;
     while ((errorCode = glGetError()) != GL_NO_ERROR) {
-        logError("OpenGL error: (%d) %s %s:%d", errorCode, glErrorString(errorCode).c_str(), file, line);
+        logError("%s:%d OpenGL error: (%d) %s", file, line, errorCode, glErrorString(errorCode).c_str());
     }
     return errorCode;
 }
@@ -31,7 +31,7 @@ GLenum glLogErrors_(const char *file, const int line) {
 GLenum glLogErrorsExtra_(const char *file, const int line, const char *extra) {
     GLenum errorCode;
     while ((errorCode = glGetError()) != GL_NO_ERROR) {
-        logError("OpenGL error %s: (%d) %s %s:%d", extra, errorCode, glErrorString(errorCode).c_str(), file, line);
+        logError("%s:%d OpenGL error %s: (%d) %s", file, line, extra, errorCode, glErrorString(errorCode).c_str());
     }
     return errorCode;
 }
