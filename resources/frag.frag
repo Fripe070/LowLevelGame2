@@ -61,9 +61,6 @@ vec3 CalcSpotLight(SpotLight light, vec3 iNormal, vec3 iFragPos, vec3 viewDir);
 
 void main()
 {
-    oFragColor = vec4(1.0);
-    return;
-
     vec3 norm = normalize(iNormal);
     vec3 viewDir = normalize(viewPos - iFragPos);
 
