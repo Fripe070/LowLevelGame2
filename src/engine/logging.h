@@ -31,6 +31,8 @@ GLenum glLogErrorsExtra_(const char *file, int line, const std::string &extra);
     (FILE_REF + " " + fmt).c_str(), ##__VA_ARGS__)
 #define logDebug(fmt, ...) SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, \
     (FILE_REF + " " + fmt).c_str(), ##__VA_ARGS__)
+#define logVerbose(fmt, ...) SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, \
+    (FILE_REF + " " + fmt).c_str(), ##__VA_ARGS__)
 
 void GLAPIENTRY MessageCallback(
     GLenum source,
