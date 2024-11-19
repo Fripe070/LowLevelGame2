@@ -42,16 +42,27 @@ namespace Engine::Loader {
             glm::vec4 Color;
         };
 
+        // TODO: We don't technically need to store the vertices and indices in the mesh object, since they're in the OpenGL buffers
+        //  The geometry will still need to be stored for the collision system, so it might be best to split the mesh into a data version and a renderable version?
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
         unsigned int materialIndex;
 
+        // TODO: Moving vertices when constructing the mesh, only to move the entire mesh when making a scene seems a bit wasteful
+        // A bit of a weird constructor, but moving in the vectors allows us to avoid copying them'
         Mesh(
-            const std::vector<Vertex> &vertices,
-            const std::vector<unsigned int> &indices,
-            unsigned int materialIndex
+            std::vector<Vertex>&& vertices,
+            std::vector<unsigned int>&& indices,
+            const unsigned int materialIndex
         );
         ~Mesh();
+
+        // Non-copyable
+        Mesh(const Mesh&) = delete;
+        Mesh& operator=(const Mesh&) = delete;
+        // Moveable
+        Mesh(Mesh&& other) noexcept;
+        Mesh& operator=(Mesh&& other) noexcept;
 
         void LoadGlMesh() const;
 
@@ -75,6 +86,19 @@ namespace Engine::Loader {
         Node rootNode;
         std::vector<Mesh> meshes;
         std::vector<Material> materials;
+
+        Scene(
+            const Node &rootNode,
+            std::vector<Mesh>&& meshes,
+            const std::vector<Material> &materials
+        ) noexcept;
+
+        // Non-copyable
+        Scene(const Scene&) = delete;
+        Scene& operator=(const Scene&) = delete;
+        // Moveable
+        Scene(Scene&& other) noexcept;
+        Scene& operator=(Scene&& other) noexcept;
 
         std::expected<void, std::string> Draw(Manager::TextureManager &textureManager, const ShaderProgram &shader) const;
     };

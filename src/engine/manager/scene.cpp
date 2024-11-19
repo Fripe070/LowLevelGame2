@@ -2,14 +2,16 @@
 
 
 namespace Engine::Manager {
-    SceneManager::SceneManager() {
-        const auto errorScn = Loader::loadScene(ERROR_MESH_PATH);
+    SceneManager::SceneManager()
+    // This is so cursed...
+    : errorScene([] {
+        std::expected<Loader::Scene, std::string> errorScn = Loader::loadScene(ERROR_MESH_PATH);
         if (!errorScn.has_value())
             throw std::runtime_error("Failed to load error model: " + errorScn.error());
-        errorScene = errorScn.value();
-    }
+        return std::make_shared<Loader::Scene>(std::move(errorScn.value()));
+    }()) {}
 
-    std::expected<Loader::Scene, std::string> SceneManager::getScene(const std::string &scenePath) {
+    std::expected<SharedScene, std::string> SceneManager::getScene(const std::string &scenePath) {
         if (scenes.contains(scenePath))
             return scenes[scenePath];
 
@@ -18,7 +20,7 @@ namespace Engine::Manager {
             scenes[scenePath] = errorScene;  // Only error once, then use the error model
             return std::unexpected(scene.error());
         }
-        return scenes[scenePath] = scene.value();
+        return scenes[scenePath] = std::make_shared<Loader::Scene>(std::move(scene.value()));
     }
 
     bool SceneManager::unloadScene(const std::string &scenePath) {

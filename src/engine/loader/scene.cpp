@@ -28,10 +28,10 @@
 
 
 namespace Engine::Loader {
+#pragma region Loading
     std::expected<Node, std::string> processNode(const aiNode *loadedNode);
     std::expected<Mesh, std::string> processMesh(const aiMesh *loadedMesh);
     std::expected<Material, std::string> processMaterial(const aiMaterial *loadedMaterial);
-
 
     std::expected<Scene, std::string> loadScene(const std::string &path) {
 #ifndef NDEBUG
@@ -55,28 +55,30 @@ namespace Engine::Loader {
         if (loadedNode->mNumAnimations > 0)
             logWarn("Animations are not supported");
 
-        Scene scene;
-
         // Load the node tree
-        std::expected<Node, std::string> result = processNode(loadedNode->mRootNode);
-        if (!result.has_value())
-            return std::unexpected(result.error());
-        scene.rootNode = result.value();
+        std::expected<Node, std::string> rootNode = processNode(loadedNode->mRootNode);
+        if (!rootNode.has_value())
+            return std::unexpected(rootNode.error());
+
+        std::vector<Mesh> meshes;
+        std::vector<Material> materials;
 
         // Load all the meshes
+        meshes.reserve(loadedNode->mNumMeshes);
         for (unsigned int i = 0; i < loadedNode->mNumMeshes; i++) {
             std::expected<Mesh, std::string> mesh = processMesh(loadedNode->mMeshes[i]);
             if (!mesh.has_value())
                 return std::unexpected(mesh.error());
-            scene.meshes.push_back(mesh.value());
+            meshes.push_back(std::move(mesh.value()));
         }
 
         // Load all the materials
+        materials.reserve(loadedNode->mNumMaterials);
         for (unsigned int i = 0; i < loadedNode->mNumMaterials; i++) {
             std::expected<Material, std::string> material = processMaterial(loadedNode->mMaterials[i]);
             if (!material.has_value())
                 return std::unexpected(material.error());
-            scene.materials.push_back(material.value());
+            materials.push_back(material.value());
         }
 
 #ifndef NDEBUG
@@ -85,7 +87,12 @@ namespace Engine::Loader {
 #else
         logDebug("Loaded scene \"%s\"", path.c_str());
 #endif
-        return scene;
+
+        return Scene{
+            rootNode.value(),
+            std::move(meshes),
+            materials,
+        };
     }
 
     std::expected<Node, std::string> processNode(const aiNode *loadedNode) {
@@ -104,9 +111,11 @@ namespace Engine::Loader {
     }
 
     std::expected<Mesh, std::string> processMesh(const aiMesh *loadedMesh) {
+    // std::expected<void, std::string> processMesh(const aiMesh *loadedMesh, std::vector<Mesh::Vertex> &vertices, std::vector<unsigned int> &indices, unsigned int &materialIndex) {
         std::vector<Mesh::Vertex> vertices;
         std::vector<unsigned int> indices;
         const unsigned int materialIndex = loadedMesh->mMaterialIndex;
+        // materialIndex = loadedMesh->mMaterialIndex;
 
         for (unsigned int i = 0; i < loadedMesh->mNumVertices; i++) {
             Mesh::Vertex vertex;
@@ -132,7 +141,7 @@ namespace Engine::Loader {
                 indices.push_back(face.mIndices[j]);
         }
 
-        return Mesh(vertices, indices, materialIndex);
+        return Mesh{std::move(vertices), std::move(indices), materialIndex};
     }
 
     std::expected<Material, std::string> processMaterial(const aiMaterial *loadedMaterial) {
@@ -155,55 +164,10 @@ namespace Engine::Loader {
 
         return resultMaterial;
     }
+#pragma endregion
 
 
-
-    Mesh::Mesh(
-        const std::vector<Vertex> &vertices,
-        const std::vector<unsigned int> &indices,
-        const unsigned int materialIndex
-    ) {
-        this->vertices = vertices;
-        this->indices = indices;
-        this->materialIndex = materialIndex;
-
-        setupGlMesh();
-    }
-    Mesh::~Mesh() {
-        glDeleteVertexArrays(1, &VAO);
-        glDeleteBuffers(1, &VBO);
-        glDeleteBuffers(1, &EBO);
-    }
-
-    void Mesh::setupGlMesh() {
-        glGenVertexArrays(1, &VAO);
-        glGenBuffers(1, &VBO);
-        glGenBuffers(1, &EBO);
-
-        glBindVertexArray(VAO);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
-
-        // Set all the properties of the vertices
-#define ENABLE_F_VERTEX_ATTRIB(index, member) \
-        glEnableVertexAttribArray(index); \
-        glVertexAttribPointer(index, \
-            sizeof(Vertex::member) / sizeof(float), GL_FLOAT, \
-            GL_FALSE, \
-            sizeof(Vertex), \
-            reinterpret_cast<void *>(offsetof(Vertex, member)))
-
-        ENABLE_F_VERTEX_ATTRIB(0, Position);
-        ENABLE_F_VERTEX_ATTRIB(1, Normal);
-        ENABLE_F_VERTEX_ATTRIB(2, TexCoords);
-        ENABLE_F_VERTEX_ATTRIB(3, Color);
-#undef ENABLE_F_VERTEX_ATTRIB
-    }
-
+#pragma region Scene Rendering
     void Mesh::LoadGlMesh() const {
         glBindVertexArray(VAO);
     }
@@ -236,5 +200,106 @@ namespace Engine::Loader {
 
         return {};
     }
+#pragma endregion
+
+
+#pragma region Constructing & memory safety stuff
+    Scene::Scene(
+        const Node &rootNode,
+        std::vector<Mesh> &&meshes,
+        const std::vector<Material> &materials
+    ) noexcept : rootNode(rootNode), meshes(std::move(meshes)), materials(materials) {}
+
+    Scene::Scene(Scene &&other) noexcept {
+        rootNode = std::move(other.rootNode);
+        meshes = std::move(other.meshes);
+        materials = std::move(other.materials);
+    }
+    Scene &Scene::operator=(Scene &&other) noexcept {
+        if (this != &other) {
+            rootNode = std::move(other.rootNode);
+            meshes = std::move(other.meshes);
+            materials = std::move(other.materials);
+        }
+        return *this;
+    }
+
+    Mesh::Mesh(
+        std::vector<Vertex> &&vertices,
+        std::vector<unsigned int> &&indices,
+        const unsigned int materialIndex
+    ) : vertices(std::move(vertices)), indices(std::move(indices)), materialIndex(materialIndex) {
+        setupGlMesh();
+    }
+
+    Mesh::~Mesh() {
+        if (VAO == 0 && VBO == 0 && EBO == 0)
+            return;
+        glDeleteVertexArrays(1, &VAO);
+        glDeleteBuffers(1, &VBO);
+        glDeleteBuffers(1, &EBO);
+    }
+
+    Mesh::Mesh(Mesh &&other) noexcept {
+        VAO = other.VAO;
+        VBO = other.VBO;
+        EBO = other.EBO;
+        vertices = std::move(other.vertices);
+        indices = std::move(other.indices);
+        materialIndex = other.materialIndex;
+
+        other.VAO = 0;
+        other.VBO = 0;
+        other.EBO = 0;
+    }
+    Mesh &Mesh::operator=(Mesh &&other) noexcept {
+        if (this != &other) {
+            glDeleteVertexArrays(1, &VAO);
+            glDeleteBuffers(1, &VBO);
+            glDeleteBuffers(1, &EBO);
+
+            VAO = other.VAO;
+            VBO = other.VBO;
+            EBO = other.EBO;
+            vertices = std::move(other.vertices);
+            indices = std::move(other.indices);
+            materialIndex = other.materialIndex;
+
+            other.VAO = 0;
+            other.VBO = 0;
+            other.EBO = 0;
+        }
+        return *this;
+    }
+
+    void Mesh::setupGlMesh() {
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+        glGenBuffers(1, &EBO);
+
+        glBindVertexArray(VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+
+        // Set all the properties of the vertices
+#define ENABLE_F_VERTEX_ATTRIB(index, member) \
+glEnableVertexAttribArray(index); \
+glVertexAttribPointer(index, \
+sizeof(Vertex::member) / sizeof(float), GL_FLOAT, \
+GL_FALSE, \
+sizeof(Vertex), \
+reinterpret_cast<void *>(offsetof(Vertex, member)))
+
+        ENABLE_F_VERTEX_ATTRIB(0, Position);
+        ENABLE_F_VERTEX_ATTRIB(1, Normal);
+        ENABLE_F_VERTEX_ATTRIB(2, TexCoords);
+        ENABLE_F_VERTEX_ATTRIB(3, Color);
+#undef ENABLE_F_VERTEX_ATTRIB
+    }
+#pragma endregion
 };
 

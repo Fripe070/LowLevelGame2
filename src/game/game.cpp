@@ -92,7 +92,7 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     auto scene = LEVEL.modelManager.getScene("resources/map.obj");
     if (!scene.has_value())
         logError("Failed to load scene: %s", scene.error().c_str());
-    auto drawRet = scene.value().Draw(LEVEL.textureManager, LEVEL.shaders[0]);
+    auto drawRet = scene.value()->Draw(LEVEL.textureManager, LEVEL.shaders[0]);
     if (!drawRet.has_value())
         logError("Failed to draw scene: %s", drawRet.error().c_str());
 

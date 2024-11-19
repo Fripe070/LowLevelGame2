@@ -11,17 +11,18 @@
 
 struct aiNode;
 
-
 namespace Engine::Manager {
+    typedef std::shared_ptr<Loader::Scene> SharedScene;
+
     class SceneManager {
     private:
-        std::unordered_map<std::string, Loader::Scene> scenes;
+        std::unordered_map<std::string, SharedScene> scenes;
     public:
-        Loader::Scene errorScene;
+        SharedScene errorScene;
 
         SceneManager();
 
-        std::expected<Loader::Scene, std::string> getScene(const std::string &scenePath);
+        std::expected<SharedScene, std::string> getScene(const std::string &scenePath);
         bool unloadScene(const std::string &scenePath);
         void clear();
     };
