@@ -37,7 +37,7 @@ namespace Engine::Loader {
             glm::vec3 Normal;
             // Yes, texture coordinates can be 3D
             // We only support a single set of texture coordinates atm
-            glm::vec3 TexCoords;
+            glm::vec2 TexCoords;
             // We only support a single vertex color atm
             glm::vec4 Color;
         };

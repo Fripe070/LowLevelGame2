@@ -126,7 +126,7 @@ namespace Engine::Loader {
 
             // 0 since we only support a single set of texture coordinates atm (the first one)
             if (loadedMesh->HasTextureCoords(0))
-                vertex.TexCoords = UNPACK_VEC3(loadedMesh->mTextureCoords[0][i]);
+                vertex.TexCoords = UNPACK_VEC2(loadedMesh->mTextureCoords[0][i]);
 
             // 0 since we only support a single vertex color atm (the first one)
             if (loadedMesh->HasVertexColors(0))
@@ -187,16 +187,21 @@ namespace Engine::Loader {
 
     std::expected<void, std::string> Material::PopulateShader(const ShaderProgram &shader, Manager::TextureManager &textureManager) const {
         shader.setFloat("material.shininess", shininess);
+        shader.setInt("material.test", textureManager.errorTexture);
 
         std::expected<unsigned int, std::string> diffuse = textureManager.getTexture(diffusePath);
         if (!diffuse.has_value())
             return std::unexpected(diffuse.error());
-        shader.setInt("material.texture_diffuse", diffuse.value_or(textureManager.errorTexture));
+        shader.setInt("material.texture_diffuse", 0);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, diffuse.value_or(textureManager.errorTexture));
 
         std::expected<unsigned int, std::string> specular = textureManager.getTexture(specularPath);
         if (!specular.has_value())
             return std::unexpected(specular.error());
-        shader.setInt("material.texture_specular", specular.value_or(textureManager.errorTexture));
+        shader.setInt("material.texture_specular", 1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, specular.value_or(textureManager.errorTexture));
 
         return {};
     }
@@ -287,12 +292,12 @@ namespace Engine::Loader {
 
         // Set all the properties of the vertices
 #define ENABLE_F_VERTEX_ATTRIB(index, member) \
-glEnableVertexAttribArray(index); \
-glVertexAttribPointer(index, \
-sizeof(Vertex::member) / sizeof(float), GL_FLOAT, \
-GL_FALSE, \
-sizeof(Vertex), \
-reinterpret_cast<void *>(offsetof(Vertex, member)))
+        glEnableVertexAttribArray(index); \
+        glVertexAttribPointer(index, \
+            sizeof(Vertex::member) / sizeof(float), GL_FLOAT, \
+            GL_FALSE, \
+            sizeof(Vertex), \
+            reinterpret_cast<void *>(offsetof(Vertex, member)))
 
         ENABLE_F_VERTEX_ATTRIB(0, Position);
         ENABLE_F_VERTEX_ATTRIB(1, Normal);
