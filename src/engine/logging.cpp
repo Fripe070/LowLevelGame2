@@ -23,7 +23,7 @@ std::string glErrorString(const GLenum errorCode) {
 GLenum glLogErrors_(const char *file, const int line) {
     GLenum errorCode;
     while ((errorCode = glGetError()) != GL_NO_ERROR) {
-        logError("OpenGL error: (%d) %s %s:%d", errorCode, glErrorString(errorCode).c_str(), file, line);
+        logError("%s:%d OpenGL error: (%d) %s", file, line, errorCode, glErrorString(errorCode).c_str());
     }
     return errorCode;
 }
@@ -31,10 +31,66 @@ GLenum glLogErrors_(const char *file, const int line) {
 GLenum glLogErrorsExtra_(const char *file, const int line, const char *extra) {
     GLenum errorCode;
     while ((errorCode = glGetError()) != GL_NO_ERROR) {
-        logError("OpenGL error %s: (%d) %s %s:%d", extra, errorCode, glErrorString(errorCode).c_str(), file, line);
+        logError("%s:%d OpenGL error %s: (%d) %s", file, line, extra, errorCode, glErrorString(errorCode).c_str());
     }
     return errorCode;
 }
 GLenum glLogErrorsExtra_(const char *file, const int line, const std::string &extra) {
     return glLogErrorsExtra_(file, line, extra.c_str());
+}
+
+void GLAPIENTRY MessageCallback(
+    GLenum source,
+    GLenum type,
+    GLuint id,
+    GLenum severity,
+    GLsizei length,
+    const GLchar* message,
+    const void* userParam
+) {
+    std::unordered_map<GLenum, const char*> sourceMap = {
+        {GL_DEBUG_SOURCE_API, "API"},
+        {GL_DEBUG_SOURCE_WINDOW_SYSTEM, "Window system"},
+        {GL_DEBUG_SOURCE_SHADER_COMPILER, "Shader compiler"},
+        {GL_DEBUG_SOURCE_THIRD_PARTY, "Third party"},
+        {GL_DEBUG_SOURCE_APPLICATION, "Application"},
+        {GL_DEBUG_SOURCE_OTHER, "Other"}
+    };
+    std::unordered_map<GLenum, const char*> typeMap = {
+        {GL_DEBUG_TYPE_ERROR, "Error"},
+        {GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR, "Deprecated behavior"},
+        {GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR, "Undefined behavior"},
+        {GL_DEBUG_TYPE_PORTABILITY, "Portability"},
+        {GL_DEBUG_TYPE_PERFORMANCE, "Performance"},
+        {GL_DEBUG_TYPE_MARKER, "Marker"},
+        {GL_DEBUG_TYPE_PUSH_GROUP, "Push group"},
+        {GL_DEBUG_TYPE_POP_GROUP, "Pop group"},
+        {GL_DEBUG_TYPE_OTHER, "Other"}
+    };
+    std::unordered_map<GLenum, const char*> severityMap = {
+        {GL_DEBUG_SEVERITY_HIGH, "High"},
+        {GL_DEBUG_SEVERITY_MEDIUM, "Medium"},
+        {GL_DEBUG_SEVERITY_LOW, "Low"},
+        {GL_DEBUG_SEVERITY_NOTIFICATION, "Notification"}
+    };
+    std::unordered_map<GLenum, SDL_LogPriority> severitySDLMap = {
+        {GL_DEBUG_SEVERITY_HIGH, SDL_LOG_PRIORITY_CRITICAL},
+        {GL_DEBUG_SEVERITY_MEDIUM, SDL_LOG_PRIORITY_ERROR},
+        {GL_DEBUG_SEVERITY_LOW, SDL_LOG_PRIORITY_WARN},
+        {GL_DEBUG_SEVERITY_NOTIFICATION, SDL_LOG_PRIORITY_INFO}
+    };
+
+    const auto err = severitySDLMap.find(severity);
+    const auto logPriority = err != severitySDLMap.end() ? err->second : SDL_LOG_PRIORITY_CRITICAL;
+
+#define KEY_OR_UNKNOWN(map, key) (map.find(key) != map.end() ? map[key] : "Unknown")
+    logRaw(logPriority,
+        "OpenGL %s [%s] (%d) %s %s",
+        KEY_OR_UNKNOWN(sourceMap, source),
+        KEY_OR_UNKNOWN(typeMap, type),
+        id,
+        KEY_OR_UNKNOWN(severityMap, severity),
+        message
+    );
+#undef KEY_OR_UNKNOWN
 }

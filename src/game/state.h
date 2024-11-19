@@ -2,8 +2,8 @@
 #define STATE_H
 
 #include <vector>
-#include <engine/managers.h>
-#include <engine/loader/model.h>
+#include <engine/manager/texture.h>
+#include <engine/manager/scene.h>
 #include <engine/loader/shader.h>
 
 #include "camera.h"
@@ -23,9 +23,11 @@ struct PlayerState {
 };
 
 struct LevelState {
-    std::vector<Engine::Loader::Model> models;
     std::vector<Engine::ShaderProgram> shaders;
     Engine::Manager::TextureManager textureManager;
+    Engine::Manager::SceneManager modelManager;
+
+    std::vector<std::string> modelPaths;
 
     PlayerState player;
 

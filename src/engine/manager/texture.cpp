@@ -1,10 +1,11 @@
-#include "managers.h"
+#include "engine/manager/texture.h"
 
 #include <stdexcept>
 #include <gl/glew.h>
 
-#include "loader/mesh.h"
-#include "loader/texture.h"
+#include "engine/loader/texture.h"
+
+#include <engine/logging.h>
 
 
 namespace Engine::Manager {
@@ -26,13 +27,16 @@ namespace Engine::Manager {
         textures.clear();
     }
 
-    std::expected<unsigned int, std::string> TextureManager::loadTexture(const std::string &texturePath) {
+    std::expected<unsigned int, std::string> TextureManager::getTexture(const std::string &texturePath) {
+        if (texturePath.empty())
+            return errorTexture;
+
         if (textures.contains(texturePath))
             return textures[texturePath];
 
         std::expected<unsigned int, std::string> texture = Loader::loadTexture(texturePath);
         if (!texture.has_value()) {
-            textures[texturePath] = errorTexture;
+            textures[texturePath] = errorTexture;  // Only error once, then use the error texture
             return std::unexpected(texture.error());
         }
         return textures[texturePath] = texture.value();
