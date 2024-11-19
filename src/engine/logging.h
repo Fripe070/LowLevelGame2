@@ -21,6 +21,7 @@ GLenum glLogErrorsExtra_(const char *file, int line, const std::string &extra);
 
 #define FILE_REF (__FILE__ ":" + std::to_string(__LINE__))
 
+#define logRaw(...) SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, __VA_ARGS__)
 #define logSeverity(severity, fmt, ...) SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, severity, \
     (FILE_REF + " " + fmt).c_str(), ##__VA_ARGS__)
 #define logError(fmt, ...) SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, \

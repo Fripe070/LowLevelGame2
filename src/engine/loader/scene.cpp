@@ -168,7 +168,7 @@ namespace Engine::Loader {
 
 
 #pragma region Scene Rendering
-    void Mesh::LoadGlMesh() const {
+    void Mesh::BindGlMesh() const {
         glBindVertexArray(VAO);
     }
 
@@ -179,7 +179,7 @@ namespace Engine::Loader {
             if (!mRet.has_value())
                 return std::unexpected(mRet.error());
 
-            mesh.LoadGlMesh();
+            mesh.BindGlMesh();
             glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
         }
         return {};

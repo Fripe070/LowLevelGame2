@@ -84,7 +84,7 @@ void GLAPIENTRY MessageCallback(
     const auto logPriority = err != severitySDLMap.end() ? err->second : SDL_LOG_PRIORITY_CRITICAL;
 
 #define KEY_OR_UNKNOWN(map, key) (map.find(key) != map.end() ? map[key] : "Unknown")
-    logSeverity(logPriority,
+    logRaw(logPriority,
         "OpenGL %s [%s] (%d) %s %s",
         KEY_OR_UNKNOWN(sourceMap, source),
         KEY_OR_UNKNOWN(typeMap, type),

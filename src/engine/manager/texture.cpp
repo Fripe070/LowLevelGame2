@@ -29,7 +29,7 @@ namespace Engine::Manager {
 
     std::expected<unsigned int, std::string> TextureManager::getTexture(const std::string &texturePath) {
         if (texturePath.empty()) {
-            logError("Tried to get texture with empty path");
+            // logError("Tried to get texture with empty path");
             return errorTexture;
         }
 
