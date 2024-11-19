@@ -54,35 +54,34 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     constexpr auto CAMERA_SPEED = 2.5f;
     CAMERA.position += inputDir * CAMERA_SPEED * static_cast<float>(deltaTime);
 
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     LEVEL.shaders[0].use();
 
-    // LEVEL.shaders[0].setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
-    // LEVEL.shaders[0].setVec3("dirLight.ambient", 0.5f, 0.5f, 0.5f);
-    // LEVEL.shaders[0].setVec3("pointLights.diffuse", 0.4f, 0.4f, 0.4f);
-    // LEVEL.shaders[0].setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
-    //
-    // LEVEL.shaders[0].setVec3("pointLights[0].position", 1.2f, 1.0f, 2.0f);
-    // LEVEL.shaders[0].setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
-    // LEVEL.shaders[0].setVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
-    // LEVEL.shaders[0].setVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
-    // LEVEL.shaders[0].setFloat("pointLights[0].constant", 1.0f);
-    // LEVEL.shaders[0].setFloat("pointLights[0].linear", 0.09f);
-    // LEVEL.shaders[0].setFloat("pointLights[0].quadratic", 0.032f);
-    //
-    // LEVEL.shaders[0].setVec3("spotLight.position", CAMERA.position);
-    // LEVEL.shaders[0].setVec3("spotLight.direction", CAMERA.forward());
-    // LEVEL.shaders[0].setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-    // LEVEL.shaders[0].setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-    // LEVEL.shaders[0].setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-    // LEVEL.shaders[0].setFloat("spotLight.constant", 1.0f);
-    // LEVEL.shaders[0].setFloat("spotLight.linear", 0.09f);
-    // LEVEL.shaders[0].setFloat("spotLight.quadratic", 0.032f);
-    // LEVEL.shaders[0].setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-    // LEVEL.shaders[0].setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
-    //
-    // LEVEL.shaders[0].setFloat("material.shininess", 32.0f);
+    LEVEL.shaders[0].setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+    LEVEL.shaders[0].setVec3("dirLight.ambient", 0.5f, 0.5f, 0.5f);
+    LEVEL.shaders[0].setVec3("pointLights.diffuse", 0.4f, 0.4f, 0.4f);
+    LEVEL.shaders[0].setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+
+    LEVEL.shaders[0].setVec3("pointLights[0].position", 1.2f, 1.0f, 2.0f);
+    LEVEL.shaders[0].setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
+    LEVEL.shaders[0].setVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
+    LEVEL.shaders[0].setVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
+    LEVEL.shaders[0].setFloat("pointLights[0].constant", 1.0f);
+    LEVEL.shaders[0].setFloat("pointLights[0].linear", 0.09f);
+    LEVEL.shaders[0].setFloat("pointLights[0].quadratic", 0.032f);
+
+    LEVEL.shaders[0].setVec3("spotLight.position", CAMERA.position);
+    LEVEL.shaders[0].setVec3("spotLight.direction", CAMERA.forward());
+    LEVEL.shaders[0].setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+    LEVEL.shaders[0].setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+    LEVEL.shaders[0].setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+    LEVEL.shaders[0].setFloat("spotLight.constant", 1.0f);
+    LEVEL.shaders[0].setFloat("spotLight.linear", 0.09f);
+    LEVEL.shaders[0].setFloat("spotLight.quadratic", 0.032f);
+    LEVEL.shaders[0].setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+    LEVEL.shaders[0].setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
     LEVEL.shaders[0].setVec3("viewPos", CAMERA.position);
     LEVEL.shaders[0].setMat4("projection", CAMERA.getProjectionMatrix(static_cast<float>(statePackage.windowSize->width) / statePackage.windowSize->height));
