@@ -80,8 +80,11 @@ void GLAPIENTRY MessageCallback(
         {GL_DEBUG_SEVERITY_NOTIFICATION, SDL_LOG_PRIORITY_INFO}
     };
 
+    const auto err = severitySDLMap.find(severity);
+    const auto logPriority = err != severitySDLMap.end() ? err->second : SDL_LOG_PRIORITY_CRITICAL;
+
 #define KEY_OR_UNKNOWN(map, key) (map.find(key) != map.end() ? map[key] : "Unknown")
-    logSeverity(severitySDLMap[severity],
+    logSeverity(logPriority,
         "OpenGL %s [%s] (%d) %s %s",
         KEY_OR_UNKNOWN(sourceMap, source),
         KEY_OR_UNKNOWN(typeMap, type),
