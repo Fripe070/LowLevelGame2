@@ -26,7 +26,6 @@ bool setupGame(StatePackage &statePackage, SDL_Window *sdlWindow, SDL_GLContext 
     DebugGUI::init(*sdlWindow, glContext);
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
-    glEnable(GL_DEPTH_TEST);
     return true;
 }
 void shutdownGame(StatePackage &statePackage) {
@@ -55,6 +54,7 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     constexpr auto CAMERA_SPEED = 2.5f;
     CAMERA.position += inputDir * CAMERA_SPEED * static_cast<float>(deltaTime);
 
+    glEnable(GL_DEPTH_TEST);  // Disabled in debug GUI rendering, so we re-enable it here
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -95,10 +95,10 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     if (!drawRet.has_value())
         logError("Failed to draw scene: %s", drawRet.error().c_str());
 
-    DebugGUI::render(*gameState, statePackage);
-
-    const glm::mat4 trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.0f, 2.0f));
+    const glm::mat4 trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.0f, -2.0f));
     LEVEL.modelManager.errorScene->Draw(LEVEL.textureManager, LEVEL.shaders[0], trans);
+
+    DebugGUI::render(*gameState, statePackage);
 
     return true;
 }

@@ -181,7 +181,10 @@ namespace Engine::Loader {
             auto matRet = materials[mesh.materialIndex].PopulateShader(shader, textureManager);
             if (!matRet.has_value())
                 return std::unexpected(matRet.error());
-            shader.setMat4("model", rootNode.transform * modelTransform);
+
+            const auto model = rootNode.transform * modelTransform;
+            shader.setMat4("model", model);
+            shader.setMat3("mTransposed", glm::mat3(glm::transpose(glm::inverse(model))));
 
             mesh.BindGlMesh();
             glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);

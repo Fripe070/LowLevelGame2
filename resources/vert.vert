@@ -10,12 +10,13 @@ in vec2 iTexCoord;
 in vec4 iColor;
 
 uniform mat4 model;
+uniform mat3 mTransposed;
 uniform mat4 view;
 uniform mat4 projection;
 
 void main() {
     FragPos = vec3(model * vec4(iPos, 1.0));
-    Normal = mat3(transpose(inverse(model))) * iNormal;  // TODO: Do normal matrix on CPU
+    Normal = mTransposed * iNormal;
 
     gl_Position = projection * view * vec4(FragPos, 1.0);
 
