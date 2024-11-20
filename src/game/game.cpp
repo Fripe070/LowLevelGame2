@@ -9,6 +9,7 @@
 #include "game.h"
 
 #include <engine/logging.h>
+#include <glm/ext/matrix_transform.hpp>
 
 
 std::unique_ptr<GameState> gameState;
@@ -86,16 +87,18 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     LEVEL.shaders[0].setVec3("viewPos", CAMERA.position);
     LEVEL.shaders[0].setMat4("projection", CAMERA.getProjectionMatrix(static_cast<float>(statePackage.windowSize->width) / statePackage.windowSize->height));
     LEVEL.shaders[0].setMat4("view", CAMERA.getViewMatrix());
-    LEVEL.shaders[0].setMat4("model", glm::mat4(1.0f));
 
     auto scene = LEVEL.modelManager.getScene("resources/map.obj");
     if (!scene.has_value())
         logError("Failed to load scene: %s", scene.error().c_str());
-    auto drawRet = scene.value()->Draw(LEVEL.textureManager, LEVEL.shaders[0]);
+    auto drawRet = scene.value()->Draw(LEVEL.textureManager, LEVEL.shaders[0], glm::mat4(1.0f));
     if (!drawRet.has_value())
         logError("Failed to draw scene: %s", drawRet.error().c_str());
 
     DebugGUI::render(*gameState, statePackage);
+
+    const glm::mat4 trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.0f, 2.0f));
+    LEVEL.modelManager.errorScene->Draw(LEVEL.textureManager, LEVEL.shaders[0], trans);
 
     return true;
 }

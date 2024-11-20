@@ -1,11 +1,13 @@
 #include "scene.h"
 
+#include <iostream>
 #include <assimp/cimport.h>
 #include <engine/logging.h>
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <glm/ext/matrix_transform.hpp>
 
 #include "shader.h"
 #include "engine/manager/texture.h"
@@ -157,6 +159,7 @@ namespace Engine::Loader {
         else
             logWarn("Material %s does not have a specular texture", loadedMaterial->GetName().C_Str());
 
+        // TODO: This does not make sense in the context of our renderer
         if (loadedMaterial->Get(AI_MATKEY_REFLECTIVITY, resultMaterial.shininess) != AI_SUCCESS) {
             logWarn("Material %s does not have shininess", loadedMaterial->GetName().C_Str());
             resultMaterial.shininess = 32.0f;
@@ -172,12 +175,13 @@ namespace Engine::Loader {
         glBindVertexArray(VAO);
     }
 
-    std::expected<void, std::string> Scene::Draw(Manager::TextureManager &textureManager, const ShaderProgram &shader) const {
+    std::expected<void, std::string> Scene::Draw(Manager::TextureManager &textureManager, const ShaderProgram &shader, const glm::mat4 &modelTransform) const {
         shader.use();
         for (const Mesh &mesh: meshes) {
-            auto mRet = materials[mesh.materialIndex].PopulateShader(shader, textureManager);
-            if (!mRet.has_value())
-                return std::unexpected(mRet.error());
+            auto matRet = materials[mesh.materialIndex].PopulateShader(shader, textureManager);
+            if (!matRet.has_value())
+                return std::unexpected(matRet.error());
+            shader.setMat4("model", rootNode.transform * modelTransform);
 
             mesh.BindGlMesh();
             glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);

@@ -100,7 +100,7 @@ namespace Engine::Loader {
         Scene(Scene&& other) noexcept;
         Scene& operator=(Scene&& other) noexcept;
 
-        std::expected<void, std::string> Draw(Manager::TextureManager &textureManager, const ShaderProgram &shader) const;
+        std::expected<void, std::string> Draw(Manager::TextureManager &textureManager, const ShaderProgram &shader, const glm::mat4 &modelTransform) const;
     };
 
     std::expected<Scene, std::string> loadScene(const std::string &path);
