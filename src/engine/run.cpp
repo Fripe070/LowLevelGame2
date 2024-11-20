@@ -60,16 +60,16 @@ int run()
         return -1;
     }
 
-#ifndef NDEBUG
-    int flags;
-    glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-    if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
-        logInfo("OpenGL debug context enabled");
+#ifndef NDEBUG // OpenGL debug output
+    int glCtxFlags;
+    glGetIntegerv(GL_CONTEXT_FLAGS, &glCtxFlags);
+    if (glCtxFlags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+        logInfo("OpenGL debug output enabled");
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallback(MessageCallback, 0);
+        glDebugMessageCallback(MessageCallback, nullptr);
     } else {
-        logWarn("OpenGL debug context not enabled");
+        logWarn("OpenGL debug output not enabled");
     }
 #endif
 

@@ -60,7 +60,7 @@ void GLAPIENTRY MessageCallback(
         {GL_DEBUG_TYPE_ERROR, "Error"},
         {GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR, "Deprecated behavior"},
         {GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR, "Undefined behavior"},
-        {GL_DEBUG_TYPE_PORTABILITY, "Portability"},
+        {GL_DEBUG_TYPE_PORTABILITY, "Non-portable"},
         {GL_DEBUG_TYPE_PERFORMANCE, "Performance"},
         {GL_DEBUG_TYPE_MARKER, "Marker"},
         {GL_DEBUG_TYPE_PUSH_GROUP, "Push group"},
@@ -74,10 +74,10 @@ void GLAPIENTRY MessageCallback(
         {GL_DEBUG_SEVERITY_NOTIFICATION, "Notification"}
     };
     std::unordered_map<GLenum, SDL_LogPriority> severitySDLMap = {
-        {GL_DEBUG_SEVERITY_HIGH, SDL_LOG_PRIORITY_CRITICAL},
-        {GL_DEBUG_SEVERITY_MEDIUM, SDL_LOG_PRIORITY_ERROR},
-        {GL_DEBUG_SEVERITY_LOW, SDL_LOG_PRIORITY_WARN},
-        {GL_DEBUG_SEVERITY_NOTIFICATION, SDL_LOG_PRIORITY_INFO}
+        {GL_DEBUG_SEVERITY_HIGH, SDL_LOG_PRIORITY_CRITICAL},  // Real errors or really dangerous undefined behavior
+        {GL_DEBUG_SEVERITY_MEDIUM, SDL_LOG_PRIORITY_ERROR},  // Undefined behavior or major performance issues
+        {GL_DEBUG_SEVERITY_LOW, SDL_LOG_PRIORITY_WARN},  // Redundant state change or unimportant undefined behavior
+        {GL_DEBUG_SEVERITY_NOTIFICATION, SDL_LOG_PRIORITY_VERBOSE}
     };
 
     const auto err = severitySDLMap.find(severity);
