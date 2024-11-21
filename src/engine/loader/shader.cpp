@@ -38,7 +38,7 @@ namespace Engine {
     void ShaderProgram::Constructor(const std::vector<std::pair<std::string, unsigned int>> &filePaths) {
         const std::expected<unsigned int, std::string> programID = programFromMultiple(filePaths);
         if (!programID.has_value()) {
-            logError("Failed to create shader program: %s", programID.error().c_str());
+            logError("Failed to create shader program" NL_INDENT "%s", programID.error().c_str());
             throw std::runtime_error(programID.error());
         }
         this->programID = programID.value();
@@ -66,7 +66,7 @@ namespace Engine {
     ) {
         const std::expected<std::string, std::string> shaderSrc = Loader::readTextFile(filePath);
         if (!shaderSrc.has_value())
-            return std::unexpected("Failed to read shader file: " + shaderSrc.error());
+            return std::unexpected(FW_UNEXP(shaderSrc, "Failed to read shader file"));
 
         const unsigned int shaderID = glCreateShader(shaderType);
         const char *shaderSource = shaderSrc.value().c_str();
@@ -82,13 +82,13 @@ namespace Engine {
         glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
         if (infoLogLength == 0) {
             glDeleteShader(shaderID);  // Prevent leak if we failed to compile
-            return std::unexpected("Shader compilation failed: No info log available");
+            return UNEXPECTED_REF("Shader compilation failed: No info log available");
         }
 
         std::vector<char> infoLog(infoLogLength);
         glGetShaderInfoLog(shaderID, infoLogLength, nullptr, infoLog.data());
         glDeleteShader(shaderID);  // Prevent leak if we failed to compile
-        return std::unexpected("Shader compilation failed: " + std::string(infoLog.data()));
+        return UNEXPECTED_REF("Shader compilation failed: " + std::string(infoLog.data()));
     }
 
     std::expected<unsigned int, std::string> ShaderProgram::programFromMultiple(
@@ -115,7 +115,7 @@ namespace Engine {
             if (!shaderID.has_value()) {
                 for (const auto &id : shaderIDs)
                     glDeleteShader(id);
-                return std::unexpected(shaderID.error());
+                return std::unexpected(FW_UNEXP(shaderID, "Failed to compile shader"));
             }
             shaderIDs.push_back(shaderID.value());
         }
@@ -146,13 +146,13 @@ namespace Engine {
         glGetProgramiv(progID, GL_INFO_LOG_LENGTH, &infoLogLength);
         if (infoLogLength == 0) {
             glDeleteProgram(progID);  // Automatically detaches shaders, we don't need to loop through them
-            return std::unexpected("Program linking failed: No info log available");
+            return UNEXPECTED_REF("Program linking failed: No info log available");
         }
 
         std::vector<char> infoLog(infoLogLength);
         glGetProgramInfoLog(progID, infoLogLength, nullptr, infoLog.data());
         glDeleteProgram(progID);  // Automatically detaches shaders, we don't need to loop through them
-        return std::unexpected("Program linking failed: " + std::string(infoLog.data()));
+        return UNEXPECTED_REF("Program linking failed: " + std::string(infoLog.data()));
     }
 
     void ShaderProgram::use() const {

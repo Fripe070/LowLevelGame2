@@ -20,7 +20,7 @@ namespace Engine::Loader {
         stbi_uc *imgData = stbi_load(filePath, &width, &height, &channelCount, 0);
         if (!imgData) {
             logError("Failed to load texture \"%s\": %s", filePath, stbi_failure_reason());
-            return std::unexpected("Failed to load texture: " + std::string(stbi_failure_reason()));
+            return std::unexpected(FILE_REF "Failed to load texture: " + std::string(stbi_failure_reason()));
         }
 #ifndef NDEBUG
         logDebug("Loaded texture \"%s\" with dimensions %dx%d and %d channels in %dms",

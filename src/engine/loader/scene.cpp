@@ -60,7 +60,7 @@ namespace Engine::Loader {
         // Load the node tree
         std::expected<Node, std::string> rootNode = processNode(loadedNode->mRootNode);
         if (!rootNode.has_value())
-            return std::unexpected(rootNode.error());
+            return std::unexpected(FW_UNEXP(rootNode, "Failed to load node tree"));
 
         std::vector<Mesh> meshes;
         std::vector<Material> materials;
@@ -70,7 +70,7 @@ namespace Engine::Loader {
         for (unsigned int i = 0; i < loadedNode->mNumMeshes; i++) {
             std::expected<Mesh, std::string> mesh = processMesh(loadedNode->mMeshes[i]);
             if (!mesh.has_value())
-                return std::unexpected(mesh.error());
+                return std::unexpected(FW_UNEXP(mesh, "Failed to load mesh "+std::to_string(i)+));
             meshes.push_back(std::move(mesh.value()));
         }
 
@@ -79,7 +79,7 @@ namespace Engine::Loader {
         for (unsigned int i = 0; i < loadedNode->mNumMaterials; i++) {
             std::expected<Material, std::string> material = processMaterial(loadedNode->mMaterials[i]);
             if (!material.has_value())
-                return std::unexpected(material.error());
+                return std::unexpected(FW_UNEXP(material, "Failed to load material "+std::to_string(i)+));
             materials.push_back(material.value());
         }
 
@@ -105,7 +105,7 @@ namespace Engine::Loader {
         for (unsigned int i = 0; i < loadedNode->mNumChildren; i++) {
             std::expected<Node, std::string> result = processNode(loadedNode->mChildren[i]);
             if (!result.has_value())
-                return std::unexpected(result.error());
+                return std::unexpected(FW_UNEXP(result, "Failed to load child node "+std::to_string(i)+));
             resultNode.children.push_back(result.value());
         }
 
@@ -180,7 +180,7 @@ namespace Engine::Loader {
         for (const Mesh &mesh: meshes) {
             auto matRet = materials[mesh.materialIndex].PopulateShader(shader, textureManager);
             if (!matRet.has_value())
-                return std::unexpected(matRet.error());
+                return std::unexpected(FW_UNEXP(matRet, "Failed to populate shader with material"));
 
             const auto model = rootNode.transform * modelTransform;
             shader.setMat4("model", model);
@@ -198,14 +198,14 @@ namespace Engine::Loader {
 
         std::expected<unsigned int, std::string> diffuse = textureManager.getTexture(diffusePath);
         if (!diffuse.has_value())
-            return std::unexpected(diffuse.error());
+            return std::unexpected(FW_UNEXP(diffuse, "Failed to load diffuse texture"));
         shader.setInt("material.texture_diffuse", 0);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuse.value_or(textureManager.errorTexture));
 
         std::expected<unsigned int, std::string> specular = textureManager.getTexture(specularPath);
         if (!specular.has_value())
-            return std::unexpected(specular.error());
+            return std::unexpected(FW_UNEXP(specular, "Failed to load specular texture"));
         shader.setInt("material.texture_specular", 1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, specular.value_or(textureManager.errorTexture));

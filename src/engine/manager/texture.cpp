@@ -37,7 +37,7 @@ namespace Engine::Manager {
         std::expected<unsigned int, std::string> texture = Loader::loadTexture(texturePath);
         if (!texture.has_value()) {
             textures[texturePath] = errorTexture;  // Only error once, then use the error texture
-            return std::unexpected(texture.error());
+            return std::unexpected(FW_UNEXP(texture, "Failed to load uncached texture"));
         }
         return textures[texturePath] = texture.value();
     }
