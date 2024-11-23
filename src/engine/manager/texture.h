@@ -8,6 +8,10 @@
 #define ERROR_TEXTURE_PATH "resources/error.png"
 
 namespace Engine::Manager {
+    enum class TextureType {
+        TEXTURE_2D,
+        CUBEMAP
+    };
 
     /*!
      * Class that stores and manages OpenGL texture IDs to avoid loading the same texture multiple times
@@ -25,9 +29,10 @@ namespace Engine::Manager {
         /*!
          * @brief Get the OpenGL texture ID associated with a texture path, loading it if necessary
          * @param texturePath The path to the texture
+         * @param type The type of texture to load. Defaults to a 2D texture
          * @return The texture ID or an error message
          */
-        std::expected<unsigned int, std::string> getTexture(const std::string &texturePath);
+        std::expected<unsigned int, std::string> getTexture(const std::string &texturePath, TextureType type = TextureType::TEXTURE_2D);
         /*!
          * @brief Unload a texture
          * @param texturePath The path to the texture

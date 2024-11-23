@@ -33,10 +33,8 @@ namespace DebugGUI {
     /*!
      * @brief Renders the debug GUI
      * @note Should be called AFTER all game rendering occurs, so that the debug GUI is drawn on top of everything
-     * @note Calling disables depth testing
      */
     void render(GameState &gameState, StatePackage &statePackage) {
-        glDisable(GL_DEPTH_TEST);
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();

@@ -64,7 +64,7 @@ namespace Engine::Loader {
         Mesh(Mesh&& other) noexcept;
         Mesh& operator=(Mesh&& other) noexcept;
 
-        void BindGlMesh() const;
+        void bindGlMesh() const;
 
     private:
         unsigned int VAO, VBO, EBO;

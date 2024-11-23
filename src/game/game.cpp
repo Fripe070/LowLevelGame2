@@ -1,3 +1,5 @@
+#include "skybox.h"
+
 #include <memory>
 #include <gl/glew.h>
 #include <glm/glm.hpp>
@@ -22,12 +24,15 @@ bool setupGame(StatePackage &statePackage, SDL_Window *sdlWindow, SDL_GLContext 
     gameState = std::make_unique<GameState>(statePackage);
 
     LEVEL.shaders.emplace_back("resources/vert.vert", "resources/frag.frag");
+    LEVEL.shaders.emplace_back("resources/sb_vert.vert", "resources/sb_frag.frag");
 
     DebugGUI::init(*sdlWindow, glContext);
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);  // Counter-clockwise winding order
+
+    glEnable(GL_DEPTH_TEST);
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
     return true;
@@ -58,7 +63,6 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     constexpr auto CAMERA_SPEED = 2.5f;
     CAMERA.position += inputDir * CAMERA_SPEED * static_cast<float>(deltaTime);
 
-    glEnable(GL_DEPTH_TEST);  // Disabled in debug GUI rendering, so we re-enable it here
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -102,7 +106,22 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     const glm::mat4 trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.0f, -2.0f));
     LEVEL.modelManager.errorScene->Draw(LEVEL.textureManager, LEVEL.shaders[0], trans);
 
+#pragma region Skybox
+    // We render the skybox manually, since we don't need any of the fancy scene stuff
+    // TODO: Clean up this matrix stuff so we don't recompute every time, every frame, regardless of if the camera moves
+    LEVEL.shaders[1].use();
+    LEVEL.shaders[1].setMat4("view", glm::mat4(glm::mat3(CAMERA.getViewMatrix())));  // Remove translation from view matrix
+    LEVEL.shaders[1].setMat4("projection", CAMERA.getProjectionMatrix(static_cast<float>(statePackage.windowSize->width) / statePackage.windowSize->height));
+
+    std::expected<unsigned int, std::string> skyboxTex = LEVEL.textureManager.getTexture("resources/skybox/sky.png", Engine::Manager::TextureType::CUBEMAP);
+    if (!skyboxTex.has_value())
+        logError("Failed to load skybox texture" NL_INDENT "%s", skyboxTex.error().c_str());
+    LEVEL.skybox.draw(skyboxTex.value_or(LEVEL.textureManager.errorTexture), LEVEL.shaders[1]);
+#pragma endregion
+
+    glDisable(GL_DEPTH_TEST);
     DebugGUI::render(*gameState, statePackage);
+    glEnable(GL_DEPTH_TEST);  // Disabled in debug GUI rendering, so we re-enable it here
 
     return true;
 }

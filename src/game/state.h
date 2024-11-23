@@ -7,6 +7,7 @@
 #include <engine/loader/shader.h>
 
 #include "camera.h"
+#include "skybox.h"
 
 struct Settings {
     // Mouse
@@ -23,6 +24,7 @@ struct PlayerState {
 };
 
 struct LevelState {
+    // TODO: Storing shaders in a random vector is odd. Should they have their own managers and be associated with each thing that needs them?
     std::vector<Engine::ShaderProgram> shaders;
     Engine::Manager::TextureManager textureManager;
     Engine::Manager::SceneManager modelManager;
@@ -30,6 +32,7 @@ struct LevelState {
     std::vector<std::string> modelPaths;
 
     PlayerState player;
+    Skybox skybox;
 
     explicit LevelState(const Settings settings): player(settings) {}
 };

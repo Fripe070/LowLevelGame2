@@ -113,11 +113,9 @@ namespace Engine::Loader {
     }
 
     std::expected<Mesh, std::string> processMesh(const aiMesh *loadedMesh) {
-    // std::expected<void, std::string> processMesh(const aiMesh *loadedMesh, std::vector<Mesh::Vertex> &vertices, std::vector<unsigned int> &indices, unsigned int &materialIndex) {
         std::vector<Mesh::Vertex> vertices;
         std::vector<unsigned int> indices;
         const unsigned int materialIndex = loadedMesh->mMaterialIndex;
-        // materialIndex = loadedMesh->mMaterialIndex;
 
         for (unsigned int i = 0; i < loadedMesh->mNumVertices; i++) {
             Mesh::Vertex vertex;
@@ -171,11 +169,12 @@ namespace Engine::Loader {
 
 
 #pragma region Scene Rendering
-    void Mesh::BindGlMesh() const {
+    void Mesh::bindGlMesh() const {
         glBindVertexArray(VAO);
     }
 
     std::expected<void, std::string> Scene::Draw(Manager::TextureManager &textureManager, const ShaderProgram &shader, const glm::mat4 &modelTransform) const {
+        // TODO: Only do unique per-scene stuff here, and don't double-use the shader
         shader.use();
         for (const Mesh &mesh: meshes) {
             auto matRet = materials[mesh.materialIndex].PopulateShader(shader, textureManager);
@@ -186,7 +185,7 @@ namespace Engine::Loader {
             shader.setMat4("model", model);
             shader.setMat3("mTransposed", glm::mat3(glm::transpose(glm::inverse(model))));
 
-            mesh.BindGlMesh();
+            mesh.bindGlMesh();
             glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
         }
         return {};
