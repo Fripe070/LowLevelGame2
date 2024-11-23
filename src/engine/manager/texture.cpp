@@ -34,7 +34,7 @@ namespace Engine::Manager {
         if (textures.contains(texturePath))
             return textures[texturePath];
 
-        std::expected<unsigned int, std::string> texture = Loader::loadTexture(texturePath);
+        std::expected<unsigned int, std::string> texture = Loader::loadTexture(texturePath.c_str());
         if (!texture.has_value()) {
             textures[texturePath] = errorTexture;  // Only error once, then use the error texture
             return std::unexpected(FW_UNEXP(texture, "Failed to load uncached texture"));
@@ -49,5 +49,6 @@ namespace Engine::Manager {
         textures.erase(texturePath);
         return true;
     }
+
 
 }

@@ -51,8 +51,4 @@ namespace Engine::Loader {
 
         return textureID;
     }
-
-    std::expected<unsigned int, std::string> loadTexture(const std::string &filePath) {
-        return loadTexture(filePath.c_str());
-    }
 }
