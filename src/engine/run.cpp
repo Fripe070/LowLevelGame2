@@ -64,7 +64,7 @@ int run()
     int glCtxFlags;
     glGetIntegerv(GL_CONTEXT_FLAGS, &glCtxFlags);
     if (glCtxFlags & GL_CONTEXT_FLAG_DEBUG_BIT) {
-        logInfo("OpenGL debug output enabled");
+        logDebug("OpenGL debug output enabled");
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallback(MessageCallback, nullptr);
