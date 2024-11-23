@@ -13,9 +13,6 @@ namespace Engine::Loader {
 #ifndef NDEBUG
         const auto startTimer = std::chrono::high_resolution_clock::now();
 #endif
-        unsigned int textureID;
-        glGenTextures(1, &textureID);
-
         int width, height, channelCount;
         stbi_uc *imgData = stbi_load(filePath, &width, &height, &channelCount, 0);
         if (!imgData) {
@@ -38,6 +35,9 @@ namespace Engine::Loader {
                 format = GL_RGB;
             }
         }
+
+        unsigned int textureID;
+        glGenTextures(1, &textureID);
 
         glBindTexture(GL_TEXTURE_2D, textureID);
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, imgData);
