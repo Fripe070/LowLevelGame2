@@ -25,6 +25,10 @@ bool setupGame(StatePackage &statePackage, SDL_Window *sdlWindow, SDL_GLContext 
 
     DebugGUI::init(*sdlWindow, glContext);
 
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);  // Counter-clockwise winding order
+
     SDL_SetRelativeMouseMode(SDL_TRUE);
     return true;
 }
