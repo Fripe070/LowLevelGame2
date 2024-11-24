@@ -7,7 +7,6 @@ project('lowlevelgame', 'cpp',
         ])
 
 sdl2_dep = dependency('sdl2')
-imgui_dep = dependency('imgui')
 glew_dep = dependency('glew')
 glm_dep = dependency('glm')
 
@@ -27,7 +26,7 @@ if not assimp_dep.found()
     assimp_dep = cmake.subproject('assimp', options : assimp_opt).dependency('assimp')
 endif
 
-dependencies = [sdl2_dep, imgui_dep, glew_dep, glm_dep, assimp_dep]
+dependencies = [sdl2_dep, glew_dep, glm_dep, assimp_dep]
 
 if host_machine.system() == 'windows'
     sdl2_main_dep = dependency('sdl2main')
@@ -47,9 +46,16 @@ sources = [
 
     'src/game/game.cpp',
     'src/game/camera.cpp',
-    'src/game/gui.cpp',
     'src/game/skybox.cpp',
 ]
+
+if build_machine.system() != 'darwin'
+    imgui_dep = dependency('imgui')
+    dependencies += [imgui_dep]
+    sources += ['src/game/gui.cpp']
+else
+    sources += ['src/game/gui_mac.cpp']
+endif
 
 exe = executable(
     'lowlevelgame', sources,
