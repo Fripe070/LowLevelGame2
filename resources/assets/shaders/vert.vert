@@ -1,4 +1,4 @@
-#version 330 core
+#version 410 core
 out vec4 VertexColor;
 out vec2 TexCoord;
 out vec3 Normal;
