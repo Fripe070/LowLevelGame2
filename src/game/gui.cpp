@@ -4,7 +4,7 @@
 #include <SDL.h>
 #include <GL/glew.h>
 
-#include "game.h"
+#include "engine/run.h"
 #include <game/state.h>
 
 #include "gui.h"

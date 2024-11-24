@@ -4,7 +4,7 @@
 #include "run.h"
 #include "logging.h"
 
-#include "game/game.h"
+#include "engine/game.h"
 
 Config config;
 WindowSize windowSize;

@@ -8,10 +8,10 @@
 #include "gui.h"
 #include <game/state.h>
 
-#include "game.h"
-
 #include <engine/logging.h>
 #include <glm/ext/matrix_transform.hpp>
+
+#include "engine/game.h"
 
 
 std::unique_ptr<GameState> gameState;
