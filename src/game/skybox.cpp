@@ -33,7 +33,6 @@ std::expected<void, std::string> Skybox::draw(const unsigned int cubemap, const 
     glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
 
     glBindVertexArray(VAO);
-    // glDrawElements(GL_TRIANGLES, sizeof(skyboxVertInd) / sizeof(float), GL_UNSIGNED_INT, nullptr);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
     glDepthFunc(GL_LESS);
