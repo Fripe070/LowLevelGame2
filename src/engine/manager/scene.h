@@ -7,7 +7,7 @@
 #include <string>
 #include <unordered_map>
 
-#define ERROR_MESH_PATH "resources/error.obj"
+#define ERROR_MESH_PATH "resources/assets/models/error.obj"
 
 struct aiNode;
 

@@ -10,7 +10,8 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd resources/brick.png
+map_Kd resources/assets/textures/brick/brick.png
+map_Ks resources/assets/textures/brick/brick_specular.png
 
 newmtl Stone
 Ns 250.000000
@@ -21,4 +22,5 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd resources/stone.png
+map_Kd resources/assets/textures/stone/stone.png
+map_Ks resources/assets/textures/stone/stone_specular.png

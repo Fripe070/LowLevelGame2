@@ -5,7 +5,7 @@
 #include <string>
 #include <unordered_map>
 
-#define ERROR_TEXTURE_PATH "resources/error.png"
+#define ERROR_TEXTURE_PATH "resources/assets/textures/error.png"
 
 namespace Engine::Manager {
     enum class TextureType {

@@ -23,8 +23,8 @@ std::unique_ptr<GameState> gameState;
 bool setupGame(StatePackage &statePackage, SDL_Window *sdlWindow, SDL_GLContext glContext) {
     gameState = std::make_unique<GameState>(statePackage);
 
-    LEVEL.shaders.emplace_back("resources/vert.vert", "resources/frag.frag");
-    LEVEL.shaders.emplace_back("resources/sb_vert.vert", "resources/sb_frag.frag");
+    LEVEL.shaders.emplace_back("resources/assets/shaders/vert.vert", "resources/assets/shaders/frag.frag");
+    LEVEL.shaders.emplace_back("resources/assets/shaders/sb_vert.vert", "resources/assets/shaders/sb_frag.frag");
 
     DebugGUI::init(*sdlWindow, glContext);
 
@@ -96,7 +96,7 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     LEVEL.shaders[0].setMat4("projection", CAMERA.getProjectionMatrix(static_cast<float>(statePackage.windowSize->width) / statePackage.windowSize->height));
     LEVEL.shaders[0].setMat4("view", CAMERA.getViewMatrix());
 
-    auto scene = LEVEL.modelManager.getScene("resources/map.obj");
+    auto scene = LEVEL.modelManager.getScene("resources/assets/models/map.obj");
     if (!scene.has_value())
         logError("Failed to load scene" NL_INDENT "%s", scene.error().c_str());
     auto drawRet = scene.value()->Draw(LEVEL.textureManager, LEVEL.shaders[0], glm::mat4(1.0f));
@@ -113,7 +113,8 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     LEVEL.shaders[1].setMat4("view", glm::mat4(glm::mat3(CAMERA.getViewMatrix())));  // Remove translation from view matrix
     LEVEL.shaders[1].setMat4("projection", CAMERA.getProjectionMatrix(static_cast<float>(statePackage.windowSize->width) / statePackage.windowSize->height));
 
-    std::expected<unsigned int, std::string> skyboxTex = LEVEL.textureManager.getTexture("resources/skybox/sky.png", Engine::Manager::TextureType::CUBEMAP);
+    std::expected<unsigned int, std::string> skyboxTex = LEVEL.textureManager.getTexture(
+        "resources/assets/textures/skybox/sky.png", Engine::Manager::TextureType::CUBEMAP);
     if (!skyboxTex.has_value())
         logError("Failed to load skybox texture" NL_INDENT "%s", skyboxTex.error().c_str());
     LEVEL.skybox.draw(skyboxTex.value_or(LEVEL.textureManager.errorTexture), LEVEL.shaders[1]);
