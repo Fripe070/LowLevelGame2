@@ -202,4 +202,14 @@ namespace Engine {
     void ShaderProgram::setMat4(const std::string &name, const glm::mat4 &mat) const {
         glUniformMatrix4fv(getUniformLoc(name), 1, GL_FALSE, &mat[0][0]);
     }
+
+    std::expected<void, std::string> ShaderProgram::bindUniformBlock(const std::string &name, const unsigned int bindingPoint) const {
+        const unsigned int blockIndex = glGetUniformBlockIndex(programID, name.c_str());
+        if (blockIndex == GL_INVALID_INDEX)
+            return UNEXPECTED_REF("Failed to get uniform block index");
+
+        glUniformBlockBinding(programID, blockIndex, bindingPoint);
+        return {};
+    }
+
 }

@@ -55,6 +55,8 @@ namespace Engine {
         void setMat2(const std::string &name, const glm::mat2 &mat) const;
         void setMat3(const std::string &name, const glm::mat3 &mat) const;
         void setMat4(const std::string &name, const glm::mat4 &mat) const;
+
+        std::expected<void, std::string> bindUniformBlock(const std::string &name, unsigned int bindingPoint) const;
     };
 }
 

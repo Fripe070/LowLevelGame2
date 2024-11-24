@@ -3,12 +3,15 @@ in vec3 iPos;
 
 out vec3 TexCoords;
 
-uniform mat4 projection;
-uniform mat4 view;
+layout(std140) uniform Matrices
+{
+    mat4 projection;
+    mat4 view;
+};
 
 void main()
 {
     TexCoords = iPos;
-    gl_Position = (projection * view * vec4(iPos, 1.0)).xyww;  // Trick to render at max depth
+    gl_Position = (projection * mat4(mat3(view)) * vec4(iPos, 1.0)).xyww;  // Trick to render at max depth
 }
 

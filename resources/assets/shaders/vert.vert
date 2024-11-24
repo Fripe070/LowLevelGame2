@@ -9,10 +9,13 @@ in vec3 iNormal;
 in vec2 iTexCoord;
 in vec4 iColor;
 
+layout(std140) uniform Matrices
+{
+    mat4 projection;
+    mat4 view;
+};
 uniform mat4 model;
 uniform mat3 mTransposed;
-uniform mat4 view;
-uniform mat4 projection;
 
 void main() {
     FragPos = vec3(model * vec4(iPos, 1.0));

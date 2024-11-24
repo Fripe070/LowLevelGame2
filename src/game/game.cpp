@@ -13,8 +13,11 @@
 
 #include "engine/game.h"
 
+#include <glm/gtc/type_ptr.hpp>
+
 
 std::unique_ptr<GameState> gameState;
+unsigned int uboMatrices;
 
 #define LEVEL gameState->level
 #define PLAYER LEVEL.player
@@ -24,7 +27,16 @@ bool setupGame(StatePackage &statePackage, SDL_Window *sdlWindow, SDL_GLContext 
     gameState = std::make_unique<GameState>(statePackage);
 
     LEVEL.shaders.emplace_back("resources/assets/shaders/vert.vert", "resources/assets/shaders/frag.frag");
+    LEVEL.shaders[0].use();
+    auto matricesBinding = LEVEL.shaders[0].bindUniformBlock("Matrices", 0);
+    if (!matricesBinding.has_value())
+        logError("Failed to bind matrices uniform block" NL_INDENT "%s", matricesBinding.error().c_str());
+
     LEVEL.shaders.emplace_back("resources/assets/shaders/sb_vert.vert", "resources/assets/shaders/sb_frag.frag");
+    LEVEL.shaders[1].use();
+    matricesBinding = LEVEL.shaders[1].bindUniformBlock("Matrices", 0);
+    if (!matricesBinding.has_value())
+        logError("Failed to bind matrices uniform block" NL_INDENT "%s", matricesBinding.error().c_str());
 
     DebugGUI::init(*sdlWindow, glContext);
 
@@ -35,6 +47,12 @@ bool setupGame(StatePackage &statePackage, SDL_Window *sdlWindow, SDL_GLContext 
     glEnable(GL_DEPTH_TEST);
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
+
+    glGenBuffers(1, &uboMatrices);
+    glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+    glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), nullptr, GL_STATIC_DRAW);
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
+
     return true;
 }
 void shutdownGame(StatePackage &statePackage) {
@@ -66,6 +84,13 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // TODO: Let these be managed by the camera class, so we only ever have to update the matrices when the camera moves/zooms
+    glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4),
+        glm::value_ptr(CAMERA.getProjectionMatrix(statePackage.windowSize->aspectRatio())));
+    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4),
+        glm::value_ptr(CAMERA.getViewMatrix()));
+
     LEVEL.shaders[0].use();
 
     LEVEL.shaders[0].setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
@@ -93,8 +118,6 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     LEVEL.shaders[0].setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
     LEVEL.shaders[0].setVec3("viewPos", CAMERA.position);
-    LEVEL.shaders[0].setMat4("projection", CAMERA.getProjectionMatrix(static_cast<float>(statePackage.windowSize->width) / statePackage.windowSize->height));
-    LEVEL.shaders[0].setMat4("view", CAMERA.getViewMatrix());
 
     auto scene = LEVEL.modelManager.getScene("resources/assets/models/map.obj");
     if (!scene.has_value())
@@ -108,10 +131,7 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
 
 #pragma region Skybox
     // We render the skybox manually, since we don't need any of the fancy scene stuff
-    // TODO: Clean up this matrix stuff so we don't recompute every time, every frame, regardless of if the camera moves
     LEVEL.shaders[1].use();
-    LEVEL.shaders[1].setMat4("view", glm::mat4(glm::mat3(CAMERA.getViewMatrix())));  // Remove translation from view matrix
-    LEVEL.shaders[1].setMat4("projection", CAMERA.getProjectionMatrix(static_cast<float>(statePackage.windowSize->width) / statePackage.windowSize->height));
 
     std::expected<unsigned int, std::string> skyboxTex = LEVEL.textureManager.getTexture(
         "resources/assets/textures/skybox/sky.png", Engine::Manager::TextureType::CUBEMAP);
