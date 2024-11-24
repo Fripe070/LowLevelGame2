@@ -1,4 +1,5 @@
 #include "camera.h"
+#include <algorithm>
 
 #include <glm/ext/matrix_transform.hpp>
 
