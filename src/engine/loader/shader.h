@@ -39,6 +39,7 @@ namespace Engine {
         static std::expected<unsigned int, std::string> programFromMultiple(
             const std::vector<std::pair<std::string, unsigned int>> &shaders
         );
+        static std::expected<std::string, std::string> preprocessSource(std::string shaderSrc);
 
     public:
         void setBool(const std::string &name, bool value) const;

@@ -140,6 +140,7 @@ int run()
 quit:
     shutdownGame(statePackage);
 quitNoShutdown:
+    logDebug("Shutting down");
     SDL_GL_DeleteContext(glContext);
     SDL_DestroyWindow(sdlWindow);
     SDL_Quit();

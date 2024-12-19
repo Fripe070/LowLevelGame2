@@ -64,9 +64,13 @@ namespace Engine {
         const std::string &filePath,
         const unsigned int shaderType
     ) {
-        const std::expected<std::string, std::string> shaderSrc = Loader::readTextFile(filePath);
+        std::expected<std::string, std::string> shaderSrc = Loader::readTextFile(filePath);
         if (!shaderSrc.has_value())
             return std::unexpected(FW_UNEXP(shaderSrc, "Failed to read shader file"));
+        shaderSrc = preprocessSource(shaderSrc.value());
+        // logWarn("Shader source: %s", shaderSrc.value().c_str());
+        if (!shaderSrc.has_value())
+            return std::unexpected(FW_UNEXP(shaderSrc, std::string("Failed to preprocess shader source")));
 
         const unsigned int shaderID = glCreateShader(shaderType);
         const char *shaderSource = shaderSrc.value().c_str();
@@ -153,6 +157,70 @@ namespace Engine {
         glGetProgramInfoLog(progID, infoLogLength, nullptr, infoLog.data());
         glDeleteProgram(progID);  // Automatically detaches shaders, we don't need to loop through them
         return UNEXPECTED_REF("Program linking failed: " + std::string(infoLog.data()));
+    }
+
+    std::expected<std::string, std::string> ShaderProgram::preprocessSource(std::string shaderSrc) {
+        constexpr auto includeDirective = "#include";
+        constexpr auto includeDirectiveLength = strlen(includeDirective);
+
+        std::vector<std::string> processedFiles; // Avoid infinite recursion and unnecessary file reads
+
+        std::string::size_type cursor = 0;
+        std::string::size_type findStart = cursor;
+        while ((findStart = shaderSrc.find(includeDirective, findStart)) != std::string::npos) {
+            cursor = findStart;
+            // Exit if we are in the middle of a line (ignoring leading whitespace)
+            while (shaderSrc[cursor - 1] == ' ' || shaderSrc[cursor - 1] == '\t')
+                cursor--;
+            if (shaderSrc[findStart - 1] != '\n') {
+                logWarn("Invalid include directive at " + std::to_string(findStart) + ". Expected start of line:" + shaderSrc.substr(findStart-10, 40));
+                findStart++; // So we won't find the same include directive again
+                continue;
+            }
+            cursor = findStart;
+
+#define IN_BOUNDS cursor < shaderSrc.size()
+
+            cursor += includeDirectiveLength;
+            if (shaderSrc[cursor] != ' ' && shaderSrc[cursor] != '\t') {
+                logWarn("Invalid include directive. Expected whitespace after directive");
+                continue;
+            }
+            cursor++;
+            while (IN_BOUNDS && shaderSrc[cursor] == ' ' || shaderSrc[cursor] == '\t')
+                cursor++;
+
+            if (shaderSrc[cursor] != '"') {
+                logWarn("Invalid include directive. Expected opening quote");
+                continue;
+            }
+            cursor++;
+            const auto pathStart = cursor;
+            while (IN_BOUNDS && shaderSrc[cursor] != '"' && shaderSrc[cursor] != '\n')
+                cursor++;
+            if (shaderSrc[cursor] != '"') {
+                logWarn("Invalid include directive. Expected closing quote");
+                continue;
+            }
+            const auto includePath = shaderSrc.substr(pathStart, cursor - pathStart);
+            cursor++;
+
+            if (std::ranges::find(processedFiles, includePath) != processedFiles.end()) {
+                shaderSrc.replace(findStart, cursor - findStart, "// ignoring #include " + includePath + " (already included)");
+                continue;
+            }
+            logDebug("Processing include file \"%s\"", includePath.c_str());
+            processedFiles.push_back(includePath);
+            std::expected<std::string, std::string> includeSrc = Loader::readTextFile(includePath);
+            if (!includeSrc.has_value())
+                return std::unexpected(FW_UNEXP(includeSrc,
+                    "Failed to read include: " + shaderSrc.substr(findStart, cursor - findStart)));
+            // Replace the include directive with the actual source
+            shaderSrc.replace(findStart, cursor - findStart, includeSrc.value());
+        }
+#undef IN_BOUNDS
+
+        return shaderSrc;
     }
 
     void ShaderProgram::use() const {

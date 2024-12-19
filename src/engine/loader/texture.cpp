@@ -5,9 +5,9 @@
 #include <stb_image.h>
 #include <unordered_map>
 #include <gl/glew.h>
-#ifndef NDEBUG
-#include <chrono>
-#endif
+// #ifndef NDEBUG
+// #include <chrono>
+// #endif
 
 namespace Engine::Loader {
     struct ImageData {
@@ -19,9 +19,9 @@ namespace Engine::Loader {
      * @attention You are responsible for freeing the memory allocated suing `stbi_image_free`.
      */
     std::expected<ImageData, std::string> loadImage(const char *filePath) {
-#ifndef NDEBUG
-        const auto startTimer = std::chrono::high_resolution_clock::now();
-#endif
+// #ifndef NDEBUG
+//         const auto startTimer = std::chrono::high_resolution_clock::now();
+// #endif
         int width, height, channelCount;
         stbi_uc *imgData = stbi_load(filePath, &width, &height, &channelCount, 0);
         if (!imgData) {
@@ -29,11 +29,11 @@ namespace Engine::Loader {
             logError("Failed to load texture \"%s\": %s", filePath, stbi_failure_reason());
             return std::unexpected(FILE_REF + std::string("Failed to load texture: \"") + filePath + "\": " + stbi_failure_reason());
         }
-#ifndef NDEBUG
-        logDebug("Loaded texture \"%s\" with dimensions %dx%d and %d channels in %dms",
-            filePath, width, height, channelCount,
-            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTimer).count());
-#endif
+// #ifndef NDEBUG
+//         logDebug("Loaded texture \"%s\" with dimensions %dx%d and %d channels in %dms",
+//             filePath, width, height, channelCount,
+//             std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTimer).count());
+// #endif
 
         return ImageData{width, height, channelCount, imgData};
     }
