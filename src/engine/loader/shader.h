@@ -27,7 +27,7 @@ namespace Engine {
         ShaderProgram& operator=(ShaderProgram&& other) noexcept;
 
         void use() const;
-        unsigned int getUniformLoc(const std::string &name) const;
+        int getUniformLoc(const std::string &name) const;
 
     private:
         void Constructor(const std::vector<std::pair<std::string, unsigned int>> &filePaths);

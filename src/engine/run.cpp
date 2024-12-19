@@ -42,7 +42,7 @@ int run()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 #endif
 
-    const SDL_GLContext glContext = SDL_GL_CreateContext(sdlWindow);
+    SDL_GLContext glContext = SDL_GL_CreateContext(sdlWindow);
     if (!glContext) {
         logError("Couldn't create OpenGL context: %s", SDL_GetError());
         SDL_DestroyWindow(sdlWindow);

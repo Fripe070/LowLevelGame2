@@ -159,7 +159,7 @@ namespace Engine {
         glUseProgram(programID);
     }
 
-    unsigned int ShaderProgram::getUniformLoc(const std::string &name) const {
+    int ShaderProgram::getUniformLoc(const std::string &name) const {
         return glGetUniformLocation(programID, name.c_str());
     }
 
