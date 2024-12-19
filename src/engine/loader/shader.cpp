@@ -68,7 +68,6 @@ namespace Engine {
         if (!shaderSrc.has_value())
             return std::unexpected(FW_UNEXP(shaderSrc, "Failed to read shader file"));
         shaderSrc = preprocessSource(shaderSrc.value());
-        // logWarn("Shader source: %s", shaderSrc.value().c_str());
         if (!shaderSrc.has_value())
             return std::unexpected(FW_UNEXP(shaderSrc, std::string("Failed to preprocess shader source")));
 
