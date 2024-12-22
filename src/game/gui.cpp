@@ -5,7 +5,8 @@
 #include <GL/glew.h>
 
 #include "engine/run.h"
-#include <game/state.h>
+#include "game/state.h"
+#include "engine/logging.h"
 
 #include "gui.h"
 
@@ -53,7 +54,7 @@ namespace DebugGUI {
         if (ENGINE_CONFIG->limitFPS) {
             ImGui::Checkbox("VSync", &ENGINE_CONFIG->vsync);
             if (!ENGINE_CONFIG->vsync)
-                ImGui::SliderInt("Max FPS", &ENGINE_CONFIG->maxFPS, 1, 300);
+                ImGui::DragInt("Max FPS", &ENGINE_CONFIG->maxFPS, 1, 1, 3000);
         }
         if (SDL_GL_SetSwapInterval(ENGINE_CONFIG->limitFPS && ENGINE_CONFIG->vsync ? -1 : 0) == -1)
             SDL_GL_SetSwapInterval(1);
@@ -67,6 +68,29 @@ namespace DebugGUI {
         }
         if (ImGui::Checkbox("Wireframe", &GAME_SETTINGS.wireframe)) {
             glPolygonMode(GL_FRONT_AND_BACK, GAME_SETTINGS.wireframe ? GL_LINE : GL_FILL);
+        }
+
+#define LOG_LEVELS(X) \
+        X(spdlog::level::trace, "Trace") \
+        X(spdlog::level::debug, "Debug") \
+        X(spdlog::level::info, "Info") \
+        X(spdlog::level::warn, "Warn") \
+        X(spdlog::level::err, "Error") \
+        X(spdlog::level::critical, "Critical") \
+        X(spdlog::level::off, "Off")
+#define DEFINE_LOG_NAME(level, name) name,
+#define DEFINE_LOG_LEVEL(level, name) level,
+        constexpr spdlog::level::level_enum logLevels[] = {
+            LOG_LEVELS(DEFINE_LOG_LEVEL)
+        };
+        constexpr const char* logLevelNames[] = {
+            LOG_LEVELS(DEFINE_LOG_NAME)
+        };
+#undef DEFINE_LOG_NAME
+#undef DEFINE_LOG_LEVEL
+        static auto currentLogLevel = spdlog::get_level();
+        if (ImGui::Combo("Log Level", reinterpret_cast<int *>(&currentLogLevel), logLevelNames, IM_ARRAYSIZE(logLevelNames))) {
+            spdlog::set_level(logLevels[currentLogLevel]);
         }
 
         ImGui::End();

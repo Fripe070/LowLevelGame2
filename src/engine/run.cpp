@@ -14,6 +14,8 @@ StatePackage statePackage = {&config, &windowSize};
 int run()
 {
 #ifndef NDEBUG
+    setupLogging();
+    SDL_LogSetOutputFunction(LogSdlCallback, nullptr);
     SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);
 #endif
 
@@ -67,7 +69,7 @@ int run()
         logDebug("OpenGL debug output enabled");
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallback(MessageCallback, nullptr);
+        glDebugMessageCallback(LogGlCallback, nullptr);
     } else {
         logWarn("OpenGL debug output not enabled");
     }

@@ -1,6 +1,7 @@
 #include "logging.h"
 
 #include <unordered_map>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 std::string glErrorString(const GLenum errorCode) {
     static const std::unordered_map<GLenum, std::string> map = {
@@ -39,7 +40,7 @@ GLenum glLogErrorsExtra_(const char *file, const int line, const std::string &ex
     return glLogErrorsExtra_(file, line, extra.c_str());
 }
 
-void GLAPIENTRY MessageCallback(
+void GLAPIENTRY LogGlCallback(
     GLenum source,
     GLenum type,
     GLuint id,
@@ -84,7 +85,9 @@ void GLAPIENTRY MessageCallback(
     const auto logPriority = err != severitySDLMap.end() ? err->second : SDL_LOG_PRIORITY_CRITICAL;
 
 #define KEY_OR_UNKNOWN(map, key) (map.find(key) != map.end() ? map[key] : "Unknown")
-    logRaw(logPriority,
+    SDL_LogMessage(
+        SDL_LOG_CATEGORY_APPLICATION,
+        logPriority,
         "OpenGL %s [%s] (%d) %s %s",
         KEY_OR_UNKNOWN(sourceMap, source),
         KEY_OR_UNKNOWN(typeMap, type),
@@ -94,3 +97,26 @@ void GLAPIENTRY MessageCallback(
     );
 #undef KEY_OR_UNKNOWN
 }
+
+
+void LogSdlCallback(void*, int category, SDL_LogPriority priority, const char *message) {
+    //TODO: Make better lmao
+    static const std::unordered_map<SDL_LogPriority, spdlog::level::level_enum> priorityMap = {
+        {SDL_LOG_PRIORITY_VERBOSE, spdlog::level::trace},
+        {SDL_LOG_PRIORITY_DEBUG, spdlog::level::debug},
+        {SDL_LOG_PRIORITY_INFO, spdlog::level::info},
+        {SDL_LOG_PRIORITY_WARN, spdlog::level::warn},
+        {SDL_LOG_PRIORITY_ERROR, spdlog::level::err},
+        {SDL_LOG_PRIORITY_CRITICAL, spdlog::level::critical}
+    };
+    const auto err = priorityMap.find(priority);
+    const auto logLevel = err != priorityMap.end() ? err->second : spdlog::level::critical;
+    spdlog::log(logLevel, "{}", message);
+}
+
+void setupLogging() {
+    const auto logger = spdlog::stdout_color_mt("console");
+    spdlog::set_default_logger(logger);
+
+}
+

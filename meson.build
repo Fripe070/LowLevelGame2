@@ -9,6 +9,7 @@ project('lowlevelgame', 'cpp',
 sdl2_dep = dependency('sdl2')
 glew_dep = dependency('glew')
 glm_dep = dependency('glm')
+spdlog_dep = dependency('spdlog')
 
 assimp_dep = dependency('assimp', method: 'pkg-config', required: false)  # required: false is to make meson not die when it can't find assimp
 if not assimp_dep.found()
@@ -26,7 +27,7 @@ if not assimp_dep.found()
     assimp_dep = cmake.subproject('assimp', options : assimp_opt).dependency('assimp')
 endif
 
-dependencies = [sdl2_dep, glew_dep, glm_dep, assimp_dep]
+dependencies = [sdl2_dep, glew_dep, glm_dep, assimp_dep, spdlog_dep]
 
 if host_machine.system() == 'windows'
     sdl2_main_dep = dependency('sdl2main')
