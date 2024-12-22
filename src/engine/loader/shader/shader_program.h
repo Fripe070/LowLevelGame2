@@ -1,5 +1,6 @@
-#ifndef SHADER_H
-#define SHADER_H
+#ifndef SHADER_PROGRAM_H
+#define SHADER_PROGRAM_H
+
 #include <expected>
 #include <string>
 #include <vector>
@@ -7,16 +8,11 @@
 
 namespace Engine {
     class ShaderProgram {
+    protected:  // ShaderProgram should never be instantiated directly, only through derived classes
+        explicit ShaderProgram(const std::vector<std::pair<std::string, unsigned int>> &filePaths);
     public:
         unsigned int programID;
 
-        ShaderProgram(const std::string &vertexFilePath, const std::string &fragmentFilePath);
-        ShaderProgram(const std::string &vertexFilePath, const std::string &geometryFilePath, const std::string &fragmentFilePath);
-        /*!
-         * @brief Construct a shader program from multiple files
-         * @param filePaths A vector of pairs of file paths and shader types (GL_VERTEX_SHADER, GL_FRAGMENT_SHADER...)
-         */
-        ShaderProgram(const std::vector<std::pair<std::string, unsigned int>> &filePaths);
         ~ShaderProgram();
 
         // Non-copyable
@@ -27,17 +23,12 @@ namespace Engine {
         ShaderProgram& operator=(ShaderProgram&& other) noexcept;
 
         void use() const;
-        int getUniformLoc(const std::string &name) const;
+        [[nodiscard]] int getUniformLoc(const std::string &name) const;
 
     private:
-        void Constructor(const std::vector<std::pair<std::string, unsigned int>> &filePaths);
-
         static std::expected<unsigned int, std::string> loadShader(
             const std::string &filePath,
-            const unsigned int shaderType
-        );
-        static std::expected<unsigned int, std::string> programFromMultiple(
-            const std::vector<std::pair<std::string, unsigned int>> &shaders
+            unsigned int shaderType
         );
         static std::expected<std::string, std::string> preprocessSource(std::string shaderSrc);
 
@@ -61,4 +52,4 @@ namespace Engine {
     };
 }
 
-#endif //SHADER_H
+#endif

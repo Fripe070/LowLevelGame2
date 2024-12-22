@@ -2,7 +2,7 @@
 #define RUN_H
 
 #define LLG_GL_VER_MAJOR 4
-#define LLG_GL_VER_MINOR 1
+#define LLG_GL_VER_MINOR 6
 
 struct Config {
     double deltaTimeLimit = 3.0;

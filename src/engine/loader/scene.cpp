@@ -9,7 +9,7 @@
 #include <assimp/postprocess.h>
 #include <glm/ext/matrix_transform.hpp>
 
-#include "shader.h"
+#include "shader/graphics_shader.h"
 #include "engine/manager/texture.h"
 
 #ifndef NDEBUG
@@ -173,7 +173,7 @@ namespace Engine::Loader {
         glBindVertexArray(VAO);
     }
 
-    std::expected<void, std::string> Scene::Draw(Manager::TextureManager &textureManager, const ShaderProgram &shader, const glm::mat4 &modelTransform) const {
+    std::expected<void, std::string> Scene::Draw(Manager::TextureManager &textureManager, const GraphicsShader &shader, const glm::mat4 &modelTransform) const {
         // TODO: Only do unique per-scene stuff here, and don't double-use the shader
         shader.use();
         for (const Mesh &mesh: meshes) {
@@ -191,7 +191,7 @@ namespace Engine::Loader {
         return {};
     }
 
-    std::expected<void, std::string> Material::PopulateShader(const ShaderProgram &shader, Manager::TextureManager &textureManager) const {
+    std::expected<void, std::string> Material::PopulateShader(const GraphicsShader &shader, Manager::TextureManager &textureManager) const {
         shader.setFloat("material.shininess", shininess);
         shader.setInt("material.test", textureManager.errorTexture);
 

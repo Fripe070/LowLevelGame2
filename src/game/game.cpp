@@ -1,19 +1,17 @@
-#include "skybox.h"
-
 #include <memory>
 #include <gl/glew.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/ext/matrix_transform.hpp>
+
+#include "engine/logging.h"
+#include "engine/loader/shader/compute_shader.h"
+#include "engine/game.h"
 
 #include "camera.h"
 #include "gui.h"
-#include <game/state.h>
-
-#include <engine/logging.h>
-#include <glm/ext/matrix_transform.hpp>
-
-#include "engine/game.h"
-
-#include <glm/gtc/type_ptr.hpp>
+#include "state.h"
+#include "skybox.h"
 
 
 std::unique_ptr<GameState> gameState;
@@ -67,9 +65,9 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     if (keyState[SDL_SCANCODE_S])
         inputDir -= CAMERA.forward();
     if (keyState[SDL_SCANCODE_A])
-        inputDir -= glm::normalize(glm::cross(CAMERA.forward(), CAMERA.up()));
+        inputDir -= CAMERA.right();
     if (keyState[SDL_SCANCODE_D])
-        inputDir += glm::normalize(glm::cross(CAMERA.forward(), CAMERA.up()));
+        inputDir += CAMERA.right();
     if (keyState[SDL_SCANCODE_SPACE])
         inputDir += CAMERA.up();
     if (keyState[SDL_SCANCODE_LSHIFT])

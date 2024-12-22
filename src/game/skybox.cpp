@@ -1,6 +1,6 @@
 #include "skybox.h"
 
-#include <engine/loader/shader.h>
+#include <engine/loader/shader/graphics_shader.h>
 #include <gl/glew.h>
 
 Skybox::Skybox() {
@@ -25,7 +25,7 @@ Skybox::~Skybox() {
     glDeleteBuffers(1, &EBO);
 }
 
-std::expected<void, std::string> Skybox::draw(const unsigned int cubemap, const Engine::ShaderProgram &shader) const {
+std::expected<void, std::string> Skybox::draw(const unsigned int cubemap, const Engine::GraphicsShader &shader) const {
     glDepthFunc(GL_LEQUAL);
 
     shader.setInt("skybox", 0);

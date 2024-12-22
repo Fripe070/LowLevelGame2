@@ -7,7 +7,7 @@
 #include <glm/mat4x4.hpp>
 
 namespace Engine {
-    class ShaderProgram;
+    class GraphicsShader;
     namespace Manager {
         class TextureManager;
     }
@@ -23,7 +23,7 @@ namespace Engine::Loader {
         std::string specularPath;
         float shininess;
 
-        std::expected<void, std::string> PopulateShader(const ShaderProgram &shader, Manager::TextureManager &textureManager) const;
+        std::expected<void, std::string> PopulateShader(const GraphicsShader &shader, Manager::TextureManager &textureManager) const;
     };
 
     /*!
@@ -100,7 +100,7 @@ namespace Engine::Loader {
         Scene(Scene&& other) noexcept;
         Scene& operator=(Scene&& other) noexcept;
 
-        std::expected<void, std::string> Draw(Manager::TextureManager &textureManager, const ShaderProgram &shader, const glm::mat4 &modelTransform) const;
+        std::expected<void, std::string> Draw(Manager::TextureManager &textureManager, const GraphicsShader &shader, const glm::mat4 &modelTransform) const;
     };
 
     std::expected<Scene, std::string> loadScene(const std::string &path);

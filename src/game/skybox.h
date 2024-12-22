@@ -3,12 +3,12 @@
 #include <expected>
 #include <string>
 #include <vector>
-#include <engine/loader/shader.h>
+#include <engine/loader/shader/graphics_shader.h>
 #include <glm/fwd.hpp>
 
 
 namespace Engine {
-    class ShaderProgram;
+    class GraphicsShader;
     namespace Manager {
         class TextureManager;
     }
@@ -19,7 +19,7 @@ class Skybox {
 public:
     Skybox();
     ~Skybox();
-    std::expected<void, std::string> draw(unsigned int cubemap, const Engine::ShaderProgram &shader) const;
+    std::expected<void, std::string> draw(unsigned int cubemap, const Engine::GraphicsShader &shader) const;
 
 private:
     unsigned int VAO, VBO, EBO;

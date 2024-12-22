@@ -37,7 +37,7 @@ sources = [
     'src/main.cpp',
     'src/engine/run.cpp',
     'src/engine/logging.cpp',
-    'src/engine/loader/shader.cpp',
+    'src/engine/loader/shader/shader_program.cpp',
     'src/engine/loader/scene.cpp',
     'src/engine/loader/texture.cpp',
     'src/engine/loader/generic.cpp',
