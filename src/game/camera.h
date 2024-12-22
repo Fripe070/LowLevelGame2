@@ -28,7 +28,8 @@ public:
         Radians yaw = DEFAULT_YAW,
         Radians pitch = DEFAULT_PITCH,
         Radians roll = DEFAULT_ROLL,
-        Degrees fov = DEFAULT_FOV);
+        Degrees fov = DEFAULT_FOV
+    );
 
     [[nodiscard]] glm::mat4 getViewMatrix() const;
     // Witchcraft to not accept ints and only floating point types for aspectRatio

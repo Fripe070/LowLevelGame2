@@ -12,6 +12,7 @@ namespace Engine::Loader {
      */
     std::expected<unsigned int, std::string> loadTexture(const char* filePath);
 
+    // TODO: Allow loading cubemap from equirectangular projection
     /*!
      * Loads a cubemap texture from a set of files.
      * @param filePath The path to the file. The different directions are inserted before the file extension with an underscore.

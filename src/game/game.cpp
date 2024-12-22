@@ -67,9 +67,9 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     if (keyState[SDL_SCANCODE_S])
         inputDir -= CAMERA.forward();
     if (keyState[SDL_SCANCODE_A])
-        inputDir -= glm::normalize(glm::cross(CAMERA.forward(), CAMERA.up()));
+        inputDir -= CAMERA.right();
     if (keyState[SDL_SCANCODE_D])
-        inputDir += glm::normalize(glm::cross(CAMERA.forward(), CAMERA.up()));
+        inputDir += CAMERA.right();
     if (keyState[SDL_SCANCODE_SPACE])
         inputDir += CAMERA.up();
     if (keyState[SDL_SCANCODE_LSHIFT])
