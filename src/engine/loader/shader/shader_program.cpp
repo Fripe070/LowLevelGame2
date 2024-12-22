@@ -1,48 +1,61 @@
-#include "shader.h"
-
 #include <stdexcept>
+
 #include <gl/glew.h>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "generic.h"
-#include <engine/logging.h>
-#ifndef NDEBUG
-#include <chrono>
-#endif
+#include "engine/logging.h"
+#include "engine/loader/generic.h"
+
+#include "shader_program.h"
+
 
 namespace Engine {
-    ShaderProgram::ShaderProgram(
-        const std::string &vertexFilePath,
-        const std::string &fragmentFilePath
-    ) {
-        Constructor({
-            {vertexFilePath, GL_VERTEX_SHADER},
-            {fragmentFilePath, GL_FRAGMENT_SHADER}
-        });
-    }
-    ShaderProgram::ShaderProgram(
-        const std::string &vertexFilePath,
-        const std::string &geometryFilePath,
-        const std::string &fragmentFilePath
-    ) {
-        Constructor({
-            {vertexFilePath, GL_VERTEX_SHADER},
-            {geometryFilePath, GL_GEOMETRY_SHADER},
-            {fragmentFilePath, GL_FRAGMENT_SHADER}
-        });
-    }
-    ShaderProgram::ShaderProgram(const std::vector<std::pair<std::string, unsigned int>> &filePaths) {
-        Constructor(filePaths);
+    ShaderProgram::ShaderProgram(const std::vector<std::pair<std::string, unsigned int>> &filePaths) : programID(0) {
+        std::vector<unsigned int> shaderIDs;
+        shaderIDs.reserve(filePaths.size());
+
+        // Load all shaders
+        for (const auto &[filePath, shaderType] : filePaths) {
+            const std::expected<unsigned int, std::string> shaderID = loadShader(filePath, shaderType);
+            if (!shaderID.has_value()) {
+                for (const auto &id : shaderIDs)
+                    glDeleteShader(id);
+                throw std::runtime_error("Failed to compile shader: " NL_INDENT + shaderID.error());
+            }
+            shaderIDs.push_back(shaderID.value());
+        }
+
+        const unsigned int progID = glCreateProgram();
+        // Attach all shaders
+        for (const auto &shaderID : shaderIDs) {
+            glAttachShader(progID, shaderID);
+            glDeleteShader(shaderID);  // Flagged for deletion when no longer attached to anything
+        }
+
+        glLinkProgram(progID);
+
+        int result = GL_FALSE;
+        glGetProgramiv(progID, GL_LINK_STATUS, &result);
+        if (result == GL_TRUE) {
+            for (const auto &shaderID : shaderIDs)
+                glDetachShader(progID, shaderID);  // Detach and delete shaders, we only need what is linked in the program now
+            programID = progID;
+            return;
+        }
+
+        int infoLogLength = 0;
+        glGetProgramiv(progID, GL_INFO_LOG_LENGTH, &infoLogLength);
+        if (infoLogLength == 0) {
+            glDeleteProgram(progID);  // Automatically detaches shaders, we don't need to loop through them
+            throw std::runtime_error("Program linking failed: No info log available");
+        }
+
+        std::vector<char> infoLog(infoLogLength);
+        glGetProgramInfoLog(progID, infoLogLength, nullptr, infoLog.data());
+        glDeleteProgram(progID);  // Automatically detaches shaders, we don't need to loop through them
+        throw std::runtime_error("Program linking failed: " NL_INDENT + std::string(infoLog.data()));
     }
 
-    void ShaderProgram::Constructor(const std::vector<std::pair<std::string, unsigned int>> &filePaths) {
-        const std::expected<unsigned int, std::string> programID = programFromMultiple(filePaths);
-        if (!programID.has_value()) {
-            logError("Failed to create shader program" NL_INDENT "%s", programID.error().c_str());
-            throw std::runtime_error(programID.error());
-        }
-        this->programID = programID.value();
-    }
     ShaderProgram::~ShaderProgram() {
         glDeleteProgram(programID);
     }
@@ -92,70 +105,6 @@ namespace Engine {
         glGetShaderInfoLog(shaderID, infoLogLength, nullptr, infoLog.data());
         glDeleteShader(shaderID);  // Prevent leak if we failed to compile
         return UNEXPECTED_REF("Shader compilation failed: " + std::string(infoLog.data()));
-    }
-
-    std::expected<unsigned int, std::string> ShaderProgram::programFromMultiple(
-        const std::vector<std::pair<std::string, unsigned int>> &shaders
-        ) {
-
-        std::vector<unsigned int> shaderIDs;
-        shaderIDs.reserve(shaders.size());
-
-#ifndef NDEBUG
-        const auto startTimer = std::chrono::high_resolution_clock::now();
-#endif
-        // Load all shaders
-        for (const auto &[filePath, shaderType] : shaders) {
-#ifndef NDEBUG
-            const auto shaderStartTimer = std::chrono::high_resolution_clock::now();
-#endif
-            const std::expected<unsigned int, std::string> shaderID = loadShader(filePath, shaderType);
-#ifndef NDEBUG
-            logDebug("Compiled shader \"%s\" in %.2fms",
-                filePath.c_str(),
-                std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - shaderStartTimer).count() / 1000.0);
-#endif
-            if (!shaderID.has_value()) {
-                for (const auto &id : shaderIDs)
-                    glDeleteShader(id);
-                return std::unexpected(FW_UNEXP(shaderID, "Failed to compile shader"));
-            }
-            shaderIDs.push_back(shaderID.value());
-        }
-
-        const unsigned int progID = glCreateProgram();
-        // Attach all shaders
-        for (const auto &shaderID : shaderIDs) {
-            glAttachShader(progID, shaderID);
-            glDeleteShader(shaderID);  // Flagged for deletion when no longer attached to anything
-        }
-
-        glLinkProgram(progID);
-
-        int result = GL_FALSE;
-        glGetProgramiv(progID, GL_LINK_STATUS, &result);
-        if (result == GL_TRUE) {
-            for (const auto &shaderID : shaderIDs)
-                glDetachShader(progID, shaderID);  // Detach and delete shaders, we only need what is linked in the program now
-#ifndef NDEBUG
-            logDebug("Linked shader program in %dms with %d shaders",
-                std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTimer).count(),
-                shaders.size());
-#endif
-            return progID;
-        }
-
-        int infoLogLength = 0;
-        glGetProgramiv(progID, GL_INFO_LOG_LENGTH, &infoLogLength);
-        if (infoLogLength == 0) {
-            glDeleteProgram(progID);  // Automatically detaches shaders, we don't need to loop through them
-            return UNEXPECTED_REF("Program linking failed: No info log available");
-        }
-
-        std::vector<char> infoLog(infoLogLength);
-        glGetProgramInfoLog(progID, infoLogLength, nullptr, infoLog.data());
-        glDeleteProgram(progID);  // Automatically detaches shaders, we don't need to loop through them
-        return UNEXPECTED_REF("Program linking failed: " + std::string(infoLog.data()));
     }
 
     std::expected<std::string, std::string> ShaderProgram::preprocessSource(std::string shaderSrc) {
