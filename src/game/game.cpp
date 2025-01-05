@@ -57,6 +57,8 @@ void shutdownGame(StatePackage &statePackage) {
     gameState.reset();
 }
 
+bool overlayRender(double deltaTime, StatePackage &statePackage);
+
 bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     const Uint8* keyState = SDL_GetKeyboardState(nullptr);
     auto inputDir = glm::vec3(0.0f, 0.0f,  0.0f);
@@ -139,11 +141,18 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
 #pragma endregion
 
     glDisable(GL_DEPTH_TEST);
-    DebugGUI::render(*gameState, statePackage);
-    glEnable(GL_DEPTH_TEST);  // Disabled in debug GUI rendering, so we re-enable it here
+    overlayRender(deltaTime, statePackage);
+    glEnable(GL_DEPTH_TEST);
 
     return true;
 }
+
+bool overlayRender(const double deltaTime, StatePackage &statePackage) {
+    DebugGUI::render(*gameState, statePackage);
+
+    return true;
+}
+
 bool physicsUpdate(const double deltaTime, StatePackage &statePackage) {
     return true;
 }

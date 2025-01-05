@@ -26,34 +26,34 @@ namespace Engine::Loader {
         std::expected<void, std::string> PopulateShader(const GraphicsShader &shader, Manager::TextureManager &textureManager) const;
     };
 
+    struct MeshVertex {
+        glm::vec3 Position;
+        glm::vec3 Normal;
+        // Yes, texture coordinates can be 3D
+        // We only support a single set of texture coordinates atm
+        glm::vec2 TexCoords;
+        // We only support a single vertex color atm
+        glm::vec4 Color;
+    };
     /*!
      * A mesh is a piece of geometry with a single material.
      * It manages its own OpenGL buffers.
      */
     class Mesh {
     public:
-        struct Vertex {
-            glm::vec3 Position;
-            glm::vec3 Normal;
-            // Yes, texture coordinates can be 3D
-            // We only support a single set of texture coordinates atm
-            glm::vec2 TexCoords;
-            // We only support a single vertex color atm
-            glm::vec4 Color;
-        };
 
         // TODO: We don't technically need to store the vertices and indices in the mesh object, since they're in the OpenGL buffers
         //  The geometry will still need to be stored for the collision system, so it might be best to split the mesh into a data version and a renderable version?
-        std::vector<Vertex> vertices;
+        std::vector<MeshVertex> vertices;
         std::vector<unsigned int> indices;
         unsigned int materialIndex;
 
         // TODO: Moving vertices when constructing the mesh, only to move the entire mesh when making a scene seems a bit wasteful
         // A bit of a weird constructor, but moving in the vectors allows us to avoid copying them'
         Mesh(
-            std::vector<Vertex>&& vertices,
+            std::vector<MeshVertex>&& vertices,
             std::vector<unsigned int>&& indices,
-            const unsigned int materialIndex
+            unsigned int materialIndex
         );
         ~Mesh();
 
@@ -67,7 +67,7 @@ namespace Engine::Loader {
         void bindGlMesh() const;
 
     private:
-        unsigned int VAO, VBO, EBO;
+        unsigned int VAO{}, VBO{}, EBO{};
         /*!
          * Sets up the OpenGL buffers for this mesh.
          * @note Leaves the VAO bound.
