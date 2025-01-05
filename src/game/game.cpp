@@ -148,7 +148,7 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
 }
 
 bool overlayRender(const double deltaTime, StatePackage &statePackage) {
-    DebugGUI::render(*gameState, statePackage);
+    DebugGUI::render(*gameState, statePackage, deltaTime);
 
     return true;
 }
