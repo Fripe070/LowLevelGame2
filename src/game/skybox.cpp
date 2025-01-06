@@ -19,7 +19,7 @@ Skybox::Skybox() {
     glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertPos), skyboxVertPos.data(), GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(CubeIndeciesInside), CubeIndeciesInside.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(CubeIndicesInside), CubeIndicesInside.data(), GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
     glEnableVertexAttribArray(0);
@@ -51,7 +51,7 @@ std::expected<void, std::string> Skybox::draw(const unsigned int cubemap, const 
     glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
 
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, sizeof(CubeIndeciesInside) / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, sizeof(CubeIndicesInside) / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
 
     glDepthFunc(GL_LESS);
     return {};

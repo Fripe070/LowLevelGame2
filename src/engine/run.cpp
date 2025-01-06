@@ -100,7 +100,7 @@ int run()
             physicsAccumulator = fmin(physicsAccumulator, 0.1); // Prevent spiral of death
             const double desiredPhysicsDT = 1.0 / config.physicsTPS;
             while (physicsAccumulator >= desiredPhysicsDT) {
-                if (!physicsUpdate(desiredPhysicsDT, statePackage)) {
+                if (!fixedUpdate(desiredPhysicsDT, statePackage)) {
                     logError("Physics update failed");
                     goto quit;
                 }
@@ -113,16 +113,16 @@ int run()
 
                 switch (event.type) {
                     default: break;
-                    case SDL_QUIT: {
+                    case SDL_QUIT:
                         logDebug("Received quit signal");
                         goto quit;
-                    }
                     case SDL_WINDOWEVENT:
                         if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
                             windowSize.width = event.window.data1;
                             windowSize.height = event.window.data2;
                             glViewport(0, 0, windowSize.width, windowSize.height);
                         }
+                        break;
                 }
             }
 

@@ -20,7 +20,7 @@ namespace Engine {
             if (!shaderID.has_value()) {
                 for (const auto &id : shaderIDs)
                     glDeleteShader(id);
-                throw std::runtime_error("Failed to compile shader: " NL_INDENT + shaderID.error());
+                throw std::runtime_error("Failed to compile shader " + filePath + ": " NL_INDENT + shaderID.error());
             }
             shaderIDs.push_back(shaderID.value());
         }

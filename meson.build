@@ -43,6 +43,8 @@ sources = [
     'src/engine/loader/generic.cpp',
     'src/engine/manager/texture.cpp',
     'src/engine/manager/scene.cpp',
+    'src/engine/render/overlay.cpp',
+    'src/engine/render/frame_buffer.cpp',
 
     'src/game/game.cpp',
     'src/game/camera.cpp',

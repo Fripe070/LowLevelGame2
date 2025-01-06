@@ -40,7 +40,7 @@ getCubeVertices(const float x1, const float y1, const float z1, const float x2, 
 }
 
 // 6 faces, 2 triangles per face, 3 vertices per triangle
-constexpr std::array<unsigned int, 6 * 2 * 3> CubeIndeciesInside = {
+constexpr std::array<unsigned int, 6 * 2 * 3> CubeIndicesInside = {
     // Front face
     BOTTOM_LEFT_FRONT,  BOTTOM_RIGHT_FRONT, TOP_LEFT_FRONT,
     BOTTOM_RIGHT_FRONT, TOP_RIGHT_FRONT,    TOP_LEFT_FRONT,
@@ -59,6 +59,17 @@ constexpr std::array<unsigned int, 6 * 2 * 3> CubeIndeciesInside = {
     // Bottom face
     BOTTOM_RIGHT_FRONT, BOTTOM_LEFT_FRONT,  BOTTOM_RIGHT_BACK,
     BOTTOM_LEFT_FRONT,  BOTTOM_LEFT_BACK,   BOTTOM_RIGHT_BACK
+};
+
+constexpr std::array<float, 4*3> ScreenSpaceQuadVertices = {
+    -1.0f,  1.0f, 0.0f,
+    -1.0f, -1.0f, 0.0f,
+     1.0f,  1.0f, 0.0f,
+     1.0f, -1.0f, 0.0f,
+};
+constexpr std::array<unsigned int, 2*3> ScreenSpaceQuadIndices = {
+    0, 1, 2,
+    1, 3, 2,
 };
 
 #endif

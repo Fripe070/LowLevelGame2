@@ -38,7 +38,6 @@ namespace DebugGUI {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
-        // ImGui::ShowDemoWindow()
         drawFrame(gameState, statePackage, deltaTime);
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

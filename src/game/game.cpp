@@ -7,6 +7,8 @@
 #include "engine/logging.h"
 #include "engine/loader/shader/compute_shader.h"
 #include "engine/game.h"
+#include "engine/render/overlay.h"
+#include "engine/render/frame_buffer.h"
 
 #include "camera.h"
 #include "gui.h"
@@ -20,6 +22,8 @@ unsigned int uboMatrices;
 #define LEVEL gameState->level
 #define PLAYER LEVEL.player
 #define CAMERA PLAYER.camera
+
+std::unique_ptr<FrameBuffer> frameBuffer;
 
 bool setupGame(StatePackage &statePackage, SDL_Window *sdlWindow, SDL_GLContext glContext) {
     gameState = std::make_unique<GameState>(statePackage);
@@ -42,8 +46,6 @@ bool setupGame(StatePackage &statePackage, SDL_Window *sdlWindow, SDL_GLContext 
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);  // Counter-clockwise winding order
 
-    glEnable(GL_DEPTH_TEST);
-
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
     glGenBuffers(1, &uboMatrices);
@@ -51,13 +53,13 @@ bool setupGame(StatePackage &statePackage, SDL_Window *sdlWindow, SDL_GLContext 
     glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), nullptr, GL_STATIC_DRAW);
     glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
 
+    frameBuffer = std::make_unique<FrameBuffer>(statePackage.windowSize->width, statePackage.windowSize->height);
+
     return true;
 }
 void shutdownGame(StatePackage &statePackage) {
     gameState.reset();
 }
-
-bool overlayRender(double deltaTime, StatePackage &statePackage);
 
 bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     const Uint8* keyState = SDL_GetKeyboardState(nullptr);
@@ -81,8 +83,10 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     constexpr auto CAMERA_SPEED = 2.5f;
     CAMERA.position += inputDir * CAMERA_SPEED * static_cast<float>(deltaTime);
 
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    frameBuffer->bind();
+    glClearColor(0.5f, 0.0f, 0.5f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
 
     // TODO: Let these be managed by the camera class, so we only ever have to update the matrices when the camera moves/zooms
     glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
@@ -140,20 +144,22 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     LEVEL.skybox.draw(skyboxTex.value_or(LEVEL.textureManager.errorTexture), LEVEL.shaders[1]);
 #pragma endregion
 
+#pragma region Render overlays
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
-    overlayRender(deltaTime, statePackage);
-    glEnable(GL_DEPTH_TEST);
 
-    return true;
-}
+    static ScreenOverlay overlay;
+    overlay.draw(frameBuffer->ColorTextureID);
 
-bool overlayRender(const double deltaTime, StatePackage &statePackage) {
     DebugGUI::render(*gameState, statePackage, deltaTime);
+#pragma endregion
 
     return true;
 }
 
-bool physicsUpdate(const double deltaTime, StatePackage &statePackage) {
+bool fixedUpdate(const double deltaTime, StatePackage &statePackage) {
     return true;
 }
 
@@ -163,13 +169,19 @@ bool handleEvent(const SDL_Event &event, StatePackage &statePackage) {
     switch (event.type) {
         default: break;
         case SDL_MOUSEWHEEL:
-            PLAYER.cController.zoom(event.wheel.y);
+            PLAYER.cController.zoom(static_cast<float>(event.wheel.y) * 2.0f);
             break;
         case SDL_MOUSEMOTION:
             PLAYER.cController.look(event.motion);
             break;
-    }
 
+        case SDL_WINDOWEVENT:
+            if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                // TODO: Move framebuffer handling to the engine
+                frameBuffer->resize(event.window.data1, event.window.data2);
+            }
+            break;
+    }
 
     return false;
 }
