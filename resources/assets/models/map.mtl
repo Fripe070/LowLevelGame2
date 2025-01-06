@@ -1,4 +1,4 @@
-# Blender 4.2.3 LTS MTL File: 'LLG map test.blend'
+# Blender 4.3.2 MTL File: 'None'
 # www.blender.org
 
 newmtl Brick
@@ -12,6 +12,31 @@ d 1.000000
 illum 2
 map_Kd resources/assets/textures/brick/brick.png
 map_Ks resources/assets/textures/brick/brick_specular.png
+
+newmtl Grass
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd resources/assets/textures/grass/grass.png
+map_Ks resources/assets/textures/grass/grass_specular.png
+
+newmtl Bush
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 2
+map_Kd resources/assets/textures/bush/bush.png
+map_Ks resources/assets/textures/bush/bush_specular.png
+map_d resources/assets/textures/bush/bush.png
+map_Bump -bm 0.700000 resources/assets/textures/bush/bush_normal.png
 
 newmtl Stone
 Ns 250.000000
