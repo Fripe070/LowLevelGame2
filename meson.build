@@ -9,6 +9,7 @@ project('lowlevelgame', 'cpp',
 sdl2_dep = dependency('sdl2')
 glew_dep = dependency('glew')
 glm_dep = dependency('glm')
+imgui_dep = dependency('imgui_docking')
 
 assimp_dep = dependency('assimp', method: 'pkg-config', required: false)  # required: false is to make meson not die when it can't find assimp
 if not assimp_dep.found()
@@ -26,7 +27,7 @@ if not assimp_dep.found()
     assimp_dep = cmake.subproject('assimp', options : assimp_opt).dependency('assimp')
 endif
 
-dependencies = [sdl2_dep, glew_dep, glm_dep, assimp_dep]
+dependencies = [sdl2_dep, glew_dep, glm_dep, imgui_dep, assimp_dep]
 
 if host_machine.system() == 'windows'
     sdl2_main_dep = dependency('sdl2main')
@@ -49,15 +50,8 @@ sources = [
     'src/game/game.cpp',
     'src/game/camera.cpp',
     'src/game/skybox.cpp',
+    'src/game/gui.cpp',
 ]
-
-if build_machine.system() != 'darwin'
-    imgui_dep = dependency('imgui')
-    dependencies += [imgui_dep]
-    sources += ['src/game/gui.cpp']
-else
-    sources += ['src/game/gui_mac.cpp']
-endif
 
 exe = executable(
     'lowlevelgame', sources,
