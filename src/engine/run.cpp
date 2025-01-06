@@ -97,7 +97,7 @@ int run()
 #pragma endregion
 
             physicsAccumulator += deltaTime;
-            physicsAccumulator = fmin(physicsAccumulator, 0.1); // Prevent spiral of death
+            physicsAccumulator = fmin(physicsAccumulator, 0.1); // Prevent spiral of death  // TODO: Magic number?
             const double desiredPhysicsDT = 1.0 / config.physicsTPS;
             while (physicsAccumulator >= desiredPhysicsDT) {
                 if (!fixedUpdate(desiredPhysicsDT, statePackage)) {

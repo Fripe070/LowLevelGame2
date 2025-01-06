@@ -8,7 +8,7 @@ private:
 
 public:
     unsigned int ColorTextureID{};
-    unsigned int DepthStencilRenderBufferID{};
+    unsigned int DepthStencilTextureID{};
 
     FrameBuffer(int width, int height);
     ~FrameBuffer();

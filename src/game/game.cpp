@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/ext/matrix_transform.hpp>
+#include <imgui.h>
 
 #include "engine/logging.h"
 #include "engine/loader/shader/compute_shader.h"
@@ -26,6 +27,15 @@ unsigned int uboMatrices;
 std::unique_ptr<FrameBuffer> frameBuffer;
 
 bool setupGame(StatePackage &statePackage, SDL_Window *sdlWindow, SDL_GLContext glContext) {
+    DebugGUI::init(*sdlWindow, glContext);
+    frameBuffer = std::make_unique<FrameBuffer>(statePackage.windowSize->width, statePackage.windowSize->height);
+
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);  // Counter-clockwise winding order
+
+    SDL_SetRelativeMouseMode(SDL_TRUE);
+
     gameState = std::make_unique<GameState>(statePackage);
 
     LEVEL.shaders.emplace_back("resources/assets/shaders/vert.vert", "resources/assets/shaders/frag.frag");
@@ -40,20 +50,10 @@ bool setupGame(StatePackage &statePackage, SDL_Window *sdlWindow, SDL_GLContext 
     if (!matricesBinding.has_value())
         logError("Failed to bind matrices uniform block" NL_INDENT "%s", matricesBinding.error().c_str());
 
-    DebugGUI::init(*sdlWindow, glContext);
-
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);  // Counter-clockwise winding order
-
-    SDL_SetRelativeMouseMode(SDL_TRUE);
-
     glGenBuffers(1, &uboMatrices);
     glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
     glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), nullptr, GL_STATIC_DRAW);
     glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
-
-    frameBuffer = std::make_unique<FrameBuffer>(statePackage.windowSize->width, statePackage.windowSize->height);
 
     return true;
 }
@@ -84,9 +84,9 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     CAMERA.position += inputDir * CAMERA_SPEED * static_cast<float>(deltaTime);
 
     frameBuffer->bind();
+    glEnable(GL_DEPTH_TEST);
     glClearColor(0.5f, 0.0f, 0.5f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
 
     // TODO: Let these be managed by the camera class, so we only ever have to update the matrices when the camera moves/zooms
     glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
@@ -146,14 +146,23 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
 
 #pragma region Render overlays
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDisable(GL_DEPTH_TEST);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-    glDisable(GL_DEPTH_TEST);
 
     static ScreenOverlay overlay;
     overlay.draw(frameBuffer->ColorTextureID);
 
-    DebugGUI::render(*gameState, statePackage, deltaTime);
+    DebugGUI::renderStart(*gameState, statePackage, deltaTime);
+
+    ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Text("Color buffer");
+    ImGui::Image(frameBuffer->ColorTextureID,
+        ImVec2(statePackage.windowSize->width / 4, statePackage.windowSize->height / 4),
+        ImVec2(0, 1), ImVec2(1, 0));
+    ImGui::End();
+
+    DebugGUI::renderEnd();
 #pragma endregion
 
     return true;

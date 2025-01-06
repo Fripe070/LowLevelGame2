@@ -30,18 +30,21 @@ namespace DebugGUI {
 
     void drawFrame(GameState &gameState, StatePackage &statePackage, double deltaTime);
 
-    /*!
-     * @brief Renders the debug GUI
-     * @note Should be called AFTER all game rendering occurs, so that the debug GUI is drawn on top of everything
-     */
     void render(GameState &gameState, StatePackage &statePackage, const double deltaTime) {
+        renderStart(gameState, statePackage, deltaTime);
+        renderEnd();
+    }
+    void renderStart(GameState &gameState, StatePackage &statePackage, double deltaTime) {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
         drawFrame(gameState, statePackage, deltaTime);
+    }
+    void renderEnd() {
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
+
 
     void drawSettingsGUI(GameState &gameState, StatePackage &statePackage, double deltaTime);
     void drawOverlay(GameState &gameState, StatePackage &statePackage, double deltaTime);
