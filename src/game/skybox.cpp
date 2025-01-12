@@ -53,6 +53,6 @@ std::expected<void, std::string> Skybox::draw(const unsigned int cubemap, const 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, sizeof(CubeIndicesInside) / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
 
-    glDepthFunc(GL_LESS);
+    glDepthFunc(GL_LESS);  // Default depth function
     return {};
 }
