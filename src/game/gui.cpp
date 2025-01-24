@@ -28,23 +28,35 @@ namespace DebugGUI {
         ImGui_ImplSDL2_ProcessEvent(&event);
     }
 
-    void drawFrame(GameState &gameState, StatePackage &statePackage);
+    void drawFrame(GameState &gameState, StatePackage &statePackage, double deltaTime);
 
-    /*!
-     * @brief Renders the debug GUI
-     * @note Should be called AFTER all game rendering occurs, so that the debug GUI is drawn on top of everything
-     */
-    void render(GameState &gameState, StatePackage &statePackage) {
+    void render(GameState &gameState, StatePackage &statePackage, const double deltaTime) {
+        renderStart(gameState, statePackage, deltaTime);
+        renderEnd();
+    }
+    void renderStart(GameState &gameState, StatePackage &statePackage, double deltaTime) {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
-        // ImGui::ShowDemoWindow();
-        drawFrame(gameState, statePackage);
+        drawFrame(gameState, statePackage, deltaTime);
+    }
+    void renderEnd() {
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
 
-    void drawFrame(GameState &gameState, StatePackage &statePackage) {
+
+    void drawSettingsGUI(GameState &gameState, StatePackage &statePackage, double deltaTime);
+    void drawOverlay(GameState &gameState, StatePackage &statePackage, double deltaTime);
+
+    void drawFrame(GameState &gameState, StatePackage &statePackage, double deltaTime) {
+        drawSettingsGUI(gameState, statePackage, deltaTime);
+        drawOverlay(gameState, statePackage, deltaTime);
+
+        // ImGui::ShowDemoWindow();
+    }
+
+    void drawSettingsGUI(GameState &gameState, StatePackage &statePackage, double deltaTime) {
 #define ENGINE_CONFIG statePackage.config
 #define GAME_SETTINGS gameState.settings
 
@@ -65,10 +77,46 @@ namespace DebugGUI {
             SDL_SetRelativeMouseMode(SDL_TRUE);
             ImGui::SetWindowCollapsed(true);
         }
+        // TODO: Make work properly with frame buffer
         if (ImGui::Checkbox("Wireframe", &GAME_SETTINGS.wireframe)) {
             glPolygonMode(GL_FRONT_AND_BACK, GAME_SETTINGS.wireframe ? GL_LINE : GL_FILL);
         }
+        ImGui::End();
+    }
 
+    void drawOverlay(GameState &gameState, StatePackage &statePackage, double deltaTime) {
+        constexpr auto flags =
+            ImGuiWindowFlags_NoDecoration |
+            ImGuiWindowFlags_AlwaysAutoResize |
+            ImGuiWindowFlags_NoSavedSettings |
+            ImGuiWindowFlags_NoFocusOnAppearing |
+            ImGuiWindowFlags_NoNav |
+            ImGuiWindowFlags_NoMove;
+        {
+            // Lock on to top right
+            constexpr float PADDING = 10.0f;
+            const ImGuiViewport* viewport = ImGui::GetMainViewport();
+            const ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
+            const ImVec2 work_size = viewport->WorkSize;
+            ImGui::SetNextWindowPos(
+                {work_pos.x + work_size.x - PADDING,
+                    work_pos.y + PADDING},
+                ImGuiCond_Always,
+                {1.0f, 0.0f}
+            );
+        }
+        ImGui::SetNextWindowBgAlpha(0.9);
+        ImGui::Begin("Overlay", nullptr, flags);
+
+        const auto fps = 1.0 / deltaTime;
+        auto col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+        if (fps < 30)
+            col = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
+        else if (fps < 60)
+            col = ImVec4(1.0f, 1.0f, 0.0f, 1.0f);
+        else if (fps < 120)
+            col = ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
+        ImGui::TextColored(col, "%.0f FPS (%.1f ms)", fps, deltaTime * 1000.0);
         ImGui::End();
     }
 }

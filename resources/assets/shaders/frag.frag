@@ -60,6 +60,10 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 
 void main()
 {
+    // TODO: Transparency blending
+    if (texture(material.texture_diffuse, TexCoord).a < 0.5)
+        discard;
+
     vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
 

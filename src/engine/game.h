@@ -8,7 +8,7 @@ bool setupGame(StatePackage &statePackage, SDL_Window *sdlWindow, SDL_GLContext 
 void shutdownGame(StatePackage &statePackage);
 
 bool renderUpdate(double deltaTime, StatePackage &statePackage);
-bool physicsUpdate(double deltaTime, StatePackage &statePackage);
+bool fixedUpdate(double deltaTime, StatePackage &statePackage);
 
 bool handleEvent(const SDL_Event &event, StatePackage &statePackage);
 

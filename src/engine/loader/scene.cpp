@@ -7,6 +7,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <engine/util/geometry.h>
 #include <glm/ext/matrix_transform.hpp>
 
 #include "shader/graphics_shader.h"
@@ -113,12 +114,12 @@ namespace Engine::Loader {
     }
 
     std::expected<Mesh, std::string> processMesh(const aiMesh *loadedMesh) {
-        std::vector<Mesh::Vertex> vertices;
+        std::vector<MeshVertex> vertices;
         std::vector<unsigned int> indices;
         const unsigned int materialIndex = loadedMesh->mMaterialIndex;
 
         for (unsigned int i = 0; i < loadedMesh->mNumVertices; i++) {
-            Mesh::Vertex vertex;
+            MeshVertex vertex;
             vertex.Position = UNPACK_VEC3(loadedMesh->mVertices[i]);
 
             if (loadedMesh->HasNormals())
@@ -150,16 +151,16 @@ namespace Engine::Loader {
         aiString path;
         if (loadedMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS)
             resultMaterial.diffusePath = path.C_Str();
-        else
-            logWarn("Material %s does not have a diffuse texture", loadedMaterial->GetName().C_Str());
+        // else
+        //     logWarn("Material %s does not have a diffuse texture", loadedMaterial->GetName().C_Str());
         if (loadedMaterial->GetTexture(aiTextureType_SPECULAR, 0, &path) == AI_SUCCESS)
             resultMaterial.specularPath = path.C_Str();
-        else
-            logWarn("Material %s does not have a specular texture", loadedMaterial->GetName().C_Str());
+        // else
+        //     logWarn("Material %s does not have a specular texture", loadedMaterial->GetName().C_Str());
 
         // TODO: This does not make sense in the context of our renderer
         if (loadedMaterial->Get(AI_MATKEY_REFLECTIVITY, resultMaterial.shininess) != AI_SUCCESS) {
-            logWarn("Material %s does not have shininess", loadedMaterial->GetName().C_Str());
+            // logWarn("Material %s does not have shininess", loadedMaterial->GetName().C_Str());
             resultMaterial.shininess = 32.0f;
         }
 
@@ -236,51 +237,11 @@ namespace Engine::Loader {
     }
 
     Mesh::Mesh(
-        std::vector<Vertex> &&vertices,
+        std::vector<MeshVertex> &&vertices,
         std::vector<unsigned int> &&indices,
         const unsigned int materialIndex
     ) : vertices(std::move(vertices)), indices(std::move(indices)), materialIndex(materialIndex) {
         setupGlMesh();
-    }
-
-    Mesh::~Mesh() {
-        if (VAO == 0 && VBO == 0 && EBO == 0)
-            return;
-        glDeleteVertexArrays(1, &VAO);
-        glDeleteBuffers(1, &VBO);
-        glDeleteBuffers(1, &EBO);
-    }
-
-    Mesh::Mesh(Mesh &&other) noexcept {
-        VAO = other.VAO;
-        VBO = other.VBO;
-        EBO = other.EBO;
-        vertices = std::move(other.vertices);
-        indices = std::move(other.indices);
-        materialIndex = other.materialIndex;
-
-        other.VAO = 0;
-        other.VBO = 0;
-        other.EBO = 0;
-    }
-    Mesh &Mesh::operator=(Mesh &&other) noexcept {
-        if (this != &other) {
-            glDeleteVertexArrays(1, &VAO);
-            glDeleteBuffers(1, &VBO);
-            glDeleteBuffers(1, &EBO);
-
-            VAO = other.VAO;
-            VBO = other.VBO;
-            EBO = other.EBO;
-            vertices = std::move(other.vertices);
-            indices = std::move(other.indices);
-            materialIndex = other.materialIndex;
-
-            other.VAO = 0;
-            other.VBO = 0;
-            other.EBO = 0;
-        }
-        return *this;
     }
 
     void Mesh::setupGlMesh() {
@@ -289,9 +250,9 @@ namespace Engine::Loader {
         glGenBuffers(1, &EBO);
 
         glBindVertexArray(VAO);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(MeshVertex), &vertices[0], GL_STATIC_DRAW);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
@@ -300,10 +261,10 @@ namespace Engine::Loader {
 #define ENABLE_F_VERTEX_ATTRIB(index, member) \
         glEnableVertexAttribArray(index); \
         glVertexAttribPointer(index, \
-            sizeof(Vertex::member) / sizeof(float), GL_FLOAT, \
+            sizeof(MeshVertex::member) / sizeof(float), GL_FLOAT, \
             GL_FALSE, \
-            sizeof(Vertex), \
-            reinterpret_cast<void *>(offsetof(Vertex, member)))
+            sizeof(MeshVertex), \
+            reinterpret_cast<void *>(offsetof(MeshVertex, member)))
 
         ENABLE_F_VERTEX_ATTRIB(0, Position);
         ENABLE_F_VERTEX_ATTRIB(1, Normal);
@@ -311,6 +272,36 @@ namespace Engine::Loader {
         ENABLE_F_VERTEX_ATTRIB(3, Color);
 #undef ENABLE_F_VERTEX_ATTRIB
     }
+
+
+    Mesh::~Mesh() {
+        glDeleteVertexArrays(1, &VAO);
+        glDeleteBuffers(1, &VBO);
+        glDeleteBuffers(1, &EBO);
+    }
+
+    Mesh::Mesh(Mesh &&other) noexcept {
+        BUFFERS_MV_FROM_TO(other, this);
+
+        vertices = std::move(other.vertices);
+        indices = std::move(other.indices);
+        materialIndex = other.materialIndex;
+    }
+    Mesh &Mesh::operator=(Mesh &&other) noexcept {
+        if (this != &other) {
+            glDeleteVertexArrays(1, &VAO);
+            glDeleteBuffers(1, &VBO);
+            glDeleteBuffers(1, &EBO);
+
+            BUFFERS_MV_FROM_TO(other, this);
+
+            vertices = std::move(other.vertices);
+            indices = std::move(other.indices);
+            materialIndex = other.materialIndex;
+        }
+        return *this;
+    }
+
 #pragma endregion
 };
 

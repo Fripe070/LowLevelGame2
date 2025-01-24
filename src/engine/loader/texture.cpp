@@ -14,7 +14,7 @@ namespace Engine::Loader {
     };
     /*!
      * Internal helper function to load an image from a file.
-     * @attention You are responsible for freeing the memory allocated suing `stbi_image_free`.
+     * @attention You as the caller are responsible for freeing the allocated memory using `stbi_image_free`.
      */
     std::expected<ImageData, std::string> loadImage(const char *filePath) {
         int width, height, channelCount;
@@ -55,7 +55,7 @@ namespace Engine::Loader {
         glGenerateMipmap(GL_TEXTURE_2D);
         stbi_image_free(imgData->imgData);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);  // TODO: GL_CLAMP_TO_EDGE to better support alpha textures?
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

@@ -16,7 +16,7 @@ struct WindowSize {
     int width = 1920 / 2;
     int height = 1080 / 2;
 
-    float aspectRatio() const { return static_cast<float>(width) / height; }
+    [[nodiscard]] float aspectRatio() const { return static_cast<float>(width) / static_cast<float>(height); }
 };
 
 struct StatePackage {

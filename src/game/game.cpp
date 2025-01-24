@@ -3,10 +3,13 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/ext/matrix_transform.hpp>
+#include <imgui.h>
 
 #include "engine/logging.h"
 #include "engine/loader/shader/compute_shader.h"
 #include "engine/game.h"
+#include "engine/render/overlay.h"
+#include "engine/render/frame_buffer.h"
 
 #include "camera.h"
 #include "gui.h"
@@ -21,7 +24,18 @@ unsigned int uboMatrices;
 #define PLAYER LEVEL.player
 #define CAMERA PLAYER.camera
 
+std::unique_ptr<FrameBuffer> frameBuffer;
+
 bool setupGame(StatePackage &statePackage, SDL_Window *sdlWindow, SDL_GLContext glContext) {
+    DebugGUI::init(*sdlWindow, glContext);
+    frameBuffer = std::make_unique<FrameBuffer>(statePackage.windowSize->width, statePackage.windowSize->height);
+
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);  // Counter-clockwise winding order
+
+    SDL_SetRelativeMouseMode(SDL_TRUE);
+
     gameState = std::make_unique<GameState>(statePackage);
 
     LEVEL.shaders.emplace_back("resources/assets/shaders/vert.vert", "resources/assets/shaders/frag.frag");
@@ -35,16 +49,6 @@ bool setupGame(StatePackage &statePackage, SDL_Window *sdlWindow, SDL_GLContext 
     matricesBinding = LEVEL.shaders[1].bindUniformBlock("Matrices", 0);
     if (!matricesBinding.has_value())
         logError("Failed to bind matrices uniform block" NL_INDENT "%s", matricesBinding.error().c_str());
-
-    DebugGUI::init(*sdlWindow, glContext);
-
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);  // Counter-clockwise winding order
-
-    glEnable(GL_DEPTH_TEST);
-
-    SDL_SetRelativeMouseMode(SDL_TRUE);
 
     glGenBuffers(1, &uboMatrices);
     glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
@@ -79,7 +83,10 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     constexpr auto CAMERA_SPEED = 2.5f;
     CAMERA.position += inputDir * CAMERA_SPEED * static_cast<float>(deltaTime);
 
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    frameBuffer->bind();
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    glClearColor(0.5f, 0.0f, 0.5f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // TODO: Let these be managed by the camera class, so we only ever have to update the matrices when the camera moves/zooms
@@ -138,13 +145,31 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     LEVEL.skybox.draw(skyboxTex.value_or(LEVEL.textureManager.errorTexture), LEVEL.shaders[1]);
 #pragma endregion
 
+#pragma region Render overlays
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_DEPTH_TEST);
-    DebugGUI::render(*gameState, statePackage);
-    glEnable(GL_DEPTH_TEST);  // Disabled in debug GUI rendering, so we re-enable it here
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    static ScreenOverlay overlay;
+    overlay.draw(frameBuffer->ColorTextureID);
+
+    DebugGUI::renderStart(*gameState, statePackage, deltaTime);
+
+    ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Text("Color buffer");
+    ImGui::Image(frameBuffer->ColorTextureID,
+        ImVec2(statePackage.windowSize->width / 4, statePackage.windowSize->height / 4),
+        ImVec2(0, 1), ImVec2(1, 0));
+    ImGui::End();
+
+    DebugGUI::renderEnd();
+#pragma endregion
 
     return true;
 }
-bool physicsUpdate(const double deltaTime, StatePackage &statePackage) {
+
+bool fixedUpdate(const double deltaTime, StatePackage &statePackage) {
     return true;
 }
 
@@ -154,13 +179,19 @@ bool handleEvent(const SDL_Event &event, StatePackage &statePackage) {
     switch (event.type) {
         default: break;
         case SDL_MOUSEWHEEL:
-            PLAYER.cController.zoom(event.wheel.y);
+            PLAYER.cController.zoom(static_cast<float>(event.wheel.y) * 2.0f);
             break;
         case SDL_MOUSEMOTION:
             PLAYER.cController.look(event.motion);
             break;
-    }
 
+        case SDL_WINDOWEVENT:
+            if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                // TODO: Move framebuffer handling to the engine
+                frameBuffer->resize(event.window.data1, event.window.data2);
+            }
+            break;
+    }
 
     return false;
 }

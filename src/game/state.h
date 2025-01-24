@@ -14,6 +14,7 @@ struct Settings {
     float sensitivity = 0.1f;
     // Graphics
     bool wireframe = false;
+    // TODO: Add multiple debug modes, like viewing polygons, normals, positions, albedo, disabling post-processing effects, etc
 };
 
 struct PlayerState {
