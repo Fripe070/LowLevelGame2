@@ -34,8 +34,8 @@ namespace Engine::Loader {
             case 3: return GL_RGB;
             case 4: return GL_RGBA;
             default: {
-                logWarn("Unknown channel count %d, defaulting to RGB", channelCount);
-                return GL_RGB;
+                logWarn("Unknown channel count %d, defaulting to single channel", channelCount);
+                return GL_RED;  // Least likely to segfault :+1:
             }
         }
     }
@@ -45,6 +45,7 @@ namespace Engine::Loader {
         if (!imgData)
             return std::unexpected(FW_UNEXP(imgData, "Failed to load texture"));
 
+        logDebug("Loaded texture \"%s\" with dimensions %dx%d", filePath, imgData->width, imgData->height);
         const GLint format = getChannelCount(imgData->channelCount);
 
         unsigned int textureID;
