@@ -151,16 +151,16 @@ namespace Engine::Loader {
         aiString path;
         if (loadedMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS)
             resultMaterial.diffusePath = path.C_Str();
-        else
-            logWarn("Material %s does not have a diffuse texture", loadedMaterial->GetName().C_Str());
+        // else
+        //     logWarn("Material %s does not have a diffuse texture", loadedMaterial->GetName().C_Str());
         if (loadedMaterial->GetTexture(aiTextureType_SPECULAR, 0, &path) == AI_SUCCESS)
             resultMaterial.specularPath = path.C_Str();
-        else
-            logWarn("Material %s does not have a specular texture", loadedMaterial->GetName().C_Str());
+        // else
+        //     logWarn("Material %s does not have a specular texture", loadedMaterial->GetName().C_Str());
 
         // TODO: This does not make sense in the context of our renderer
         if (loadedMaterial->Get(AI_MATKEY_REFLECTIVITY, resultMaterial.shininess) != AI_SUCCESS) {
-            logWarn("Material %s does not have shininess", loadedMaterial->GetName().C_Str());
+            // logWarn("Material %s does not have shininess", loadedMaterial->GetName().C_Str());
             resultMaterial.shininess = 32.0f;
         }
 
