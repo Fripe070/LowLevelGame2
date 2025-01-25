@@ -77,10 +77,7 @@ namespace DebugGUI {
             SDL_SetRelativeMouseMode(SDL_TRUE);
             ImGui::SetWindowCollapsed(true);
         }
-        // TODO: Make work properly with frame buffer
-        if (ImGui::Checkbox("Wireframe", &GAME_SETTINGS.wireframe)) {
-            glPolygonMode(GL_FRONT_AND_BACK, GAME_SETTINGS.wireframe ? GL_LINE : GL_FILL);
-        }
+        ImGui::Checkbox("Wireframe", &GAME_SETTINGS.wireframe);
         ImGui::End();
     }
 

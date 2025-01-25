@@ -88,6 +88,13 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     glDepthFunc(GL_LESS);
     glClearColor(0.5f, 0.0f, 0.5f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glPolygonMode(GL_FRONT_AND_BACK, gameState->settings.wireframe ? GL_LINE : GL_FILL);
+    // TODO: Allow backface culling to be toggled per object
+    // Don't cull if in wireframe mode
+    if (gameState->settings.wireframe)
+        glDisable(GL_CULL_FACE);
+    else
+        glEnable(GL_CULL_FACE);
 
     // TODO: Let these be managed by the camera class, so we only ever have to update the matrices when the camera moves/zooms
     glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
@@ -133,6 +140,8 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
 
     const glm::mat4 trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.0f, -2.0f));
     LEVEL.modelManager.errorScene->Draw(LEVEL.textureManager, LEVEL.shaders[0], trans);
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 #pragma region Skybox
     // We render the skybox manually, since we don't need any of the fancy scene stuff
