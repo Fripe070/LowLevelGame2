@@ -4,33 +4,43 @@
 #include <gl/glew.h>
 
 
-FrameBuffer::FrameBuffer(int width, int height) {
+unsigned int genColorTexture(const int width, const int height) {
+    unsigned int colorTextureID;
+    glGenTextures(1, &colorTextureID);
+    glBindTexture(GL_TEXTURE_2D, colorTextureID);
+    // When displaying the texture, it won't necessarily be the same size as the window, so we might need to interpolate
+    // For example displaying the texture in a buffer preview window
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, width, height);
+    return colorTextureID;
+}
+unsigned int genDepthStencilTexture(const int width, const int height) {
+    unsigned int depthStencilTextureID;
+    glGenTextures(1, &depthStencilTextureID);
+    glBindTexture(GL_TEXTURE_2D, depthStencilTextureID);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, width, height);
+    return depthStencilTextureID;
+}
+
+FrameBuffer::FrameBuffer(const int width, const int height): width(width), height(height) {
     glGenFramebuffers(1, &ID);
     glBindFramebuffer(GL_FRAMEBUFFER, ID);
-#pragma region "Color texture"
-    glGenTextures(1, &ColorTextureID);
-    glBindTexture(GL_TEXTURE_2D, ColorTextureID);
-    // We won't necessarily render to a texture the same size as the window, so we might need to interpolate
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // Attach to our framebuffer
+
+    // Attach a color buffer to the framebuffer
+    ColorTextureID = genColorTexture(width, height);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ColorTextureID, 0);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-#pragma endregion
-#pragma region "Depth and stencil texture"
-    glGenTextures(1, &DepthStencilTextureID);
-    glBindTexture(GL_TEXTURE_2D, DepthStencilTextureID);
-    // We won't necessarily render to a texture the same size as the window, so we might need to interpolate
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // Attach to our framebuffer
+    // Attach a depth and stencil buffer to the framebuffer
+    DepthStencilTextureID = genDepthStencilTexture(width, height);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, DepthStencilTextureID, 0);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
-#pragma endregion
-
-    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         throw std::runtime_error("Framebuffer is not complete!");
 }
 
@@ -43,13 +53,24 @@ FrameBuffer::~FrameBuffer() {
 void FrameBuffer::bind() const {
     glBindFramebuffer(GL_FRAMEBUFFER, ID);
 }
+void FrameBuffer::bind(const unsigned int target) const {
+    glBindFramebuffer(target, ID);
+}
 
-void FrameBuffer::resize(const int width, const int height) const {
-    glBindTexture(GL_TEXTURE_2D, ColorTextureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+void FrameBuffer::resize(const int width, const int height) {
+    glBindFramebuffer(GL_FRAMEBUFFER, ID);
 
-    glBindTexture(GL_TEXTURE_2D, DepthStencilTextureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
+    // Using glTexStorage2D makes the textures immutable, so we need to delete and recreate them
+    glDeleteTextures(1, &ColorTextureID);
+    ColorTextureID = genColorTexture(width, height);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ColorTextureID, 0);
+
+    glDeleteTextures(1, &DepthStencilTextureID);
+    DepthStencilTextureID = genDepthStencilTexture(width, height);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, DepthStencilTextureID, 0);
+
+    this->width = width;
+    this->height = height;
 }
 
 FrameBuffer &FrameBuffer::operator=(FrameBuffer &&other) noexcept {

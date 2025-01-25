@@ -5,6 +5,7 @@
 class FrameBuffer {
 private:
     unsigned int ID{};
+    unsigned int width, height;
 
 public:
     unsigned int ColorTextureID{};
@@ -13,9 +14,14 @@ public:
     FrameBuffer(int width, int height);
     ~FrameBuffer();
 
-    void resize(int width, int height) const;
+    /*!
+     * @note Will bind the framebuffer.
+     * @note Will delete the current framebuffer textures.
+     */
+    void resize(int width, int height);
 
     void bind() const;
+    void bind(unsigned int target) const;
 
     // Non-copyable
     FrameBuffer(const FrameBuffer&) = delete;
