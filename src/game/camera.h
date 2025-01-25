@@ -4,6 +4,7 @@
 #include <glm/fwd.hpp>
 #include <glm/vec3.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 typedef float Radians;
 typedef float Degrees;
@@ -31,12 +32,27 @@ public:
         Degrees fov = DEFAULT_FOV
     );
 
+    // TODO: Only ever have to update the matrices when the camera moves/zooms.
+    //  Or maybe just simplify this entire monster of a class and eat the microscopical (potential) performance hit...
+    //  I haven't actually even profiled so that seems most reasonable xD
+    /*!
+     * @brief Update the UBO holding the projection and view matrices.
+     * @param uboID The ID of the uniform buffer object.
+     * @param aspectRatio The aspect ratio of the window. Must be a floating point type (float, double).
+    */
+    void populateProjMatrixBuffer(unsigned int uboID, float aspectRatio) const;
+
     [[nodiscard]] glm::mat4 getViewMatrix() const;
     // Witchcraft to not accept ints and only floating point types for aspectRatio
-    template<typename T>
+    template<typename FloatOnly>
     [[nodiscard]]
-    std::enable_if_t<std::is_floating_point_v<T>, glm::mat4>
-    getProjectionMatrix(const T aspectRatio) const {
+    std::enable_if_t<std::is_floating_point_v<FloatOnly>, glm::mat4>
+    /*!
+     * @brief Get the projection matrix for the camera.
+     * @param aspectRatio The aspect ratio of the window. Must be a floating point type (float, double).
+     * @return The projection matrix.
+     */
+    getProjectionMatrix(const FloatOnly aspectRatio) const {
         return glm::perspective(glm::radians(fov), aspectRatio, clipNear, clipFar);
     }
 
@@ -46,18 +62,18 @@ private:
     Radians pitch_;
     Radians roll_;
 
-    glm::vec3 forward_;
-    glm::vec3 up_;
-    glm::vec3 right_;
+    glm::vec3 forward_{};
+    glm::vec3 up_{};
+    glm::vec3 right_{};
 
     void updateVectors();
 
 public:
-    Radians yaw() const { return yaw_; }
+    [[nodiscard]] Radians yaw() const { return yaw_; }
     void setYaw(const Radians yaw) { yaw_ = yaw; anglesChanged = true; }
-    Radians pitch() const { return pitch_; }
+    [[nodiscard]] Radians pitch() const { return pitch_; }
     void setPitch(const Radians pitch) { pitch_ = pitch; anglesChanged = true; }
-    Radians roll() const { return roll_; }
+    [[nodiscard]] Radians roll() const { return roll_; }
     void setRoll(const Radians roll) { roll_ = roll; anglesChanged = true; }
 
 #define UPDATE_IF_CHANGED() if (anglesChanged) { updateVectors(); anglesChanged = false; }
@@ -81,7 +97,7 @@ public:
         : camera(camera), sensitivity(sensitivity), maxPitch(maxPitch), minPitch(minPitch) {}
 
     void look(const SDL_MouseMotionEvent &event) const;
-    void zoom(const float offset) const;
+    void zoom(float offset) const;
 };
 
 

@@ -1,14 +1,13 @@
 #include "camera.h"
 #include <algorithm>
+#include <GL/glew.h>
 
 #include <glm/ext/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
-Camera::Camera(const glm::vec3 position, const float yaw, const float pitch, const float roll, const float fov) {
-    this->position = position;
-    this->yaw_ = yaw;
-    this->pitch_ = pitch;
-    this->roll_ = roll;
-    this->fov = fov;
+Camera::Camera(const glm::vec3 position, const float yaw, const float pitch, const float roll, const float fov)
+: position(position), fov(fov), yaw_(yaw), pitch_(pitch), roll_(roll)
+{
     updateVectors();
 }
 
@@ -24,6 +23,14 @@ void Camera::updateVectors() {
 
 glm::mat4 Camera::getViewMatrix() const {
     return glm::lookAt(position, position + forward_, up_);
+}
+
+void Camera::populateProjMatrixBuffer(const unsigned int uboID, const float aspectRatio) const {
+    glBindBuffer(GL_UNIFORM_BUFFER, uboID);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4),
+        glm::value_ptr(getProjectionMatrix(aspectRatio)));
+    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4),
+        glm::value_ptr(getViewMatrix()));
 }
 
 void CameraController::look(const SDL_MouseMotionEvent &event) const {

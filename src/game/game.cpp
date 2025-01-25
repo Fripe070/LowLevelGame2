@@ -33,6 +33,7 @@ bool setupGame(StatePackage &statePackage, SDL_Window *sdlWindow, SDL_GLContext 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);  // Counter-clockwise winding order
+    glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);  // OpenGL's default NDC is [-1, 1], we want [0, 1]
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
@@ -96,12 +97,7 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     else
         glEnable(GL_CULL_FACE);
 
-    // TODO: Let these be managed by the camera class, so we only ever have to update the matrices when the camera moves/zooms
-    glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4),
-        glm::value_ptr(CAMERA.getProjectionMatrix(statePackage.windowSize->aspectRatio())));
-    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4),
-        glm::value_ptr(CAMERA.getViewMatrix()));
+    CAMERA.populateProjMatrixBuffer(uboMatrices, statePackage.windowSize->aspectRatio());
 
     LEVEL.shaders[0].use();
 
@@ -154,21 +150,26 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     LEVEL.skybox.draw(skyboxTex.value_or(LEVEL.textureManager.errorTexture), LEVEL.shaders[1]);
 #pragma endregion
 
-#pragma region Render overlays
+#pragma region "Transfer color buffer to the default framebuffer before rendering overlays"
+    frameBuffer->bind(GL_READ_FRAMEBUFFER);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glBlitFramebuffer(
+        0, 0, frameBuffer->getSize().width, frameBuffer->getSize().height,
+        0, 0, statePackage.windowSize->width, statePackage.windowSize->height,
+        GL_COLOR_BUFFER_BIT, GL_LINEAR);
+    // Make sure both read and write are set to the default framebuffer. Theoretically only binding read would do.
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glDisable(GL_DEPTH_TEST);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+#pragma endregion
 
-    static ScreenOverlay overlay;
-    overlay.draw(frameBuffer->ColorTextureID);
+#pragma region "Render overlays"
+    glDisable(GL_DEPTH_TEST);
 
     DebugGUI::renderStart(*gameState, statePackage, deltaTime);
 
     ImGui::Begin("Preview", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::Text("Color buffer");
     ImGui::Image(frameBuffer->ColorTextureID,
-        ImVec2(statePackage.windowSize->width / 4, statePackage.windowSize->height / 4),
+        ImVec2(static_cast<float>(statePackage.windowSize->width) / 4, static_cast<float>(statePackage.windowSize->height) / 4),
         ImVec2(0, 1), ImVec2(1, 0));
     ImGui::End();
 

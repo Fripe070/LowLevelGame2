@@ -1,15 +1,18 @@
 #ifndef FRAME_BUFFER_H
 #define FRAME_BUFFER_H
+#include <engine/run.h>
 
 
 class FrameBuffer {
 private:
     unsigned int ID{};
-    unsigned int width, height;
+    int width{}, height{};
 
 public:
     unsigned int ColorTextureID{};
     unsigned int DepthStencilTextureID{};
+
+    [[nodiscard]] WindowSize getSize() const { return {width, height}; }
 
     FrameBuffer(int width, int height);
     ~FrameBuffer();
