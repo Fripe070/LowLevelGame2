@@ -86,8 +86,9 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
 
     frameBuffer->bind();
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
+    glDepthFunc(GL_GREATER);
     glClearColor(0.5f, 0.0f, 0.5f, 1.0f);
+    glClearDepth(0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glPolygonMode(GL_FRONT_AND_BACK, gameState->settings.wireframe ? GL_LINE : GL_FILL);
     // TODO: Allow backface culling to be toggled per object
@@ -162,6 +163,7 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
 #pragma endregion
 
 #pragma region "Render overlays"
+    glDepthFunc(GL_LESS);  // Don't leak reverse z into other rendering, IDK what imgui or whatever might be doing
     glDisable(GL_DEPTH_TEST);
 
     DebugGUI::renderStart(*gameState, statePackage, deltaTime);

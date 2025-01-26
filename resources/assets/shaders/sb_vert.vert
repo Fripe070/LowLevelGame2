@@ -12,6 +12,8 @@ layout(std140) uniform Matrices
 void main()
 {
     TexCoords = iPos;
-    gl_Position = (projection * mat4(mat3(view)) * vec4(iPos, 1.0)).xyww;  // Trick to render at max depth
+    vec4 pos = vec4(projection * view * vec4(iPos, 1.0));
+    pos.z = 0.0; // Always at "max" depth (we use reverse-z, so it's 0 not 1)
+    gl_Position = pos;
 }
 

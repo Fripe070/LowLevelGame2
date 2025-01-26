@@ -1,10 +1,10 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 #include <SDL_events.h>
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE  // For reverse-z
 #include <glm/fwd.hpp>
 #include <glm/vec3.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 typedef float Radians;
 typedef float Degrees;
@@ -53,7 +53,8 @@ public:
      * @return The projection matrix.
      */
     getProjectionMatrix(const FloatOnly aspectRatio) const {
-        return glm::perspective(glm::radians(fov), aspectRatio, clipNear, clipFar);
+        // Swapped near and far for reverse-z
+        return glm::perspective(glm::radians(fov), aspectRatio, clipFar, clipNear);
     }
 
 private:

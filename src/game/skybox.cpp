@@ -6,7 +6,6 @@
 #include <engine/util/geometry.h>
 
 
-
 Skybox::Skybox() {
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -44,7 +43,7 @@ Skybox::Skybox(Skybox &&other) noexcept {
 }
 
 std::expected<void, std::string> Skybox::draw(const unsigned int cubemap, const Engine::GraphicsShader &shader) const {
-    glDepthFunc(GL_LEQUAL);
+    glDepthFunc(GL_GEQUAL);
 
     shader.setInt("skybox", 0);
     glActiveTexture(GL_TEXTURE0);
@@ -53,6 +52,6 @@ std::expected<void, std::string> Skybox::draw(const unsigned int cubemap, const 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, sizeof(CubeIndicesInside) / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
 
-    glDepthFunc(GL_LESS);  // Default depth function
+    glDepthFunc(GL_GREATER);  // Our default depth function
     return {};
 }
