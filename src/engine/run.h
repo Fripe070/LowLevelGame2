@@ -22,6 +22,7 @@ struct WindowSize {
 struct StatePackage {
     Config *config;
     WindowSize *windowSize;
+    bool* isPaused;
 };
 
 int run();

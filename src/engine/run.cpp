@@ -8,8 +8,9 @@
 
 Config config;
 WindowSize windowSize;
+bool isPaused = false;
 
-StatePackage statePackage = {&config, &windowSize};
+StatePackage statePackage = {&config, &windowSize, &isPaused};
 
 int run()
 {
@@ -96,15 +97,17 @@ int run()
             }
 #pragma endregion
 
-            physicsAccumulator += deltaTime;
-            physicsAccumulator = std::fmin(physicsAccumulator, 0.1); // Prevent spiral of death  // TODO: Magic number?
-            const double desiredPhysicsDT = 1.0 / config.physicsTPS;
-            while (physicsAccumulator >= desiredPhysicsDT) {
-                if (!fixedUpdate(desiredPhysicsDT, statePackage)) {
-                    logError("Physics update failed");
-                    goto quit;
+            if (!(*statePackage.isPaused)) {
+                physicsAccumulator += deltaTime;
+                physicsAccumulator = std::fmin(physicsAccumulator, 0.1); // Prevent spiral of death  // TODO: Magic number?
+                const double desiredPhysicsDT = 1.0 / config.physicsTPS;
+                while (physicsAccumulator >= desiredPhysicsDT) {
+                    if (!fixedUpdate(desiredPhysicsDT, statePackage)) {
+                        logError("Physics update failed");
+                        goto quit;
+                    }
+                    physicsAccumulator -= desiredPhysicsDT;
                 }
-                physicsAccumulator -= desiredPhysicsDT;
             }
 
             SDL_Event event;

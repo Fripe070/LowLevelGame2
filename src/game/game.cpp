@@ -61,28 +61,29 @@ bool setupGame(StatePackage &statePackage, SDL_Window *sdlWindow, SDL_GLContext 
 void shutdownGame(StatePackage &statePackage) {
     gameState.reset();
 }
-
 bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
-    const Uint8* keyState = SDL_GetKeyboardState(nullptr);
-    auto inputDir = glm::vec3(0.0f, 0.0f,  0.0f);
-    if (keyState[SDL_SCANCODE_W])
-        inputDir += CAMERA.forward();
-    if (keyState[SDL_SCANCODE_S])
-        inputDir -= CAMERA.forward();
-    if (keyState[SDL_SCANCODE_A])
-        inputDir -= CAMERA.right();
-    if (keyState[SDL_SCANCODE_D])
-        inputDir += CAMERA.right();
-    if (keyState[SDL_SCANCODE_SPACE])
-        inputDir += CAMERA.up();
-    if (keyState[SDL_SCANCODE_LSHIFT])
-        inputDir -= CAMERA.up();
-    if (keyState[SDL_SCANCODE_ESCAPE])
-        SDL_SetRelativeMouseMode(SDL_FALSE);
+    if (!(*statePackage.isPaused)) {
+        const Uint8* keyState = SDL_GetKeyboardState(nullptr);
+        auto inputDir = glm::vec3(0.0f, 0.0f,  0.0f);
+        if (keyState[SDL_SCANCODE_W])
+            inputDir += CAMERA.forward();
+        if (keyState[SDL_SCANCODE_S])
+            inputDir -= CAMERA.forward();
+        if (keyState[SDL_SCANCODE_A])
+            inputDir -= CAMERA.right();
+        if (keyState[SDL_SCANCODE_D])
+            inputDir += CAMERA.right();
+        if (keyState[SDL_SCANCODE_SPACE])
+            inputDir += CAMERA.up();
+        if (keyState[SDL_SCANCODE_LSHIFT])
+            inputDir -= CAMERA.up();
+        if (keyState[SDL_SCANCODE_F])
+            SDL_SetRelativeMouseMode(static_cast<SDL_bool>(!SDL_GetRelativeMouseMode()));
 
-    inputDir = glm::dot(inputDir, inputDir) > 0.0f ? glm::normalize(inputDir) : inputDir; // dot(v, v) is squared length
-    constexpr auto CAMERA_SPEED = 2.5f;
-    CAMERA.position += inputDir * CAMERA_SPEED * static_cast<float>(deltaTime);
+        inputDir = glm::dot(inputDir, inputDir) > 0.0f ? glm::normalize(inputDir) : inputDir; // dot(v, v) is squared length
+        constexpr auto CAMERA_SPEED = 2.5f;
+        CAMERA.position += inputDir * CAMERA_SPEED * static_cast<float>(deltaTime);
+    }
 
     frameBuffer->bind();
     glEnable(GL_DEPTH_TEST);
@@ -190,11 +191,19 @@ bool handleEvent(const SDL_Event &event, StatePackage &statePackage) {
 
     switch (event.type) {
         default: break;
+        case SDL_KEYDOWN:
+            if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
+                *statePackage.isPaused = !(*statePackage.isPaused);
+                return true;
+            }
+            break;
         case SDL_MOUSEWHEEL:
-            PLAYER.cController.zoom(static_cast<float>(event.wheel.y) * 2.0f);
+            if (!(*statePackage.isPaused))
+                PLAYER.cController.zoom(static_cast<float>(event.wheel.y) * 2.0f);
             break;
         case SDL_MOUSEMOTION:
-            PLAYER.cController.look(event.motion);
+            if (!(*statePackage.isPaused))
+                PLAYER.cController.look(event.motion);
             break;
 
         case SDL_WINDOWEVENT:
