@@ -104,7 +104,7 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
 
     LEVEL.shaders[0].setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
     LEVEL.shaders[0].setVec3("dirLight.ambient", 0.5f, 0.5f, 0.5f);
-    LEVEL.shaders[0].setVec3("pointLights.diffuse", 0.4f, 0.4f, 0.4f);
+    LEVEL.shaders[0].setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
     LEVEL.shaders[0].setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
 
     LEVEL.shaders[0].setVec3("pointLights[0].position", 1.2f, 1.0f, 2.0f);
