@@ -1,7 +1,7 @@
 #include "frame_buffer.h"
 
 #include <stdexcept>
-#include <gl/glew.h>
+#include <GL/glew.h>
 
 
 unsigned int genColorTexture(const int width, const int height) {

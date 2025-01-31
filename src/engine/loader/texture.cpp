@@ -1,7 +1,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include <unordered_map>
-#include <gl/glew.h>
+#include <GL/glew.h>
 
 #include <engine/logging.h>
 

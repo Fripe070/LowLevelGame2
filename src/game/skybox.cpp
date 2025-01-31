@@ -2,7 +2,7 @@
 
 #include <array>
 #include <engine/loader/shader/graphics_shader.h>
-#include <gl/glew.h>
+#include <GL/glew.h>
 #include <engine/util/geometry.h>
 
 

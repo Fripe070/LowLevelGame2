@@ -2,7 +2,7 @@
 #define GRAPHICS_SHADER_H
 #include <string>
 #include <vector>
-#include <gl/glew.h>
+#include <GL/glew.h>
 
 #include "shader_program.h"
 

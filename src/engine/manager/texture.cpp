@@ -1,7 +1,7 @@
 #include "engine/manager/texture.h"
 
 #include <stdexcept>
-#include <gl/glew.h>
+#include <GL/glew.h>
 
 #include "engine/loader/texture.h"
 

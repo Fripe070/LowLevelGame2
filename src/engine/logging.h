@@ -1,7 +1,7 @@
 #ifndef LOGGING_H
 #define LOGGING_H
 #include <string>
-#include <gl/glew.h>
+#include <GL/glew.h>
 // ReSharper disable once CppUnusedIncludeDirective // Used in macros
 #include <SDL_log.h>
 

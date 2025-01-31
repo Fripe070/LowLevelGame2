@@ -1,9 +1,9 @@
-#include <gl/glew.h>
+#include <GL/glew.h>
 #include <SDL.h>
+#include <math.h>
 
 #include "run.h"
 #include "logging.h"
-
 #include "engine/game.h"
 
 Config config;
