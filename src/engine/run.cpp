@@ -9,8 +9,9 @@
 Config config;
 WindowSize windowSize;
 bool isPaused = false;
+bool shouldRedraw = true;
 
-StatePackage statePackage = {&config, &windowSize, &isPaused};
+StatePackage statePackage = {&config, &windowSize, &isPaused, &shouldRedraw};
 
 int run()
 {
@@ -128,15 +129,20 @@ int run()
                         break;
                 }
             }
+            if (*statePackage.shouldRedraw || !*statePackage.isPaused) {
+                const bool renderSuccess = renderUpdate(deltaTime, statePackage);
+                glLogErrors();
+                if (!renderSuccess) {
+                    logError("Render update failed");
+                    goto quit;
+                }
 
-            const bool renderSuccess = renderUpdate(deltaTime, statePackage);
-            glLogErrors();
-            if (!renderSuccess) {
-                logError("Render update failed");
-                goto quit;
+                SDL_GL_SwapWindow(sdlWindow);
+                *statePackage.shouldRedraw = false;
             }
-
-            SDL_GL_SwapWindow(sdlWindow);
+            else {
+                SDL_Delay(1);
+            }
         }
     }
 

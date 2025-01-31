@@ -23,6 +23,7 @@ struct StatePackage {
     Config *config;
     WindowSize *windowSize;
     bool* isPaused;
+    bool* shouldRedraw;
 };
 
 int run();

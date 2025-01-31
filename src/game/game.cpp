@@ -38,6 +38,8 @@ bool setupGame(StatePackage &statePackage, SDL_Window *sdlWindow, SDL_GLContext 
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
     gameState = std::make_unique<GameState>(statePackage);
+    statePackage.isPaused = &gameState->isPaused;
+    statePackage.shouldRedraw = &gameState->shouldRedraw;
 
     LEVEL.shaders.emplace_back("resources/assets/shaders/vert.vert", "resources/assets/shaders/frag.frag");
     LEVEL.shaders[0].use();
@@ -194,6 +196,8 @@ bool handleEvent(const SDL_Event &event, StatePackage &statePackage) {
         case SDL_KEYDOWN:
             if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
                 *statePackage.isPaused = !(*statePackage.isPaused);
+                SDL_SetRelativeMouseMode(static_cast<SDL_bool>(!SDL_GetRelativeMouseMode()));
+                *statePackage.shouldRedraw = true;
                 return true;
             }
             break;

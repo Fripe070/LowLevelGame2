@@ -41,6 +41,8 @@ struct LevelState {
 struct GameState {
     Settings settings;
     LevelState level;
+    bool isPaused = false;
+    bool shouldRedraw = true;
 
     explicit GameState(StatePackage &statePackage): settings(), level(settings) {}
 };

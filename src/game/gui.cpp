@@ -53,6 +53,19 @@ namespace DebugGUI {
         drawSettingsGUI(gameState, statePackage, deltaTime);
         drawOverlay(gameState, statePackage, deltaTime);
 
+        // TODO: fix menu not being visible on first pause
+        if (gameState.isPaused) {
+            ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),
+                                ImGuiCond_Always, {0.5f, 0.5f});
+            ImGui::Begin("Paused", nullptr,
+                    ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+            if (ImGui::Button("Resume")) { // does not work for now
+                gameState.isPaused = false;
+                *statePackage.shouldRedraw = true;
+            }
+            ImGui::End();
+        }
+
         // ImGui::ShowDemoWindow();
     }
 
