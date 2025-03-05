@@ -34,15 +34,13 @@ namespace Engine::Manager {
         if (textures.contains(texturePath))
             return textures[texturePath];
 
-#define BREAK_CASE(x, ...) case x: __VA_ARGS__; break;
         std::expected<unsigned int, std::string> texture;
         switch (type) {
-            BREAK_CASE(TextureType::TEXTURE_2D, texture = Loader::loadTexture(texturePath.c_str()));
-            BREAK_CASE(TextureType::CUBEMAP, texture = Loader::loadCubeMap(texturePath));
+            case TextureType::TEXTURE_2D: texture = Loader::loadTexture(texturePath.c_str()); break;
+            case TextureType::CUBEMAP:    texture = Loader::loadCubeMap(texturePath); break;
             default:
                 return std::unexpected("Unknown texture type");
         }
-#undef BREAK_CASE
         if (!texture.has_value()) {
             textures[texturePath] = errorTexture;  // Only error once, then use the error texture
             return std::unexpected(FW_UNEXP(texture, "Failed to load uncached texture"));
