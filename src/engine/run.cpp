@@ -8,10 +8,8 @@
 
 Config config;
 WindowSize windowSize;
-bool isPaused = false;
-bool shouldRedraw = true;
 
-StatePackage statePackage = {&config, &windowSize, &isPaused, &shouldRedraw};
+StatePackage statePackage = {&config, &windowSize};
 
 int run()
 {
