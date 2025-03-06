@@ -22,8 +22,8 @@ namespace Engine::Manager {
             scenes[scenePath] = errorScene;  // Only error once, then use the error model
             return std::unexpected(FW_UNEXP(scene, "Failed to load uncached model"));
         }
-        auto e = std::make_shared<Loader::Scene>(std::move(scene.value()));
-        scenes[scenePath] = e;
-        return e;
+        auto ptr = std::make_shared<Loader::Scene>(std::move(scene.value()));
+        scenes[scenePath] = ptr;
+        return ptr;
     }
 }
