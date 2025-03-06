@@ -18,6 +18,8 @@ namespace Engine {
 // TODO: We should stop using paths as IDs... maybe pull a minecraft and use some sort of namespace path hybrid?
 
 namespace Engine::Loader {
+    // TODO: Somehow couple materials and shaders. Perhaps materials should hold shared pointers to their shaders?
+    //  Materials are just data associated with a shader. They don't necessarily need to be tied to Mesh objects in any way
     struct Material {
         std::string diffusePath;
         std::string specularPath;
@@ -49,7 +51,7 @@ namespace Engine::Loader {
         unsigned int materialIndex;
 
         // TODO: Moving vertices when constructing the mesh, only to move the entire mesh when making a scene seems a bit wasteful
-        // A bit of a weird constructor, but moving in the vectors allows us to avoid copying them'
+        // A bit of a weird constructor, but moving in the vectors allows us to avoid copying them
         Mesh(
             std::vector<MeshVertex>&& vertices,
             std::vector<unsigned int>&& indices,

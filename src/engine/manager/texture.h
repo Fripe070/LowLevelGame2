@@ -7,18 +7,22 @@
 
 #define ERROR_TEXTURE_PATH "resources/assets/textures/error.png"
 
-namespace Engine::Manager {
+namespace Engine {
     enum class TextureType {
         TEXTURE_2D,
         CUBEMAP
     };
+}
 
+namespace Engine::Manager {
     /*!
      * Class that stores and manages OpenGL texture IDs to avoid loading the same texture multiple times
      */
     class TextureManager {
     private:
         std::unordered_map<std::string, unsigned int> textures;
+        // TODO: Hot reloading
+        // TODO: Implement a reference counting system like we have for scenees
 
     public:
         unsigned int errorTexture;
@@ -33,18 +37,19 @@ namespace Engine::Manager {
          * @return The texture ID or an error message
          */
         std::expected<unsigned int, std::string> getTexture(const std::string &texturePath, TextureType type = TextureType::TEXTURE_2D);
+
         /*!
          * @brief Unload a texture
          * @param texturePath The path to the texture
          * @return Whether the texture was successfully unloaded
          */
         bool unloadTexture(const std::string &texturePath);
+
         /*!
          * @brief Unload all textures (except the error texture)
          */
         void clear();
     };
-
 }
 
 #endif

@@ -98,7 +98,7 @@ namespace Engine::Loader {
         };
     }
 
-    std::expected<Node, std::string> processNode(const aiNode *loadedNode) {
+    std::expected<Node, std::string> processNode(const aiNode *loadedNode) { // NOLINT(*-no-recursion)
         Node resultNode;
         resultNode.transform = UNPACK_MAT4(loadedNode->mTransformation);
 
@@ -119,7 +119,7 @@ namespace Engine::Loader {
         const unsigned int materialIndex = loadedMesh->mMaterialIndex;
 
         for (unsigned int i = 0; i < loadedMesh->mNumVertices; i++) {
-            MeshVertex vertex;
+            MeshVertex vertex{};
             vertex.Position = UNPACK_VEC3(loadedMesh->mVertices[i]);
 
             if (loadedMesh->HasNormals())

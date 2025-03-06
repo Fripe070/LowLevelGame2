@@ -26,6 +26,9 @@ unsigned int uboMatrices;
 
 std::unique_ptr<FrameBuffer> frameBuffer;
 
+// This is TEMPORARY until I // TODO: Implement a concept of objects/levels/whatever
+std::shared_ptr<Engine::Loader::Scene> globalScene;
+
 bool setupGame(StatePackage &statePackage, SDL_Window *sdlWindow, SDL_GLContext glContext) {
     DebugGUI::init(*sdlWindow, glContext);
     frameBuffer = std::make_unique<FrameBuffer>(statePackage.windowSize->width, statePackage.windowSize->height);
@@ -57,6 +60,11 @@ bool setupGame(StatePackage &statePackage, SDL_Window *sdlWindow, SDL_GLContext 
     glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
     glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), nullptr, GL_STATIC_DRAW);
     glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
+
+    auto scene = LEVEL.modelManager.getScene("resources/assets/models/map.obj");
+    if (!scene.has_value())
+        logError("Failed to load scene" NL_INDENT "%s", scene.error().c_str());
+    globalScene = scene.value_or(LEVEL.modelManager.errorScene);
 
     return true;
 }
@@ -131,10 +139,7 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
 
     LEVEL.shaders[0].setVec3("viewPos", CAMERA.position);
 
-    auto scene = LEVEL.modelManager.getScene("resources/assets/models/map.obj");
-    if (!scene.has_value())
-        logError("Failed to load scene" NL_INDENT "%s", scene.error().c_str());
-    auto drawRet = scene.value()->Draw(LEVEL.textureManager, LEVEL.shaders[0], glm::mat4(1.0f));
+    auto drawRet = globalScene->Draw(LEVEL.textureManager, LEVEL.shaders[0], glm::mat4(1.0f));
     if (!drawRet.has_value())
         logError("Failed to draw scene" NL_INDENT "%s", drawRet.error().c_str());
 
@@ -148,7 +153,7 @@ bool renderUpdate(const double deltaTime, StatePackage &statePackage) {
     LEVEL.shaders[1].use();
 
     std::expected<unsigned int, std::string> skyboxTex = LEVEL.textureManager.getTexture(
-        "resources/assets/textures/skybox/sky.png", Engine::Manager::TextureType::CUBEMAP);
+        "resources/assets/textures/skybox/sky.png", Engine::TextureType::CUBEMAP);
     if (!skyboxTex.has_value())
         logError("Failed to load skybox texture" NL_INDENT "%s", skyboxTex.error().c_str());
     LEVEL.skybox.draw(skyboxTex.value_or(LEVEL.textureManager.errorTexture), LEVEL.shaders[1]);

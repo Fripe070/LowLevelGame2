@@ -12,19 +12,17 @@
 struct aiNode;
 
 namespace Engine::Manager {
-    typedef std::shared_ptr<Loader::Scene> SharedScene;
-
+    // TODO: Hot reloading
+    // TODO: Maybe a tad *too* ready to unload unused assets?
     class SceneManager {
     private:
-        std::unordered_map<std::string, SharedScene> scenes;
+        std::unordered_map<std::string, std::weak_ptr<Loader::Scene>> scenes;
     public:
-        SharedScene errorScene;
+        std::shared_ptr<Loader::Scene> errorScene;
 
         SceneManager();
 
-        std::expected<SharedScene, std::string> getScene(const std::string &scenePath);
-        bool unloadScene(const std::string &scenePath);
-        void clear();
+        std::expected<std::shared_ptr<Loader::Scene>, std::string> getScene(const std::string &scenePath);
     };
 
 }
