@@ -25,6 +25,10 @@ namespace Engine::Manager {
         // TODO: Implement a reference counting system like we have for scenees
 
     public:
+        /*!
+         * The OpenGL texture ID for the error texture. This should always exist (unless you deleted it :skull:)
+         * The game will refuse to launch if the error texture cannot be loaded
+         */
         unsigned int errorTexture;
 
         TextureManager();

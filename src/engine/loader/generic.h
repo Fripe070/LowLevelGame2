@@ -8,4 +8,4 @@ namespace Engine::Loader {
     std::expected<std::string, std::string> readTextFile(const std::string &filePath);
 }
 
-#endif //GENERIC_H
+#endif

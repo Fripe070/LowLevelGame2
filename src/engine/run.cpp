@@ -3,16 +3,16 @@
 #include <cmath>
 
 #include "run.h"
+
 #include "logging.h"
 #include "engine/game.h"
+#include "engine/state.h"
 
-Config config;
-WindowSize windowSize;
-
-StatePackage statePackage = {&config, &windowSize};
+EngineState *engineState;
 
 int run()
 {
+#pragma region Setup
 #ifndef NDEBUG
     SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);
 #endif
@@ -25,7 +25,7 @@ int run()
     SDL_Window *sdlWindow = SDL_CreateWindow(
         "LowLevelGame attempt 2 (million)",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        windowSize.width, windowSize.height,
+        1920/2, 1080/2,
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
     );
     if (!sdlWindow) {
@@ -73,11 +73,16 @@ int run()
     }
 #endif
 
-    if (!setupGame(statePackage, sdlWindow, glContext)) {
+    // Loaded enough to create  the global state
+    engineState = new EngineState(sdlWindow, glContext);
+
+    if (!setupGame()) {
         logError("Setup failed");
         goto quitNoShutdown;
     }
+#pragma endregion
 
+#pragma region MainLoop
     {
         double physicsAccumulator = 0.0;
         Uint64 frameStart = SDL_GetPerformanceCounter();
@@ -86,32 +91,31 @@ int run()
             const Uint64 lastFrameStart = frameStart;
             frameStart = SDL_GetPerformanceCounter();
             double deltaTime = static_cast<double>(frameStart - lastFrameStart) / static_cast<double>(SDL_GetPerformanceFrequency());
-            if (config.deltaTimeLimit > 0 && deltaTime > config.deltaTimeLimit) // Things may get a bit weird if our deltaTime is like 10 seconds
-                deltaTime = config.deltaTimeLimit;
+            if (engineState->config.deltaTimeLimit > 0 && deltaTime > engineState->config.deltaTimeLimit) // Things may get a bit weird if our deltaTime is like 10 seconds
+                deltaTime = engineState->config.deltaTimeLimit;
 
             // TODO: Process inputs instead of sleeping, to mitigate some input lag
-            const double expectedDT = 1.0 / config.maxFPS;
-            if (config.limitFPS && !config.vsync && deltaTime < expectedDT) {
+            const double expectedDT = 1.0 / engineState->config.maxFPS;
+            if (engineState->config.limitFPS && !engineState->config.vsync && deltaTime < expectedDT) {
                 SDL_Delay(static_cast<Uint32>((expectedDT - deltaTime) * 1000.0));
             }
 #pragma endregion
 
-            if (!(*statePackage.isPaused)) {
-                physicsAccumulator += deltaTime;
-                physicsAccumulator = std::fmin(physicsAccumulator, 0.1); // Prevent spiral of death  // TODO: Magic number?
-                const double desiredPhysicsDT = 1.0 / config.physicsTPS;
-                while (physicsAccumulator >= desiredPhysicsDT) {
-                    if (!fixedUpdate(desiredPhysicsDT, statePackage)) {
-                        logError("Physics update failed");
-                        goto quit;
-                    }
-                    physicsAccumulator -= desiredPhysicsDT;
+            physicsAccumulator += deltaTime;
+            physicsAccumulator = std::fmin(physicsAccumulator, 0.1); // Prevent spiral of death  // TODO: Magic number?
+            const double desiredPhysicsDT = 1.0 / engineState->config.physicsTPS;
+            while (physicsAccumulator >= desiredPhysicsDT) {
+                if (!fixedUpdate(desiredPhysicsDT)) {
+                    logError("Physics update failed");
+                    goto quit;
                 }
+                physicsAccumulator -= desiredPhysicsDT;
             }
 
+            // TODO: Allow recording demos?
             SDL_Event event;
             while (SDL_PollEvent(&event)) {
-                if (handleEvent(event, statePackage)) continue;
+                if (handleEvent(event)) continue;
 
                 switch (event.type) {
                     default: break;
@@ -120,33 +124,29 @@ int run()
                         goto quit;
                     case SDL_WINDOWEVENT:
                         if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-                            windowSize.width = event.window.data1;
-                            windowSize.height = event.window.data2;
-                            glViewport(0, 0, windowSize.width, windowSize.height);
+                            int w, h;
+                            SDL_GL_GetDrawableSize(sdlWindow, &w, &h);
+                            glViewport(0, 0, w, h);
                         }
                         break;
                 }
             }
-            if (*statePackage.shouldRedraw || !*statePackage.isPaused) {
-                const bool renderSuccess = renderUpdate(deltaTime, statePackage);
-                glLogErrors();
-                if (!renderSuccess) {
-                    logError("Render update failed");
-                    goto quit;
-                }
+            const bool renderSuccess = renderUpdate(deltaTime);
+            glLogErrors();
+            if (!renderSuccess) {
+                logError("Render update failed");
+                goto quit;
+            }
 
-                SDL_GL_SwapWindow(sdlWindow);
-                *statePackage.shouldRedraw = false;
-            }
-            else {
-                SDL_Delay(1);
-            }
+            SDL_GL_SwapWindow(sdlWindow);
         }
     }
+#pragma endregion
 
 quit:
-    shutdownGame(statePackage);
+    shutdownGame();
 quitNoShutdown:
+    delete engineState;
     logDebug("Shutting down");
     SDL_GL_DeleteContext(glContext);
     SDL_DestroyWindow(sdlWindow);

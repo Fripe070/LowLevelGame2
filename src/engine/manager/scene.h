@@ -12,8 +12,10 @@
 struct aiNode;
 
 namespace Engine::Manager {
+    // TODO: Document like I have in texture manager
     // TODO: Hot reloading
     // TODO: Maybe a tad *too* ready to unload unused assets?
+    //  We might need to implement our own reference counting system
     class SceneManager {
     private:
         std::unordered_map<std::string, std::weak_ptr<Loader::Scene>> scenes;

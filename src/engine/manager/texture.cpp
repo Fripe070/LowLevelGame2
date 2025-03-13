@@ -10,6 +10,7 @@
 
 namespace Engine::Manager {
     TextureManager::TextureManager() {
+        // TODO: Generate it in code so we don't need to throw an exception (also remember to update errorTexture doc)
         const auto errorTxt = Loader::loadTexture(ERROR_TEXTURE_PATH);
         if (!errorTxt.has_value())
             throw std::runtime_error("Failed to load error texture: " + errorTxt.error());

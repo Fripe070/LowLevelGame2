@@ -2,23 +2,23 @@
 #define GUI_H
 
 #include <SDL.h>
-#include <engine/run.h>
+#include <engine/state.h>
 
-struct GameState;
+struct EngineState;
 
 namespace DebugGUI {
-    void init(SDL_Window &window, SDL_GLContext glContext);
+    void init();
     void shutdown();
 
     /*!
      * @brief Renders the debug GUI
      * @note Should be called AFTER all game rendering occurs, so that the debug GUI is drawn on top of everything
      */
-    void render(GameState &gameState, StatePackage &statePackage, double deltaTime);
+    void render(double deltaTime);
     /*!
      * @brief Starts the rendering process for the debug GUI
      */
-    void renderStart(GameState &gameState, StatePackage &statePackage, double deltaTime);
+    void renderStart(double deltaTime);
     /*!
      * @brief Ends the rendering process for the debug GUI and renders it
      * @note Should be called AFTER all game rendering occurs
@@ -29,4 +29,4 @@ namespace DebugGUI {
 }
 
 
-#endif //GUI_H
+#endif

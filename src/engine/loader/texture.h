@@ -23,4 +23,4 @@ namespace Engine::Loader {
     std::expected<unsigned int, std::string> loadCubeMap(const std::string &filePath);
 }
 
-#endif //TEXTURE_H
+#endif

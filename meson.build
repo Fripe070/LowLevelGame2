@@ -48,7 +48,8 @@ sources = [
     'src/engine/render/frame_buffer.cpp',
 
     'src/game/game.cpp',
-    'src/game/camera.cpp',
+    'src/game/camera_utils.cpp',
+    'src/game/player.cpp',
     'src/game/skybox.cpp',
     'src/game/gui.cpp',
 ]

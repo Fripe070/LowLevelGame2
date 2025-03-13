@@ -54,4 +54,4 @@ void GLAPIENTRY MessageCallback(
     const void* userParam
 );
 
-#endif //LOGGING_H
+#endif
