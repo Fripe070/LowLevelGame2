@@ -5,7 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace CameraUtils {
-    [[nodiscard]] glm::mat4 getViewMatrix(const Player &player) {
+    glm::mat4 getViewMatrix(const Player &player) {
         return glm::lookAt(
             player.origin,
             player.origin + player.getForward(),
