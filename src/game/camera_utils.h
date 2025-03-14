@@ -1,7 +1,8 @@
 #ifndef CAMERA_UTILS_H
 #define CAMERA_UTILS_H
+
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE // For reverse-z
 #include <glm/mat4x4.hpp>
-#include <glm/ext/matrix_clip_space.hpp>
 
 #include "game/state.h"
 

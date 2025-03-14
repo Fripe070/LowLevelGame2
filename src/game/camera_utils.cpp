@@ -1,8 +1,7 @@
-// ReSharper disable CppRedundantQualifier
 #include "camera_utils.h"
 
-#include <GL/glew.h>
-#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 
 namespace CameraUtils {
     glm::mat4 getViewMatrix(const Player &player) {
