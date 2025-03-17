@@ -78,15 +78,13 @@ namespace DebugGUI {
             if (!engineState->config.vsync)
                 ImGui::SliderInt("Max FPS", &engineState->config.maxFPS, 1, 300);
         }
+        // -1 is adaptive vsync, 1 is normal vsync as a fallback
+        // https://wiki.libsdl.org/SDL3/SDL_GL_SetSwapInterval#remarks
         if (SDL_GL_SetSwapInterval(engineState->config.limitFPS && engineState->config.vsync ? -1 : 0) == -1)
             SDL_GL_SetSwapInterval(1);
 
         if (ImGui::CollapsingHeader("Mouse")) {
             ImGui::SliderFloat("Sensitivity", &gameState->settings.sensitivity, 0.01f, 1.0f);
-        }
-        if (ImGui::Button("Capture Mouse")) {
-            SDL_SetRelativeMouseMode(SDL_TRUE);
-            ImGui::SetWindowCollapsed(true);
         }
         ImGui::Checkbox("Wireframe", &gameState->settings.wireframe);
         ImGui::End();

@@ -231,6 +231,10 @@ bool handleEvent(const SDL_Event &event) {
         case SDL_KEYDOWN:
             if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
                 gameState->isPaused ^= true;
+                SDL_SetRelativeMouseMode(static_cast<SDL_bool>(!gameState->isPaused));
+                return true;
+            }
+            if (event.key.keysym.scancode == SDL_SCANCODE_P) {
                 SDL_SetRelativeMouseMode(static_cast<SDL_bool>(!SDL_GetRelativeMouseMode()));
                 return true;
             }
@@ -243,7 +247,7 @@ bool handleEvent(const SDL_Event &event) {
                 gameState->settings.baseFov = std::min(gameState->settings.baseFov, 160.0f);
             break;
         case SDL_MOUSEMOTION:
-            if (!gameState->isPaused) {
+            if (!gameState->isPaused && SDL_GetRelativeMouseMode()) {
                 const auto xOffset = static_cast<float>(event.motion.xrel) * gameState->settings.sensitivity;
                 const auto yOffset = static_cast<float>(-event.motion.yrel) * gameState->settings.sensitivity;
                 gameState->playerState.rotation.yaw += xOffset;
