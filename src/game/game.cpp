@@ -241,7 +241,7 @@ bool handleEvent(const SDL_Event &event) {
             break;
         case SDL_MOUSEWHEEL:
             if (!gameState->isPaused)
-                gameState->settings.baseFov -= event.wheel.y * 2.0f;
+                gameState->settings.baseFov -= static_cast<float>(event.wheel.y) * 2.0f;
                 // TODO: Don't adjust this directly when zooming, instead change a modifier on top of it
                 gameState->settings.baseFov = std::max(gameState->settings.baseFov, 0.1f);
                 gameState->settings.baseFov = std::min(gameState->settings.baseFov, 160.0f);
