@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <GL/glew.h>
 
-#include <engine/logging.h>
+#include <engine/util/logging.h>
 
 #include "texture.h"
 

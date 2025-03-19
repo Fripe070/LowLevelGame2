@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <assimp/cimport.h>
-#include <engine/logging.h>
+#include <engine/util/logging.h>
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>

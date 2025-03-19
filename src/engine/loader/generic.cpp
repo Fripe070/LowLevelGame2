@@ -1,6 +1,6 @@
 #include "generic.h"
 #include <fstream>
-#include <engine/logging.h>
+#include <engine/util/logging.h>
 
 namespace Engine::Loader {
     std::expected<std::string, std::string> readTextFile(const std::string &filePath) {

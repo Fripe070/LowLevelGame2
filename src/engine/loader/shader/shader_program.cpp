@@ -3,7 +3,7 @@
 #include <GL/glew.h>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "engine/logging.h"
+#include "engine/util/logging.h"
 #include "engine/loader/generic.h"
 
 #include "shader_program.h"

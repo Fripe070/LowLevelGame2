@@ -5,7 +5,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <imgui.h>
 
-#include "engine/logging.h"
+#include "engine/util/logging.h"
 #include "engine/loader/shader/compute_shader.h"
 #include "engine/game.h"
 
