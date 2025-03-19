@@ -2,14 +2,11 @@
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_sdl2.h>
 #include <SDL.h>
-#include <GL/glew.h>
+#include <spdlog/spdlog.h>
 
-#include "engine/run.h"
-#include <game/state.h>
-
+#include "engine/state.h"
+#include "game/state.h"
 #include "gui.h"
-
-#include <engine/state.h>
 
 
 namespace DebugGUI {
@@ -76,7 +73,7 @@ namespace DebugGUI {
         if (engineState->config.limitFPS) {
             ImGui::Checkbox("VSync", &engineState->config.vsync);
             if (!engineState->config.vsync)
-                ImGui::SliderInt("Max FPS", &engineState->config.maxFPS, 1, 300);
+                ImGui::DragInt("Max FPS", &engineState->config.maxFPS, 1, 1, 300);
         }
         // -1 is adaptive vsync, 1 is normal vsync as a fallback
         // https://wiki.libsdl.org/SDL3/SDL_GL_SetSwapInterval#remarks
@@ -123,6 +120,33 @@ namespace DebugGUI {
         else if (fps < 120)
             col = ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
         ImGui::TextColored(col, "%.0f FPS (%.1f ms)", fps, deltaTime * 1000.0);
+
+        // Macro mayhem to not have duplicate code :D
+        // Starting to feel like a JS dev
+#define LOG_LEVELS(X) \
+X(spdlog::level::trace, "Trace") \
+X(spdlog::level::debug, "Debug") \
+X(spdlog::level::info, "Info") \
+X(spdlog::level::warn, "Warn") \
+X(spdlog::level::err, "Error") \
+X(spdlog::level::critical, "Critical") \
+X(spdlog::level::off, "Off")
+#define DEFINE_LOG_NAME(level, name) name,
+#define DEFINE_LOG_LEVEL(level, name) level,
+        constexpr spdlog::level::level_enum logLevels[] = {
+            LOG_LEVELS(DEFINE_LOG_LEVEL)
+        };
+        constexpr const char* logLevelNames[] = {
+            LOG_LEVELS(DEFINE_LOG_NAME)
+        };
+#undef DEFINE_LOG_NAME
+#undef DEFINE_LOG_LEVEL
+#undef LOG_LEVELS
+        static auto currentLogLevel = spdlog::get_level();
+        if (ImGui::Combo("Log Level", reinterpret_cast<int *>(&currentLogLevel), logLevelNames, IM_ARRAYSIZE(logLevelNames))) {
+            spdlog::set_level(logLevels[currentLogLevel]);
+        }
+
         ImGui::End();
     }
 }

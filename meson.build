@@ -27,7 +27,11 @@ if not assimp_dep.found()
     assimp_dep = cmake.subproject('assimp', options : assimp_opt).dependency('assimp')
 endif
 
-dependencies = [sdl2_dep, glew_dep, glm_dep, imgui_dep, assimp_dep]
+
+spdlog_options = ['default_library=static', 'compile_library=true', 'werror=false', 'tests=disabled', 'external_fmt=disabled', 'std_format=disabled']
+spdlog_dep = dependency('spdlog', default_options: spdlog_options)
+
+dependencies = [sdl2_dep, glew_dep, glm_dep, imgui_dep, assimp_dep, spdlog_dep]
 
 if host_machine.system() == 'windows'
     sdl2_main_dep = dependency('sdl2main')

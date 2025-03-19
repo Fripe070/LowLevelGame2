@@ -2,11 +2,13 @@
 #define LOGGING_H
 #include <string>
 #include <GL/glew.h>
-// ReSharper disable once CppUnusedIncludeDirective // Used in macros
 #include <SDL_log.h>
+#include <spdlog/spdlog.h>
 
+void setupLogging();
+
+#pragma region OpenGL error logging, for use when debug output is not available
 std::string glErrorString(GLenum errorCode);
-
 GLenum glLogErrors_(const char *file, int line);
 GLenum glLogErrorsExtra_(const char *file, int line, const char *extra);
 GLenum glLogErrorsExtra_(const char *file, int line, const std::string &extra);
@@ -18,7 +20,9 @@ GLenum glLogErrorsExtra_(const char *file, int line, const std::string &extra);
 #define glLogErrors()
 #define glLogErrorsExtra(extra)
 #endif
+#pragma endregion
 
+#pragma region Helper macros for dealing with and propogating std::unexpected
 #define STRINGIFY_HELPER(x) #x
 #define STRINGIFY(x) STRINGIFY_HELPER(x)
 #define INDENT4 "    "
@@ -28,6 +32,7 @@ GLenum glLogErrorsExtra_(const char *file, int line, const std::string &extra);
 #define FW_UNEXP(unexpected, thisTime) (FILE_REF + thisTime + NL_INDENT + unexpected.error())
 
 #define UNEXPECTED_REF(...) std::unexpected(FILE_REF + __VA_ARGS__)
+#pragma endregion
 
 
 #define logRaw(...) SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, __VA_ARGS__)
@@ -44,7 +49,7 @@ GLenum glLogErrorsExtra_(const char *file, int line, const std::string &extra);
 #define logVerbose(fmt, ...) SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, \
     (FILE_REF + fmt).c_str(), ##__VA_ARGS__)
 
-void GLAPIENTRY MessageCallback(
+void GLAPIENTRY LogGlCallback(
     GLenum source,
     GLenum type,
     GLuint id,
@@ -53,5 +58,7 @@ void GLAPIENTRY MessageCallback(
     const GLchar* message,
     const void* userParam
 );
+void LogSdlCallback(void* /*userdata*/, int category, SDL_LogPriority priority, const char *message);
+
 
 #endif
