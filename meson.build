@@ -60,10 +60,8 @@ sources = [
 
 exe = executable(
     'lowlevelgame', sources,
-    # win_subsystem: 'windows',  # Supresses stdout on Windows
     include_directories : include_directories('src', 'include'),
     dependencies : dependencies,
     cpp_args : ['-std=c++23']
 )
-
 test('basic', exe)

@@ -9,7 +9,7 @@ struct EngineConfig {
     bool limitFPS = true;
     bool vsync = true;
     int maxFPS = 100;
-    int physicsTPS = 60;
+    int fixedTPS = 60;
 };
 
 struct EngineState {

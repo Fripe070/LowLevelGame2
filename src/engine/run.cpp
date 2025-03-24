@@ -86,7 +86,7 @@ int run()
 
 #pragma region MainLoop
     {
-        double physicsAccumulator = 0.0;
+        double fixedAccumulator = 0.0;
         Uint64 frameStart = SDL_GetPerformanceCounter();
         while (true) {
 #pragma region DeltaTime
@@ -103,15 +103,16 @@ int run()
             }
 #pragma endregion
 
-            physicsAccumulator += deltaTime;
-            physicsAccumulator = std::fmin(physicsAccumulator, 0.1); // Prevent spiral of death  // TODO: Magic number?
-            const double desiredPhysicsDT = 1.0 / engineState->config.physicsTPS;
-            while (physicsAccumulator >= desiredPhysicsDT) {
-                if (!fixedUpdate(desiredPhysicsDT)) {
-                    logError("Physics update failed");
+            fixedAccumulator += deltaTime;
+            fixedAccumulator = std::fmin(fixedAccumulator, 0.1); // Prevent spiral of death  // TODO: Magic number?
+            const double desiredFixedDT = 1.0 / engineState->config.fixedTPS;
+
+            while (fixedAccumulator >= desiredFixedDT) {
+                if (!fixedUpdate(desiredFixedDT)) {
+                    logError("Fixed update failed");
                     goto quit;
                 }
-                physicsAccumulator -= desiredPhysicsDT;
+                fixedAccumulator -= desiredFixedDT;
             }
 
             // TODO: Allow recording demos?
@@ -145,6 +146,7 @@ int run()
     }
 #pragma endregion
 
+#pragma region Shutdown
 quit:
     shutdownGame();
 quitNoShutdown:
@@ -153,6 +155,7 @@ quitNoShutdown:
     SDL_GL_DeleteContext(glContext);
     SDL_DestroyWindow(sdlWindow);
     SDL_Quit();
+#pragma endregion
 
     return 0;
 }
