@@ -208,6 +208,7 @@ bool renderUpdate(const double deltaTime) {
     DebugGUI::renderEnd();
 #pragma endregion
 
+    SDL_GL_SwapWindow(engineState->sdlWindow);
     return true;
 }
 

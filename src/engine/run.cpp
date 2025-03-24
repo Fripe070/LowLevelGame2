@@ -134,14 +134,13 @@ int run()
                         break;
                 }
             }
+
             const bool renderSuccess = renderUpdate(deltaTime);
             glLogErrors();
             if (!renderSuccess) {
                 logError("Render update failed");
                 goto quit;
             }
-
-            SDL_GL_SwapWindow(sdlWindow);
         }
     }
 #pragma endregion
