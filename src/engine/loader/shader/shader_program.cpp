@@ -1,12 +1,11 @@
-#include <stdexcept>
+#include "shader_program.h"
 
+#include <stdexcept>
 #include <GL/glew.h>
 #include <glm/gtc/type_ptr.hpp>
 
 #include "engine/util/logging.h"
 #include "engine/loader/generic.h"
-
-#include "shader_program.h"
 
 
 namespace Engine {

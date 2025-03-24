@@ -1,7 +1,7 @@
 #include "logging.h"
 
 #include <unordered_map>
-#include <../../subprojects/spdlog-1.15.1/include/spdlog/sinks/stdout_color_sinks-inl.h>
+#include <spdlog/sinks/stdout_color_sinks-inl.h>
 
 std::string glErrorString(const GLenum errorCode) {
     static const std::unordered_map<GLenum, std::string> map = {

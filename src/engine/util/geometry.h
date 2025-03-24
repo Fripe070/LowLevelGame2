@@ -1,6 +1,4 @@
-#ifndef SHAPE_H
-#define SHAPE_H
-
+#pragma once
 #include <array>
 
 #define BUFFERS_MV_FROM_TO(from, to) \
@@ -72,4 +70,3 @@ constexpr std::array<unsigned int, 2*3> ScreenSpaceQuadIndices = {
     1, 3, 2,
 };
 
-#endif

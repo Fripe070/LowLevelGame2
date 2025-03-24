@@ -1,11 +1,11 @@
+#include "texture.h"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include <unordered_map>
 #include <GL/glew.h>
 
-#include <engine/util/logging.h>
-
-#include "texture.h"
+#include "engine/util/logging.h"
 
 namespace Engine::Loader {
     struct ImageData {

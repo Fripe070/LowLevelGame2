@@ -4,8 +4,7 @@
 #include <GL/glew.h>
 
 #include "engine/loader/texture.h"
-
-#include <engine/util/logging.h>
+#include "engine/util/logging.h"
 
 
 namespace Engine::Manager {

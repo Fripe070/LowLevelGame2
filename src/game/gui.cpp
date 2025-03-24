@@ -1,3 +1,5 @@
+#include "gui.h"
+
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_sdl2.h>
@@ -6,7 +8,6 @@
 
 #include "engine/state.h"
 #include "game/state.h"
-#include "gui.h"
 
 
 namespace DebugGUI {

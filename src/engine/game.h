@@ -1,6 +1,4 @@
-#ifndef GAME_H
-#define GAME_H
-#include "engine/state.h"
+#pragma once
 #include <SDL_events.h>
 
 bool setupGame();
@@ -12,4 +10,3 @@ bool fixedUpdate(double deltaTime);
 bool handleEvent(const SDL_Event &event);
 
 
-#endif

@@ -1,5 +1,4 @@
-#ifndef ENGINE_STATE_H
-#define ENGINE_STATE_H
+#pragma once
 #include <SDL_video.h>
 
 #include "manager/scene.h"
@@ -31,4 +30,3 @@ struct EngineState {
  */
 extern EngineState *engineState; // TODO: Ref not ptr?
 
-#endif

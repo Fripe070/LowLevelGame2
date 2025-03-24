@@ -1,6 +1,4 @@
-#ifndef MANAGER_TEXTURE_H
-#define MANAGER_TEXTURE_H
-
+#pragma once
 #include <expected>
 #include <string>
 #include <unordered_map>
@@ -56,4 +54,3 @@ namespace Engine::Manager {
     };
 }
 
-#endif

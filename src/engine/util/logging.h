@@ -1,5 +1,4 @@
-#ifndef LOGGING_H
-#define LOGGING_H
+#pragma once
 #include <string>
 #include <GL/glew.h>
 #include <SDL_log.h>
@@ -61,4 +60,3 @@ void GLAPIENTRY LogGlCallback(
 void LogSdlCallback(void* /*userdata*/, int category, SDL_LogPriority priority, const char *message);
 
 
-#endif

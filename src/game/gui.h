@@ -1,8 +1,5 @@
-#ifndef GUI_H
-#define GUI_H
-
-#include <SDL.h>
-#include <engine/state.h>
+#pragma once
+#include <SDL_events.h>
 
 struct EngineState;
 
@@ -29,4 +26,3 @@ namespace DebugGUI {
 }
 
 
-#endif

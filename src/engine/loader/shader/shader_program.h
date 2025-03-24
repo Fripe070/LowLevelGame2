@@ -1,6 +1,4 @@
-#ifndef SHADER_PROGRAM_H
-#define SHADER_PROGRAM_H
-
+#pragma once
 #include <expected>
 #include <string>
 #include <vector>
@@ -52,4 +50,3 @@ namespace Engine {
     };
 }
 
-#endif

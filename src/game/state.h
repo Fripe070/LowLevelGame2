@@ -1,5 +1,4 @@
-#ifndef GAME_STATE_H
-#define GAME_STATE_H
+#pragma once
 
 #include "engine/typedefs.h"
 #include "game/player.h"
@@ -29,4 +28,3 @@ struct GameState {
 
 extern GameState *gameState;
 
-#endif

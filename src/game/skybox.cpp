@@ -1,9 +1,10 @@
 #include "skybox.h"
 
 #include <array>
-#include <engine/loader/shader/graphics_shader.h>
 #include <GL/glew.h>
-#include <engine/util/geometry.h>
+
+#include "engine/util/geometry.h"
+#include "engine/loader/shader/graphics_shader.h"
 
 
 Skybox::Skybox() {

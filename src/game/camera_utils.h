@@ -1,6 +1,4 @@
-#ifndef CAMERA_UTILS_H
-#define CAMERA_UTILS_H
-
+#pragma once
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE // For reverse-z
 #include <glm/mat4x4.hpp>
 
@@ -14,4 +12,3 @@ namespace CameraUtils {
     [[nodiscard]] glm::mat4 getProjectionMatrix(const GameState &gameState, T aspectRatio) = delete;
 }
 
-#endif

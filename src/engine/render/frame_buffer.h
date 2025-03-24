@@ -1,6 +1,4 @@
-#ifndef FRAME_BUFFER_H
-#define FRAME_BUFFER_H
-#include <utility>
+#pragma once
 #include <engine/typedefs.h>
 
 
@@ -36,4 +34,3 @@ public:
 };
 
 
-#endif

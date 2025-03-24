@@ -1,7 +1,5 @@
-#ifndef ScreenOverlay_H
-#define ScreenOverlay_H
-
-#include <engine/loader/shader/graphics_shader.h>
+#pragma once
+#include "engine/loader/shader/graphics_shader.h"
 
 class ScreenOverlay {
   private:
@@ -23,4 +21,3 @@ class ScreenOverlay {
 };
 
 
-#endif

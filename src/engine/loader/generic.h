@@ -1,5 +1,4 @@
-#ifndef GENERIC_H
-#define GENERIC_H
+#pragma once
 #include <expected>
 #include <string>
 
@@ -8,4 +7,3 @@ namespace Engine::Loader {
     std::expected<std::string, std::string> readTextFile(const std::string &filePath);
 }
 
-#endif

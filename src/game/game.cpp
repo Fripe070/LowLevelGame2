@@ -1,3 +1,5 @@
+#include "engine/game.h"
+
 #include <memory>
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -6,13 +8,9 @@
 #include <imgui.h>
 
 #include "engine/util/logging.h"
-#include "engine/loader/shader/compute_shader.h"
-#include "engine/game.h"
-
-#include "camera_utils.h"
-#include "engine/render/overlay.h"
+#include "engine/state.h"
 #include "engine/render/frame_buffer.h"
-
+#include "camera_utils.h"
 #include "gui.h"
 #include "state.h"
 #include "skybox.h"

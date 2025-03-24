@@ -1,5 +1,4 @@
-#ifndef TYPEDEFS_H
-#define TYPEDEFS_H
+#pragma once
 
 typedef float Radians;
 typedef float Degrees;
@@ -9,4 +8,3 @@ struct Size2Di {
     int height;
 };
 
-#endif

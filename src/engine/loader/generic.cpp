@@ -1,5 +1,6 @@
 #include "generic.h"
 #include <fstream>
+
 #include <engine/util/logging.h>
 
 namespace Engine::Loader {

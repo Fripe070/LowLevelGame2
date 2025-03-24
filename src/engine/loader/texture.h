@@ -1,5 +1,4 @@
-#ifndef TEXTURE_H
-#define TEXTURE_H
+#pragma once
 #include <expected>
 #include <string>
 
@@ -23,4 +22,3 @@ namespace Engine::Loader {
     std::expected<unsigned int, std::string> loadCubeMap(const std::string &filePath);
 }
 
-#endif

@@ -1,8 +1,8 @@
+#include "run.h"
+
 #include <GL/glew.h>
 #include <SDL.h>
 #include <cmath>
-
-#include "run.h"
 
 #include "engine/util/logging.h"
 #include "engine/game.h"

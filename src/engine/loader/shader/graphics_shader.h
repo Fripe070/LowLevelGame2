@@ -1,5 +1,4 @@
-#ifndef GRAPHICS_SHADER_H
-#define GRAPHICS_SHADER_H
+#pragma once
 #include <string>
 #include <vector>
 #include <GL/glew.h>
@@ -29,4 +28,3 @@ namespace Engine {
     };
 }
 
-#endif

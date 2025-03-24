@@ -1,11 +1,10 @@
-#ifndef MANAGER_MESH_H
-#define MANAGER_MESH_H
-
-#include <engine/loader/scene.h>
+#pragma once
 #include <expected>
 #include <memory>
 #include <string>
 #include <unordered_map>
+
+#include "engine/loader/scene.h"
 
 #define ERROR_MESH_PATH "resources/assets/models/error.obj"
 
@@ -29,4 +28,3 @@ namespace Engine::Manager {
 
 }
 
-#endif

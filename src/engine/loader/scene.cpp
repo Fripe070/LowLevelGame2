@@ -2,15 +2,14 @@
 
 #include <iostream>
 #include <assimp/cimport.h>
-#include <engine/util/logging.h>
-
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <engine/util/geometry.h>
 #include <glm/ext/matrix_transform.hpp>
 
-#include "shader/graphics_shader.h"
+#include "engine/util/logging.h"
+#include "engine/loader/shader/graphics_shader.h"
 #include "engine/manager/texture.h"
 
 #ifndef NDEBUG

@@ -1,5 +1,4 @@
-#ifndef COMPUTE_SHADER_H
-#define COMPUTE_SHADER_H
+#pragma once
 #include <string>
 #include <GL/glew.h>
 
@@ -15,4 +14,3 @@ namespace Engine {
     };
 }
 
-#endif

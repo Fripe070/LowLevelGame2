@@ -1,7 +1,7 @@
-#ifndef PLAYER_H
-#define PLAYER_H
-#include <engine/typedefs.h>
+#pragma once
 #include <glm/vec3.hpp>
+
+#include "engine/typedefs.h"
 
 class Player {
 public:
@@ -19,4 +19,3 @@ public:
   bool tick();
 };
 
-#endif

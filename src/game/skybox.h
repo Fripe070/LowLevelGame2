@@ -1,12 +1,8 @@
-#ifndef SKYBOX_H
-#define SKYBOX_H
-#include <array>
+#pragma once
 #include <expected>
 #include <string>
-#include <vector>
-#include <engine/loader/shader/graphics_shader.h>
-#include <engine/util/geometry.h>
-#include <glm/fwd.hpp>
+
+#include "engine/loader/shader/graphics_shader.h"
 
 
 namespace Engine {
@@ -35,4 +31,3 @@ public:
     Skybox& operator=(Skybox&& other) noexcept;
 };
 
-#endif

@@ -1,6 +1,4 @@
-#ifndef SCENE_H
-#define SCENE_H
-
+#pragma once
 #include <expected>
 #include <string>
 #include <vector>
@@ -109,4 +107,3 @@ namespace Engine::Loader {
 };
 
 
-#endif
