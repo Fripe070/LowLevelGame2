@@ -1,20 +1,15 @@
 #include "scene.h"
 
-#include <iostream>
 #include <assimp/cimport.h>
 #include <assimp/Importer.hpp>
-#include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <assimp/scene.h>
+#include <engine/loader/shader/shader.h>
 #include <engine/util/geometry.h>
 #include <glm/ext/matrix_transform.hpp>
 
+#include "engine/resources/resource_manager.h"
 #include "engine/util/logging.h"
-#include "engine/loader/shader/graphics_shader.h"
-#include "engine/manager/texture.h"
-
-#ifndef NDEBUG
-#include <chrono>
-#endif
 
 
 #define UNPACK_MAT4(aiMat) { \
@@ -31,36 +26,44 @@
 
 namespace Engine::Loader {
 #pragma region Loading
-    std::expected<Node, std::string> processNode(const aiNode *loadedNode);
-    std::expected<Mesh, std::string> processMesh(const aiMesh *loadedMesh);
-    std::expected<Material, std::string> processMaterial(const aiMaterial *loadedMaterial);
+    std::expected<Node, Error> processNode(const aiNode *loadedNode);
+    std::expected<Mesh, Error> processMesh(const aiMesh *loadedMesh);
+    std::expected<Material, Error> processMaterial(const aiMaterial *loadedMaterial);
+    std::expected<Scene, Error> loadScene(const aiScene* loadedNode);
 
-    std::expected<Scene, std::string> loadScene(const std::string &path) {
-#ifndef NDEBUG
-        const auto start = std::chrono::high_resolution_clock::now();
-#endif
+    constexpr auto ASSIMP_FLAGS = aiProcess_Triangulate | aiProcess_FlipUVs;
+
+    std::expected<Scene, Error> loadScene(const std::string &path)
+    {
         Assimp::Importer importer;
-        const aiScene* loadedNode = importer.ReadFile(path.c_str(),
-            aiProcess_Triangulate
-            | aiProcess_FlipUVs
-            // TODO: Add more post processing flags if needed
-        );
+        const aiScene* loadedNode = importer.ReadFile(path.c_str(), ASSIMP_FLAGS);
         if (!loadedNode || loadedNode->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !loadedNode->mRootNode)
-            return std::unexpected(std::string("Failed to load scene: ") + importer.GetErrorString());
+            return std::unexpected(ERROR(std::string("Failed to load scene: ") + importer.GetErrorString()));
+        return loadScene(loadedNode);
+    }
+    std::expected<Scene, Error> loadScene(const unsigned char* data, const int size)
+    {
+        Assimp::Importer importer;
+        const aiScene* loadedNode = importer.ReadFileFromMemory(data, size, ASSIMP_FLAGS);
+        if (!loadedNode || loadedNode->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !loadedNode->mRootNode)
+            return std::unexpected(ERROR(std::string("Failed to load scene: ") + importer.GetErrorString()));
+        return loadScene(loadedNode);
+    }
 
+    std::expected<Scene, Error> loadScene(const aiScene* loadedNode) {
         if (loadedNode->mNumTextures > 0)
-            logWarn("Embedded textures are not supported");
+            SPDLOG_WARN("Embedded textures are not supported");
         if (loadedNode->mNumLights > 0)
-            logWarn("Lights are not supported");
+            SPDLOG_WARN("Lights are not supported");
         if (loadedNode->mNumCameras > 0)
-            logWarn("Cameras are not supported");
+            SPDLOG_WARN("Cameras are not supported");
         if (loadedNode->mNumAnimations > 0)
-            logWarn("Animations are not supported");
+            SPDLOG_WARN("Animations are not supported");
 
         // Load the node tree
-        std::expected<Node, std::string> rootNode = processNode(loadedNode->mRootNode);
+        std::expected<Node, Error> rootNode = processNode(loadedNode->mRootNode);
         if (!rootNode.has_value())
-            return std::unexpected(FW_UNEXP(rootNode, "Failed to load node tree"));
+            return std::unexpected(FW_ERROR(rootNode.error(), "Failed to load node tree"));
 
         std::vector<Mesh> meshes;
         std::vector<Material> materials;
@@ -68,27 +71,21 @@ namespace Engine::Loader {
         // Load all the meshes
         meshes.reserve(loadedNode->mNumMeshes);
         for (unsigned int i = 0; i < loadedNode->mNumMeshes; i++) {
-            std::expected<Mesh, std::string> mesh = processMesh(loadedNode->mMeshes[i]);
+            std::expected<Mesh, Error> mesh = processMesh(loadedNode->mMeshes[i]);
             if (!mesh.has_value())
-                return std::unexpected(FW_UNEXP(mesh, "Failed to load mesh "+std::to_string(i)+));
+                return std::unexpected(FW_ERROR(mesh.error(), "Failed to load mesh "+std::to_string(i)));
             meshes.push_back(std::move(mesh.value()));
         }
 
         // Load all the materials
         materials.reserve(loadedNode->mNumMaterials);
         for (unsigned int i = 0; i < loadedNode->mNumMaterials; i++) {
-            std::expected<Material, std::string> material = processMaterial(loadedNode->mMaterials[i]);
+            std::expected<Material, Error> material = processMaterial(loadedNode->mMaterials[i]);
             if (!material.has_value())
-                return std::unexpected(FW_UNEXP(material, "Failed to load material "+std::to_string(i)+));
+                return std::unexpected(FW_ERROR(material.error(), "Failed to load material "+std::to_string(i)));
             materials.push_back(material.value());
         }
-
-#ifndef NDEBUG
-        logDebug("Loaded scene \"%s\" in %d ms", path.c_str(),
-            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start).count());
-#else
-        logDebug("Loaded scene \"%s\"", path.c_str());
-#endif
+        SPDLOG_DEBUG("Loaded scene \"%s\"", path.c_str());
 
         return Scene{
             rootNode.value(),
@@ -97,22 +94,22 @@ namespace Engine::Loader {
         };
     }
 
-    std::expected<Node, std::string> processNode(const aiNode *loadedNode) { // NOLINT(*-no-recursion)
+    std::expected<Node, Error> processNode(const aiNode *loadedNode) { // NOLINT(*-no-recursion)
         Node resultNode;
         resultNode.transform = UNPACK_MAT4(loadedNode->mTransformation);
 
         resultNode.children.reserve(loadedNode->mNumChildren);
         for (unsigned int i = 0; i < loadedNode->mNumChildren; i++) {
-            std::expected<Node, std::string> result = processNode(loadedNode->mChildren[i]);
+            std::expected<Node, Error> result = processNode(loadedNode->mChildren[i]);
             if (!result.has_value())
-                return std::unexpected(FW_UNEXP(result, "Failed to load child node "+std::to_string(i)+));
+                return std::unexpected(FW_ERROR(result.error(), "Failed to load child node "+std::to_string(i)));
             resultNode.children.push_back(result.value());
         }
 
         return resultNode;
     }
 
-    std::expected<Mesh, std::string> processMesh(const aiMesh *loadedMesh) {
+    std::expected<Mesh, Error> processMesh(const aiMesh *loadedMesh) {
         std::vector<MeshVertex> vertices;
         std::vector<unsigned int> indices;
         const unsigned int materialIndex = loadedMesh->mMaterialIndex;
@@ -144,7 +141,7 @@ namespace Engine::Loader {
         return Mesh{std::move(vertices), std::move(indices), materialIndex};
     }
 
-    std::expected<Material, std::string> processMaterial(const aiMaterial *loadedMaterial) {
+    std::expected<Material, Error> processMaterial(const aiMaterial *loadedMaterial) {
         Material resultMaterial;
 
         aiString path;
@@ -173,13 +170,13 @@ namespace Engine::Loader {
         glBindVertexArray(VAO);
     }
 
-    std::expected<void, std::string> Scene::Draw(Manager::TextureManager &textureManager, const GraphicsShader &shader, const glm::mat4 &modelTransform) const {
+    std::expected<void, Error> Scene::Draw(ResourceManager &resourceManager, const ShaderProgram &shader, const glm::mat4 &modelTransform) const {
         // TODO: Only do unique per-scene stuff here, and don't double-use the shader
         shader.use();
         for (const Mesh &mesh: meshes) {
-            auto matRet = materials[mesh.materialIndex].PopulateShader(shader, textureManager);
+            auto matRet = materials[mesh.materialIndex].PopulateShader(shader, resourceManager);
             if (!matRet.has_value())
-                return std::unexpected(FW_UNEXP(matRet, "Failed to populate shader with material"));
+                return std::unexpected(FW_ERROR(matRet.error(), "Failed to populate shader with material"));
 
             const auto model = rootNode.transform * modelTransform;
             shader.setMat4("model", model);
@@ -191,23 +188,18 @@ namespace Engine::Loader {
         return {};
     }
 
-    std::expected<void, std::string> Material::PopulateShader(const GraphicsShader &shader, Manager::TextureManager &textureManager) const {
+    std::expected<void, Error> Material::PopulateShader(const ShaderProgram &shader, ResourceManager &resourceManager) const {
         shader.setFloat("material.shininess", shininess);
-        shader.setInt("material.test", textureManager.errorTexture);
 
-        std::expected<unsigned int, std::string> diffuse = textureManager.getTexture(diffusePath);
-        if (!diffuse.has_value())
-            return std::unexpected(FW_UNEXP(diffuse, "Failed to load diffuse texture"));
+        const auto diffuse = resourceManager.loadTexture(diffusePath);
         shader.setInt("material.texture_diffuse", 0);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, diffuse.value_or(textureManager.errorTexture));
+        glBindTexture(GL_TEXTURE_2D, diffuse->textureID);
 
-        std::expected<unsigned int, std::string> specular = textureManager.getTexture(specularPath);
-        if (!specular.has_value())
-            return std::unexpected(FW_UNEXP(specular, "Failed to load specular texture"));
+        const auto specular = resourceManager.loadTexture(specularPath);
         shader.setInt("material.texture_specular", 1);
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, specular.value_or(textureManager.errorTexture));
+        glBindTexture(GL_TEXTURE_2D, specular->textureID);
 
         return {};
     }

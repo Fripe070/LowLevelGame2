@@ -1,9 +1,9 @@
 #pragma once
-#include "engine/loader/shader/graphics_shader.h"
+#include <engine/loader/shader/shader.h>
 
 class ScreenOverlay {
   private:
-    Engine::GraphicsShader shader;
+    Engine::ShaderProgram shader;
     unsigned int VAO{}, VBO{}, EBO{};
   
   public:

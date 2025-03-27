@@ -1,12 +1,7 @@
 #pragma once
-#include <expected>
-#include <string>
-
-#include "engine/loader/shader/graphics_shader.h"
-
 
 namespace Engine {
-    class GraphicsShader;
+    class ShaderProgram;
     namespace Manager {
         class TextureManager;
     }
@@ -17,7 +12,7 @@ class Skybox {
 public:
     Skybox();
     ~Skybox();
-    std::expected<void, std::string> draw(unsigned int cubemap, const Engine::GraphicsShader &shader) const;
+    void draw(unsigned int cubemap, const Engine::ShaderProgram &shader) const;
 
 private:
     unsigned int VAO{}, VBO{}, EBO{};

@@ -1,9 +1,9 @@
 #pragma once
 #include <expected>
 #include <string>
+#include <engine/util/error.h>
 
-namespace Engine::Loader {
-    std::expected<std::string, std::string> readTextFile(const char* filePath);
-    std::expected<std::string, std::string> readTextFile(const std::string &filePath);
+namespace Engine
+{
+    std::expected<std::string, Error> readTextFile(const std::string &filePath);
 }
-

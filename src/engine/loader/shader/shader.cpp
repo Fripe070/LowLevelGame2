@@ -1,32 +1,131 @@
-#include "shader_program.h"
+#include "shader.h"
 
 #include <stdexcept>
 #include <GL/glew.h>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "engine/util/logging.h"
 #include "engine/loader/generic.h"
+#include "engine/util/logging.h"
 
 
 namespace Engine {
-    ShaderProgram::ShaderProgram(const std::vector<std::pair<std::string, unsigned int>> &filePaths) : programID(0) {
-        std::vector<unsigned int> shaderIDs;
-        shaderIDs.reserve(filePaths.size());
+    std::expected<unsigned int, Error> loadShaderFile(
+        const std::string& filePath,
+        const unsigned int shaderType
+    ) {
+        std::expected<std::string, Error> shaderSrc = Engine::readTextFile(filePath);
+        if (!shaderSrc.has_value())
+            return std::unexpected(FW_ERROR(shaderSrc.error(), "Failed to read shader file"));
+        shaderSrc = preprocessShaderSource(shaderSrc.value());
+        if (!shaderSrc.has_value())
+            return std::unexpected(FW_ERROR(shaderSrc.error(), std::string("Failed to preprocess shader source")));
+        return compileShader(shaderSrc.value().c_str(), shaderType);
+    }
+    std::expected<unsigned int, Error> loadShaderString(const std::string& shaderSrc, const unsigned int shaderType)
+    {
+        std::expected<std::string, Error> shaderSource = preprocessShaderSource(shaderSrc);
+        if (!shaderSource.has_value())
+            return std::unexpected(FW_ERROR(shaderSource.error(), std::string("Failed to preprocess shader source")));
+        return compileShader(shaderSource.value().c_str(), shaderType);
+    }
 
-        // Load all shaders
-        for (const auto &[filePath, shaderType] : filePaths) {
-            const std::expected<unsigned int, std::string> shaderID = loadShader(filePath, shaderType);
-            if (!shaderID.has_value()) {
-                for (const auto &id : shaderIDs)
-                    glDeleteShader(id);
-                throw std::runtime_error("Failed to compile shader " + filePath + ": " NL_INDENT + shaderID.error());
-            }
-            shaderIDs.push_back(shaderID.value());
+    std::expected<unsigned int, Error> compileShader(
+        const char* shaderSource,
+        const unsigned int shaderType
+    ) {
+        const unsigned int shaderID = glCreateShader(shaderType);
+        glShaderSource(shaderID, 1, &shaderSource, nullptr);
+        glCompileShader(shaderID);
+
+        int result = GL_FALSE;
+        glGetShaderiv(shaderID, GL_COMPILE_STATUS, &result);
+        if (result == GL_TRUE)
+            return shaderID;
+
+        // Compilation failed
+        int infoLogLength = 0;
+        glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
+        if (infoLogLength == 0) {
+            glDeleteShader(shaderID);  // Prevent leak if we failed to compile
+            return std::unexpected(ERROR("Shader compilation failed: No info log available"));
         }
+        std::vector<char> infoLog(infoLogLength);
+        glGetShaderInfoLog(shaderID, infoLogLength, nullptr, infoLog.data());
+        glDeleteShader(shaderID);  // Prevent leak if we failed to compile
+        return std::unexpected(ERROR("Shader compilation failed: " + std::string(infoLog.data())));
+    }
 
+    std::expected<std::string, Error> preprocessShaderSource(std::string shaderSrc) {
+        constexpr auto includeDirective = "#include";
+        constexpr auto includeDirectiveLength = strlen(includeDirective);
+
+        std::vector<std::string> processedFiles; // Avoid infinite recursion and unnecessary file reads
+
+        std::string::size_type cursor = 0;
+        std::string::size_type findStart = cursor;
+        while ((findStart = shaderSrc.find(includeDirective, findStart)) != std::string::npos) {
+            cursor = findStart;
+            // Exit if we are in the middle of a line (ignoring leading whitespace)
+            while (shaderSrc[cursor - 1] == ' ' || shaderSrc[cursor - 1] == '\t')
+                cursor--;
+            if (shaderSrc[findStart - 1] != '\n') {
+                spdlog::warn(
+                    "Invalid include directive at " + std::to_string(findStart) + ". "
+                         "Expected start of line:" + shaderSrc.substr(findStart-10, 40));
+                findStart++; // So we won't find the same include directive again
+                continue;
+            }
+            cursor = findStart;
+
+#define IN_BOUNDS cursor < shaderSrc.size()
+
+            cursor += includeDirectiveLength;
+            if (shaderSrc[cursor] != ' ' && shaderSrc[cursor] != '\t') {
+                spdlog::warn("Invalid include directive. Expected whitespace after directive");
+                continue;
+            }
+            cursor++;
+            while (IN_BOUNDS && (shaderSrc[cursor] == ' ' || shaderSrc[cursor] == '\t'))
+                cursor++;
+
+            if (shaderSrc[cursor] != '"') {
+                spdlog::warn("Invalid include directive. Expected opening quote");
+                continue;
+            }
+            cursor++;
+            const auto pathStart = cursor;
+            while (IN_BOUNDS && shaderSrc[cursor] != '"' && shaderSrc[cursor] != '\n')
+                cursor++;
+            if (shaderSrc[cursor] != '"') {
+                spdlog::warn("Invalid include directive. Expected closing quote");
+                continue;
+            }
+            const auto includePath = shaderSrc.substr(pathStart, cursor - pathStart);
+            cursor++;
+
+            if (std::ranges::find(processedFiles, includePath) != processedFiles.end()) {
+                shaderSrc.replace(findStart, cursor - findStart, "// ignoring #include " + includePath + " (already included)");
+                continue;
+            }
+            spdlog::debug("Processing include file \"%s\"", includePath.c_str());
+            processedFiles.push_back(includePath);
+            auto includeSrc = Engine::readTextFile(includePath);
+            if (!includeSrc.has_value())
+                return std::unexpected(FW_ERROR(
+                    includeSrc.error(),
+                    "Failed to read include: " + shaderSrc.substr(findStart, cursor - findStart)));
+            // Replace the include directive with the actual source
+            shaderSrc.replace(findStart, cursor - findStart, includeSrc.value());
+        }
+#undef IN_BOUNDS
+
+        return shaderSrc;
+    }
+
+    ShaderProgram::ShaderProgram(const std::vector<unsigned int>& shaders) {
         const unsigned int progID = glCreateProgram();
         // Attach all shaders
-        for (const auto &shaderID : shaderIDs) {
+        for (const auto &shaderID : shaders) {
             glAttachShader(progID, shaderID);
             glDeleteShader(shaderID);  // Flagged for deletion when no longer attached to anything
         }
@@ -36,23 +135,26 @@ namespace Engine {
         int result = GL_FALSE;
         glGetProgramiv(progID, GL_LINK_STATUS, &result);
         if (result == GL_TRUE) {
-            for (const auto &shaderID : shaderIDs)
-                glDetachShader(progID, shaderID);  // Detach and delete shaders, we only need what is linked in the program now
+            for (const auto &shaderID : shaders)
+                // Detach shaders, we only need what is linked in the program now
+                // Shaders flagged for deletion will be deleted when no longer attached to anything
+                glDetachShader(progID, shaderID);
             programID = progID;
             return;
         }
 
+        // Linking failed
         int infoLogLength = 0;
         glGetProgramiv(progID, GL_INFO_LOG_LENGTH, &infoLogLength);
         if (infoLogLength == 0) {
             glDeleteProgram(progID);  // Automatically detaches shaders, we don't need to loop through them
-            throw std::runtime_error("Program linking failed: No info log available");
+            throw std::runtime_error("Program linking failed. No info log available");
         }
 
         std::vector<char> infoLog(infoLogLength);
         glGetProgramInfoLog(progID, infoLogLength, nullptr, infoLog.data());
         glDeleteProgram(progID);  // Automatically detaches shaders, we don't need to loop through them
-        throw std::runtime_error("Program linking failed: " NL_INDENT + std::string(infoLog.data()));
+        throw std::runtime_error("Program linking failed with: " + std::string(infoLog.data()));
     }
 
     ShaderProgram::~ShaderProgram() {
@@ -70,104 +172,6 @@ namespace Engine {
             other.programID = 0;
         }
         return *this;
-    }
-
-    std::expected<unsigned int, std::string> ShaderProgram::loadShader(
-        const std::string &filePath,
-        const unsigned int shaderType
-    ) {
-        std::expected<std::string, std::string> shaderSrc = Loader::readTextFile(filePath);
-        if (!shaderSrc.has_value())
-            return std::unexpected(FW_UNEXP(shaderSrc, "Failed to read shader file"));
-        shaderSrc = preprocessSource(shaderSrc.value());
-        if (!shaderSrc.has_value())
-            return std::unexpected(FW_UNEXP(shaderSrc, std::string("Failed to preprocess shader source")));
-
-        const unsigned int shaderID = glCreateShader(shaderType);
-        const char *shaderSource = shaderSrc.value().c_str();
-        glShaderSource(shaderID, 1, &shaderSource, nullptr);
-        glCompileShader(shaderID);
-
-        int result = GL_FALSE;
-        glGetShaderiv(shaderID, GL_COMPILE_STATUS, &result);
-        if (result == GL_TRUE)
-            return shaderID;
-
-        int infoLogLength = 0;
-        glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
-        if (infoLogLength == 0) {
-            glDeleteShader(shaderID);  // Prevent leak if we failed to compile
-            return UNEXPECTED_REF("Shader compilation failed: No info log available");
-        }
-
-        std::vector<char> infoLog(infoLogLength);
-        glGetShaderInfoLog(shaderID, infoLogLength, nullptr, infoLog.data());
-        glDeleteShader(shaderID);  // Prevent leak if we failed to compile
-        return UNEXPECTED_REF("Shader compilation failed: " + std::string(infoLog.data()));
-    }
-
-    std::expected<std::string, std::string> ShaderProgram::preprocessSource(std::string shaderSrc) {
-        constexpr auto includeDirective = "#include";
-        constexpr auto includeDirectiveLength = strlen(includeDirective);
-
-        std::vector<std::string> processedFiles; // Avoid infinite recursion and unnecessary file reads
-
-        std::string::size_type cursor = 0;
-        std::string::size_type findStart = cursor;
-        while ((findStart = shaderSrc.find(includeDirective, findStart)) != std::string::npos) {
-            cursor = findStart;
-            // Exit if we are in the middle of a line (ignoring leading whitespace)
-            while (shaderSrc[cursor - 1] == ' ' || shaderSrc[cursor - 1] == '\t')
-                cursor--;
-            if (shaderSrc[findStart - 1] != '\n') {
-                logWarn("Invalid include directive at " + std::to_string(findStart) + ". Expected start of line:" + shaderSrc.substr(findStart-10, 40));
-                findStart++; // So we won't find the same include directive again
-                continue;
-            }
-            cursor = findStart;
-
-#define IN_BOUNDS cursor < shaderSrc.size()
-
-            cursor += includeDirectiveLength;
-            if (shaderSrc[cursor] != ' ' && shaderSrc[cursor] != '\t') {
-                logWarn("Invalid include directive. Expected whitespace after directive");
-                continue;
-            }
-            cursor++;
-            while (IN_BOUNDS && shaderSrc[cursor] == ' ' || shaderSrc[cursor] == '\t')
-                cursor++;
-
-            if (shaderSrc[cursor] != '"') {
-                logWarn("Invalid include directive. Expected opening quote");
-                continue;
-            }
-            cursor++;
-            const auto pathStart = cursor;
-            while (IN_BOUNDS && shaderSrc[cursor] != '"' && shaderSrc[cursor] != '\n')
-                cursor++;
-            if (shaderSrc[cursor] != '"') {
-                logWarn("Invalid include directive. Expected closing quote");
-                continue;
-            }
-            const auto includePath = shaderSrc.substr(pathStart, cursor - pathStart);
-            cursor++;
-
-            if (std::ranges::find(processedFiles, includePath) != processedFiles.end()) {
-                shaderSrc.replace(findStart, cursor - findStart, "// ignoring #include " + includePath + " (already included)");
-                continue;
-            }
-            logDebug("Processing include file \"%s\"", includePath.c_str());
-            processedFiles.push_back(includePath);
-            std::expected<std::string, std::string> includeSrc = Loader::readTextFile(includePath);
-            if (!includeSrc.has_value())
-                return std::unexpected(FW_UNEXP(includeSrc,
-                    "Failed to read include: " + shaderSrc.substr(findStart, cursor - findStart)));
-            // Replace the include directive with the actual source
-            shaderSrc.replace(findStart, cursor - findStart, includeSrc.value());
-        }
-#undef IN_BOUNDS
-
-        return shaderSrc;
     }
 
     void ShaderProgram::use() const {
@@ -218,11 +222,10 @@ namespace Engine {
         glUniformMatrix4fv(getUniformLoc(name), 1, GL_FALSE, &mat[0][0]);
     }
 
-    std::expected<void, std::string> ShaderProgram::bindUniformBlock(const std::string &name, const unsigned int bindingPoint) const {
+    std::expected<void, Error> ShaderProgram::bindUniformBlock(const std::string& name, const unsigned int bindingPoint) const {
         const unsigned int blockIndex = glGetUniformBlockIndex(programID, name.c_str());
         if (blockIndex == GL_INVALID_INDEX)
-            return UNEXPECTED_REF("Failed to get uniform block index");
-
+            return std::unexpected(ERROR("Failed to get uniform block index for " + name));
         glUniformBlockBinding(programID, blockIndex, bindingPoint);
         return {};
     }

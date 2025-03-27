@@ -1,19 +1,21 @@
 #include "engine/game.h"
 
+#include <imgui.h>
 #include <memory>
+#include <engine/loader/scene.h>
 #include <GL/glew.h>
 #include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <glm/ext/matrix_transform.hpp>
-#include <imgui.h>
+#include <glm/gtc/type_ptr.hpp>
 
-#include "engine/util/logging.h"
-#include "engine/state.h"
-#include "engine/render/frame_buffer.h"
 #include "camera_utils.h"
 #include "gui.h"
-#include "state.h"
 #include "skybox.h"
+#include "state.h"
+#include "engine/resources/resource_manager.h"
+#include "engine/state.h"
+#include "engine/render/frame_buffer.h"
+#include "engine/util/logging.h"
 
 GameState *gameState;
 
@@ -24,8 +26,8 @@ std::unique_ptr<FrameBuffer> frameBuffer;
 // This is TEMPORARY until I // TODO: Implement a concept of objects/levels/whatever
 std::vector<std::shared_ptr<Engine::Loader::Scene>> scenes;
 Skybox *skybox;
-Engine::GraphicsShader *mainShader;
-Engine::GraphicsShader *sbShader;
+std::shared_ptr<Engine::ShaderProgram> mainShader;
+std::shared_ptr<Engine::ShaderProgram> sbShader;
 
 bool setupGame() {
     gameState = new GameState();
@@ -45,18 +47,19 @@ bool setupGame() {
     glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);  // OpenGL's default NDC is [-1, 1], we want [0, 1]
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
-
-    mainShader = new Engine::GraphicsShader("resources/assets/shaders/vert.vert", "resources/assets/shaders/frag.frag");
+    mainShader = engineState->resourceManager.loadShader(
+        "resources/assets/shaders/vert.vert", "resources/assets/shaders/frag.frag");;
     mainShader->use();
     auto matricesBinding = mainShader->bindUniformBlock("Matrices", 0);
     if (!matricesBinding.has_value())
-        logError("Failed to bind matrices uniform block" NL_INDENT "%s", matricesBinding.error().c_str());
+        throw std::runtime_error(stringifyError(FW_ERROR(matricesBinding.error(), "Failed to bind matrices uniform block")));
 
-    sbShader = new Engine::GraphicsShader("resources/assets/shaders/sb_vert.vert", "resources/assets/shaders/sb_frag.frag");
+    sbShader = engineState->resourceManager.loadShader(
+        "resources/assets/shaders/sb_vert.vert", "resources/assets/shaders/sb_frag.frag");
     sbShader->use();
     matricesBinding = sbShader->bindUniformBlock("Matrices", 0);
     if (!matricesBinding.has_value())
-        logError("Failed to bind matrices uniform block" NL_INDENT "%s", matricesBinding.error().c_str());
+        throw std::runtime_error(stringifyError(FW_ERROR(matricesBinding.error(), "Failed to bind matrices uniform block")));
     skybox = new Skybox();
 
     glGenBuffers(1, &uboMatrices);
@@ -64,10 +67,7 @@ bool setupGame() {
     glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), nullptr, GL_STATIC_DRAW);
     glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
 
-    auto scene = engineState->sceneManager.getScene("resources/assets/models/map.obj");
-    if (!scene.has_value())
-        logError("Failed to load scene" NL_INDENT "%s", scene.error().c_str());
-    scenes.push_back(scene.value_or(engineState->sceneManager.errorScene));
+    scenes.push_back(engineState->resourceManager.loadScene("resources/assets/models/map.obj"));
 
     return true;
 }
@@ -75,8 +75,6 @@ void shutdownGame() {
     DebugGUI::shutdown();
     glDeleteBuffers(1, &uboMatrices);
     delete gameState;
-    delete mainShader;
-    delete sbShader;
     delete skybox;
 }
 bool pausedRenderUpdate(double deltaTime);
@@ -160,13 +158,13 @@ bool renderUpdate(const double deltaTime) {
     mainShader->setVec3("viewPos", gameState->playerState.origin);
 
     for (const auto &scene : scenes) {
-        auto drawRet = scene->Draw(engineState->textureManager, *mainShader, glm::mat4(1.0f));
+        auto drawRet = scene->Draw(engineState->resourceManager, *mainShader, glm::mat4(1.0f));
         if (!drawRet.has_value())
-            logError("Failed to draw scene" NL_INDENT "%s", drawRet.error().c_str());
+            reportError(FW_ERROR(drawRet.error(), "Failed to draw scene"));
     }
 
     const glm::mat4 trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.0f, -2.0f));
-    engineState->sceneManager.errorScene->Draw(engineState->textureManager, *mainShader, trans);
+    engineState->resourceManager.loadScene("INVALID_SCENE")->Draw(engineState->resourceManager, *mainShader, trans);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -174,11 +172,9 @@ bool renderUpdate(const double deltaTime) {
     // We render the skybox manually, since we don't need any of the fancy scene stuff
     sbShader->use();
 
-    std::expected<unsigned int, std::string> skyboxTex = engineState->textureManager.getTexture(
+    auto skyboxTex = engineState->resourceManager.loadTexture(
         "resources/assets/textures/skybox/sky.png", Engine::TextureType::CUBEMAP);
-    if (!skyboxTex.has_value())
-        logError("Failed to load skybox texture" NL_INDENT "%s", skyboxTex.error().c_str());
-    skybox->draw(skyboxTex.value_or(engineState->textureManager.errorTexture), *sbShader);
+    skybox->draw(skyboxTex->textureID, *sbShader);
 #pragma endregion
 
 #pragma region "Transfer color buffer to the default framebuffer before rendering overlays"
@@ -239,11 +235,12 @@ bool handleEvent(const SDL_Event &event) {
             }
             break;
         case SDL_MOUSEWHEEL:
-            if (!gameState->isPaused)
+            if (!gameState->isPaused) {
                 gameState->settings.baseFov -= static_cast<float>(event.wheel.y) * 2.0f;
                 // TODO: Don't adjust this directly when zooming, instead change a modifier on top of it
                 gameState->settings.baseFov = std::max(gameState->settings.baseFov, 0.1f);
                 gameState->settings.baseFov = std::min(gameState->settings.baseFov, 160.0f);
+            }
             break;
         case SDL_MOUSEMOTION:
             if (!gameState->isPaused && SDL_GetRelativeMouseMode()) {

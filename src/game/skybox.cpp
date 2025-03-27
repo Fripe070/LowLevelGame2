@@ -1,11 +1,13 @@
 #include "skybox.h"
 
 #include <array>
+#include <engine/loader/shader/shader.h>
 #include <GL/glew.h>
 
 #include "engine/util/geometry.h"
-#include "engine/loader/shader/graphics_shader.h"
 
+
+struct Error;
 
 Skybox::Skybox() {
     glGenVertexArrays(1, &VAO);
@@ -43,7 +45,7 @@ Skybox::Skybox(Skybox &&other) noexcept {
     BUFFERS_MV_FROM_TO(other, this);
 }
 
-std::expected<void, std::string> Skybox::draw(const unsigned int cubemap, const Engine::GraphicsShader &shader) const {
+void Skybox::draw(const unsigned int cubemap, const Engine::ShaderProgram &shader) const {
     glDepthFunc(GL_GEQUAL);
 
     shader.setInt("skybox", 0);
@@ -54,5 +56,4 @@ std::expected<void, std::string> Skybox::draw(const unsigned int cubemap, const 
     glDrawElements(GL_TRIANGLES, sizeof(CubeIndicesInside) / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
 
     glDepthFunc(GL_GREATER);  // Our default depth function
-    return {};
 }

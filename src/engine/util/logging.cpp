@@ -24,7 +24,8 @@ std::string glErrorString(const GLenum errorCode) {
 GLenum glLogErrors_(const char *file, const int line) {
     GLenum errorCode;
     while ((errorCode = glGetError()) != GL_NO_ERROR) {
-        logError("%s:%d OpenGL error: (%d) %s", file, line, errorCode, glErrorString(errorCode).c_str());
+        // logError("%s:%d OpenGL error: (%d) %s", file, line, errorCode, glErrorString(errorCode).c_str());
+        spdlog::get("opengl")->error("OpenGL error: ({}) {}", errorCode, glErrorString(errorCode));
     }
     return errorCode;
 }
@@ -32,7 +33,8 @@ GLenum glLogErrors_(const char *file, const int line) {
 GLenum glLogErrorsExtra_(const char *file, const int line, const char *extra) {
     GLenum errorCode;
     while ((errorCode = glGetError()) != GL_NO_ERROR) {
-        logError("%s:%d OpenGL error %s: (%d) %s", file, line, extra, errorCode, glErrorString(errorCode).c_str());
+        // logError("%s:%d OpenGL error %s: (%d) %s", file, line, extra, errorCode, glErrorString(errorCode).c_str());
+        spdlog::get("opengl")->error("OpenGL error {}: ({}) {}", extra, errorCode, glErrorString(errorCode));
     }
     return errorCode;
 }
@@ -40,12 +42,12 @@ GLenum glLogErrorsExtra_(const char *file, const int line, const std::string &ex
     return glLogErrorsExtra_(file, line, extra.c_str());
 }
 
-void GLAPIENTRY LogGlCallback(
-    GLenum source,
-    GLenum type,
-    GLuint id,
-    GLenum severity,
-    GLsizei length,
+void GLAPIENTRY LogGLCallback(
+    const GLenum source,
+    const GLenum type,
+    const GLuint id,
+    const GLenum severity,
+    const GLsizei length,
     const GLchar* message,
     const void* userParam
 ) {
@@ -74,20 +76,19 @@ void GLAPIENTRY LogGlCallback(
         {GL_DEBUG_SEVERITY_LOW, "Low"},
         {GL_DEBUG_SEVERITY_NOTIFICATION, "Notification"}
     };
-    std::unordered_map<GLenum, SDL_LogPriority> severitySDLMap = {
-        {GL_DEBUG_SEVERITY_HIGH, SDL_LOG_PRIORITY_CRITICAL},  // Real errors or really dangerous undefined behavior
-        {GL_DEBUG_SEVERITY_MEDIUM, SDL_LOG_PRIORITY_ERROR},  // Undefined behavior or major performance issues
-        {GL_DEBUG_SEVERITY_LOW, SDL_LOG_PRIORITY_WARN},  // Redundant state change or unimportant undefined behavior
-        {GL_DEBUG_SEVERITY_NOTIFICATION, SDL_LOG_PRIORITY_VERBOSE}
+    std::unordered_map<GLenum, spdlog::level::level_enum> severitySDLMap = {
+        {GL_DEBUG_SEVERITY_HIGH, spdlog::level::level_enum::critical},  // Real errors or really dangerous undefined behavior
+        {GL_DEBUG_SEVERITY_MEDIUM, spdlog::level::level_enum::err},  // Undefined behavior or major performance issues
+        {GL_DEBUG_SEVERITY_LOW, spdlog::level::level_enum::warn},  // Redundant state change or unimportant undefined behavior
+        {GL_DEBUG_SEVERITY_NOTIFICATION, spdlog::level::level_enum::trace}
     };
-    const auto err = severitySDLMap.find(severity);
-    const auto logPriority = err != severitySDLMap.end() ? err->second : SDL_LOG_PRIORITY_CRITICAL;
+    const auto errSeverity = severitySDLMap.find(severity);
+    const auto logPriority = errSeverity != severitySDLMap.end() ? errSeverity->second : spdlog::level::critical;
 
 #define KEY_OR_UNKNOWN(map, key) (map.find(key) != map.end() ? map[key] : "Unknown")
-    SDL_LogMessage(
-        SDL_LOG_CATEGORY_APPLICATION,
+    spdlog::get("opengl")->log(
         logPriority,
-        "OpenGL %s [%s] (%d) %s %s",
+        "{} [{}] ({}) {} {}",
         KEY_OR_UNKNOWN(sourceMap, source),
         KEY_OR_UNKNOWN(typeMap, type),
         id,
@@ -97,8 +98,7 @@ void GLAPIENTRY LogGlCallback(
 #undef KEY_OR_UNKNOWN
 }
 
-
-void LogSdlCallback(void*, int category, SDL_LogPriority priority, const char *message) {
+void LogSDLCallback(void*, int category, SDL_LogPriority priority, const char *message) {
     //TODO: Make better lmao
     static const std::unordered_map<SDL_LogPriority, spdlog::level::level_enum> priorityMap = {
         {SDL_LOG_PRIORITY_VERBOSE, spdlog::level::trace},
@@ -110,13 +110,15 @@ void LogSdlCallback(void*, int category, SDL_LogPriority priority, const char *m
     };
     const auto err = priorityMap.find(priority);
     const auto logLevel = err != priorityMap.end() ? err->second : spdlog::level::critical;
-    spdlog::log(logLevel, "{}", message);
+    // spdlog::log(logLevel, "{}", message);
+    spdlog::get("opengl")->log(logLevel, "{}", message);
 }
 
 void setupLogging() {
     const auto logger = spdlog::stdout_color_mt("console");
     spdlog::set_default_logger(logger);
-#ifndef NDEBUG
     spdlog::set_level(spdlog::level::debug);
-#endif
+
+    const auto openglLogger = spdlog::stdout_color_mt("opengl");
+    openglLogger->set_level(spdlog::level::debug);
 }

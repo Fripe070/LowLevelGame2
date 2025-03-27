@@ -42,14 +42,13 @@ sources = [
     'src/main.cpp',
     'src/engine/run.cpp',
     'src/engine/util/logging.cpp',
-    'src/engine/loader/shader/shader_program.cpp',
+    'src/engine/loader/shader/shader.cpp',
     'src/engine/loader/scene.cpp',
     'src/engine/loader/texture.cpp',
     'src/engine/loader/generic.cpp',
-    'src/engine/manager/texture.cpp',
-    'src/engine/manager/scene.cpp',
     'src/engine/render/overlay.cpp',
     'src/engine/render/frame_buffer.cpp',
+    'src/engine/resources/resource_manager.cpp',
 
     'src/game/game.cpp',
     'src/game/camera_utils.cpp',
@@ -57,6 +56,25 @@ sources = [
     'src/game/skybox.cpp',
     'src/game/gui.cpp',
 ]
+
+
+bin2h = executable('bin2h', 'tools/bin2h.cpp')
+static_binaries = [
+    ['resources/static/error.png', 'error_png'],
+    ['resources/static/error.obj', 'error_obj'],
+    ['resources/static/error_shader.vert', 'error_shader_vert'],
+    ['resources/static/error_shader.frag', 'error_shader_frag'],
+]
+foreach binary : static_binaries
+    out_header = custom_target(
+        'embed_binary_' + binary[1],
+        input: binary[0],
+        output: binary[1] + '.h',
+        command: [bin2h, '@INPUT@', '@OUTPUT@'],
+    )
+    sources += out_header
+endforeach
+
 
 exe = executable(
     'lowlevelgame', sources,

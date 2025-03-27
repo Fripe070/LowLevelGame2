@@ -1,8 +1,7 @@
 #pragma once
 #include <SDL_video.h>
 
-#include "manager/scene.h"
-#include "manager/texture.h"
+#include "engine/resources/resource_manager.h"
 
 struct EngineConfig {
     double deltaTimeLimit = 3.0;
@@ -21,8 +20,7 @@ struct EngineState {
 
     EngineConfig config{};
 
-    Engine::Manager::SceneManager sceneManager{};
-    Engine::Manager::TextureManager textureManager{};
+    Engine::ResourceManager resourceManager{};
 };
 
 /*!

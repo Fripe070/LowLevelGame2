@@ -4,16 +4,16 @@
 #include <vector>
 #include <glm/mat4x4.hpp>
 
-namespace Engine {
-    class GraphicsShader;
-    namespace Manager {
-        class TextureManager;
-    }
-}
-
+#include <engine/loader/shader/shader.h>
+#include <engine/util/error.h>
 
 // TODO: Bones and animations
 // TODO: We should stop using paths as IDs... maybe pull a minecraft and use some sort of namespace path hybrid?
+
+namespace Engine
+{
+    class ResourceManager;
+}
 
 namespace Engine::Loader {
     // TODO: Somehow couple materials and shaders. Perhaps materials should hold shared pointers to their shaders?
@@ -23,17 +23,17 @@ namespace Engine::Loader {
         std::string specularPath;
         float shininess;
 
-        std::expected<void, std::string> PopulateShader(const GraphicsShader &shader, Manager::TextureManager &textureManager) const;
+        std::expected<void, Error> PopulateShader(const ShaderProgram &shader, ResourceManager &resourceManager) const;
     };
 
     struct MeshVertex {
-        glm::vec3 Position;
-        glm::vec3 Normal;
+        glm::vec3 Position = glm::vec3(0.0f);
+        glm::vec3 Normal = glm::vec3(0.0f);
         // Yes, texture coordinates can be 3D
         // We only support a single set of texture coordinates atm
-        glm::vec2 TexCoords;
+        glm::vec2 TexCoords = glm::vec3(0.0f);
         // We only support a single vertex color atm
-        glm::vec4 Color;
+        glm::vec4 Color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
     };
     /*!
      * A mesh is a piece of geometry with a single material.
@@ -82,7 +82,8 @@ namespace Engine::Loader {
         std::vector<unsigned int> meshIndices;
     };
 
-    struct Scene {
+    class Scene {
+    public:
         Node rootNode;
         std::vector<Mesh> meshes;
         std::vector<Material> materials;
@@ -100,10 +101,13 @@ namespace Engine::Loader {
         Scene(Scene&& other) noexcept;
         Scene& operator=(Scene&& other) noexcept;
 
-        std::expected<void, std::string> Draw(Manager::TextureManager &textureManager, const GraphicsShader &shader, const glm::mat4 &modelTransform) const;
+        std::expected<void, Error> Draw(ResourceManager &resourceManager, const ShaderProgram &shader, const glm::mat4 &modelTransform) const;
     };
 
-    std::expected<Scene, std::string> loadScene(const std::string &path);
+    // TODO: Document
+
+    std::expected<Scene, Error> loadScene(const std::string &path);
+    std::expected<Scene, Error> loadScene(const unsigned char* data, int size);
 };
 
 

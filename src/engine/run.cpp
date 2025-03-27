@@ -13,14 +13,12 @@ EngineState *engineState;
 int run()
 {
 #pragma region Setup
-#ifndef NDEBUG
     setupLogging();
-    SDL_LogSetOutputFunction(LogSdlCallback, nullptr);
+    SDL_LogSetOutputFunction(LogSDLCallback, nullptr);
     SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);
-#endif
 
     if (0 > SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
-        logError("Couldn't initialize SDL: %s", SDL_GetError());
+        SPDLOG_ERROR("Couldn't initialize SDL: {}", SDL_GetError());
         return 1;
     }
 
@@ -31,7 +29,7 @@ int run()
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
     );
     if (!sdlWindow) {
-        logError("Couldn't create window: %s", SDL_GetError());
+        SPDLOG_ERROR("Couldn't create window: {}", SDL_GetError());
         SDL_Quit();
         return 1;
     }
@@ -46,7 +44,7 @@ int run()
 
     SDL_GLContext glContext = SDL_GL_CreateContext(sdlWindow);
     if (!glContext) {
-        logError("Couldn't create OpenGL context: %s", SDL_GetError());
+        SPDLOG_ERROR("Couldn't create OpenGL context: {}", SDL_GetError());
         SDL_DestroyWindow(sdlWindow);
         SDL_Quit();
         return -1;
@@ -55,7 +53,8 @@ int run()
 
     const GLenum glewError = glewInit();
     if (glewError != GLEW_OK) {
-        logError("Couldn't initialize GLEW: %s", glewGetErrorString(glewError));
+        // SPDLOG_ERROR("Couldn't initialize GLEW: {}", glewGetErrorString(glewError));
+        SPDLOG_ERROR(fmt::format("Couldn't initialize GLEW: {}", std::string(reinterpret_cast<const char*>(glewGetErrorString(glewError)))));
         SDL_GL_DeleteContext(glContext);
         SDL_DestroyWindow(sdlWindow);
         SDL_Quit();
@@ -66,12 +65,12 @@ int run()
     int glCtxFlags;
     glGetIntegerv(GL_CONTEXT_FLAGS, &glCtxFlags);
     if (glCtxFlags & GL_CONTEXT_FLAG_DEBUG_BIT) {
-        logDebug("OpenGL debug output enabled");
+        SPDLOG_DEBUG("OpenGL debug output enabled");
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallback(LogGlCallback, nullptr);
+        glDebugMessageCallback(LogGLCallback, nullptr);
     } else {
-        logWarn("OpenGL debug output not enabled");
+        SPDLOG_WARN("OpenGL debug output not available");
     }
 #endif
 
@@ -79,7 +78,7 @@ int run()
     engineState = new EngineState(sdlWindow, glContext);
 
     if (!setupGame()) {
-        logError("Setup failed");
+        SPDLOG_ERROR("Setup failed");
         goto quitNoShutdown;
     }
 #pragma endregion
@@ -109,7 +108,7 @@ int run()
 
             while (fixedAccumulator >= desiredFixedDT) {
                 if (!fixedUpdate(desiredFixedDT)) {
-                    logError("Fixed update failed");
+                    SPDLOG_ERROR("Fixed update failed");
                     goto quit;
                 }
                 fixedAccumulator -= desiredFixedDT;
@@ -123,7 +122,7 @@ int run()
                 switch (event.type) {
                     default: break;
                     case SDL_QUIT:
-                        logDebug("Received quit signal");
+                        SPDLOG_DEBUG("Received quit signal");
                         goto quit;
                     case SDL_WINDOWEVENT:
                         if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
@@ -138,7 +137,7 @@ int run()
             const bool renderSuccess = renderUpdate(deltaTime);
             glLogErrors();
             if (!renderSuccess) {
-                logError("Render update failed");
+                SPDLOG_ERROR("Render update failed");
                 goto quit;
             }
         }
@@ -150,7 +149,7 @@ quit:
     shutdownGame();
 quitNoShutdown:
     delete engineState;
-    logDebug("Shutting down");
+    SPDLOG_DEBUG("Shutting down");
     SDL_GL_DeleteContext(glContext);
     SDL_DestroyWindow(sdlWindow);
     SDL_Quit();
