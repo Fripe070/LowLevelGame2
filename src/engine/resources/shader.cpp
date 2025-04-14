@@ -5,6 +5,10 @@
 #include "engine/util/file.h"
 
 namespace Resource {
+    Shader::Shader(const unsigned int shaderProgramID) {
+        programID = shaderProgramID;
+    }
+
     Shader::Shader(const std::vector<unsigned int>& shaders) {
         const unsigned int progID = glCreateProgram();
         // Attach all shaders

@@ -74,8 +74,12 @@ int run()
     }
 #endif
 
-    // Loaded enough to create  the global state
+    // Loaded enough to create the global state
     engineState = new EngineState(sdlWindow, glContext);
+    Expected<void> managerResult = engineState->resourceManager.populateErrorResources();
+    if (!managerResult.has_value())
+        throw std::runtime_error(stringifyError(FW_ERROR(managerResult.error(),
+            "Failed to load resource manager error resources")));
 
     if (!setupGame()) {
         SPDLOG_ERROR("Setup failed");

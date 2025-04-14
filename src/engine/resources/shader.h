@@ -29,6 +29,12 @@ namespace Resource
          * @warning Passed stages will be deleted when we go out of scope. Do not use them elsewhere.
          */
         explicit Shader(const std::vector<unsigned int> &shaders);
+        /*!
+         * Creates a shader object around an existing shader program ID.
+         * @param shaderProgramID The ID of the shader program to use.
+         * @note There is little to no reason to use this constructor outside the engine itself.
+         */
+        explicit Shader(unsigned int shaderProgramID);
         ~Shader();
 
         // Non-copyable

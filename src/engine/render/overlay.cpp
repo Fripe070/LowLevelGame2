@@ -8,8 +8,8 @@
 
 ScreenOverlay::ScreenOverlay() {
     shader = engineState->resourceManager.loadShader({
-        {"resources/assets/shaders/overlay.vert", Resource::ShaderType::VERTEX},
-        {"resources/assets/shaders/overlay.frag", Resource::ShaderType::FRAGMENT}
+        {Resource::ShaderType::VERTEX, "resources/assets/shaders/overlay.vert"},
+        {Resource::ShaderType::FRAGMENT, "resources/assets/shaders/overlay.frag"}
     });
 
     glGenVertexArrays(1, &VAO);

@@ -132,6 +132,7 @@ namespace Resource::Loading {
 
     Expected<PBRMaterial> processMaterial(const aiMaterial *loadedMaterial) {
         PBRMaterial resultMaterial{
+            // TODO: Don't hardcode this
             .shader = engineState->resourceManager.loadShader(
                 "resources/assets/shaders/vert.vert",
                 "resources/assets/shaders/frag.frag"
