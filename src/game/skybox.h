@@ -1,18 +1,12 @@
 #pragma once
-
-namespace Engine {
-    class ShaderProgram;
-    namespace Manager {
-        class TextureManager;
-    }
-}
-
+#include <engine/resources/shader.h>
 
 class Skybox {
 public:
     Skybox();
     ~Skybox();
-    void draw(unsigned int cubemap, const Engine::ShaderProgram &shader) const;
+    // TODO: Terrible. Don't pass the shader around like this, instead access it from the resource manager
+    void draw(unsigned int cubemap, const Resource::Shader &shader) const;
 
 private:
     unsigned int VAO{}, VBO{}, EBO{};

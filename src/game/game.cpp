@@ -2,7 +2,7 @@
 
 #include <imgui.h>
 #include <memory>
-#include <engine/loader/scene.h>
+#include <engine/resources/scene.h>
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -24,10 +24,10 @@ unsigned int uboMatrices;
 std::unique_ptr<FrameBuffer> frameBuffer;
 
 // This is TEMPORARY until I // TODO: Implement a concept of objects/levels/whatever
-std::vector<std::shared_ptr<Engine::Loader::Scene>> scenes;
+std::vector<std::shared_ptr<Resource::Scene>> scenes;
 Skybox *skybox;
-std::shared_ptr<Engine::ShaderProgram> mainShader;
-std::shared_ptr<Engine::ShaderProgram> sbShader;
+std::shared_ptr<Resource::Shader> mainShader;
+std::shared_ptr<Resource::Shader> sbShader;
 
 bool setupGame() {
     gameState = new GameState();
@@ -158,13 +158,13 @@ bool renderUpdate(const double deltaTime) {
     mainShader->setVec3("viewPos", gameState->playerState.origin);
 
     for (const auto &scene : scenes) {
-        auto drawRet = scene->Draw(engineState->resourceManager, *mainShader, glm::mat4(1.0f));
+        auto drawRet = scene->Draw();
         if (!drawRet.has_value())
             reportError(FW_ERROR(drawRet.error(), "Failed to draw scene"));
     }
 
     const glm::mat4 trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.0f, -2.0f));
-    engineState->resourceManager.loadScene("INVALID_SCENE")->Draw(engineState->resourceManager, *mainShader, trans);
+    engineState->resourceManager.loadScene("INVALID_SCENE")->Draw(trans);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -173,7 +173,7 @@ bool renderUpdate(const double deltaTime) {
     sbShader->use();
 
     auto skyboxTex = engineState->resourceManager.loadTexture(
-        "resources/assets/textures/skybox/sky.png", Engine::TextureType::CUBEMAP);
+        "resources/assets/textures/skybox/sky.png", Resource::CUBEMAP);
     skybox->draw(skyboxTex->textureID, *sbShader);
 #pragma endregion
 

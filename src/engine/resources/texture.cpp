@@ -1,21 +1,20 @@
 #include "texture.h"
 
+#include <unordered_map>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
-#include <unordered_map>
-#include <GL/glew.h>
 
 #include "engine/util/error.h"
 #include "engine/util/logging.h"
 
-namespace Engine {
+namespace Resource {
     ManagedTexture::ManagedTexture(const unsigned int textureID): textureID(textureID) {}
     ManagedTexture::~ManagedTexture() {
         glDeleteTextures(1, &textureID);
     }
 }
 
-namespace Engine::Loader {
+namespace Resource::Loading {
     struct ImageData {
         int width, height, channelCount;
         stbi_uc *imgData;
@@ -24,7 +23,7 @@ namespace Engine::Loader {
      * Internal helper function to load an image from a file.
      * @attention You as the caller are responsible for freeing the allocated memory using `stbi_image_free`.
     */
-    std::expected<ImageData, Error> loadImage(const char *filePath) {
+    Expected<ImageData> loadImage(const char *filePath) {
         int width, height, channelCount;
         stbi_uc *imgData = stbi_load(filePath, &width, &height, &channelCount, 0);
         if (!imgData) {
@@ -34,7 +33,7 @@ namespace Engine::Loader {
         }
         return ImageData{width, height, channelCount, imgData};
     }
-    std::expected<ImageData, Error> loadImageMemory(const unsigned char *data, const int size) {
+    Expected<ImageData> loadImageMemory(const unsigned char *data, const int size) {
         int width, height, channelCount;
         stbi_uc *imgData = stbi_load_from_memory(data, size, &width, &height, &channelCount, 0);
         if (!imgData) {
@@ -77,22 +76,22 @@ namespace Engine::Loader {
 
     std::expected<unsigned int, Error> loadTexture(const char* filePath)
     {
-        std::expected<ImageData, Error> imgData = loadImage(filePath);
+        Expected<ImageData> imgData = loadImage(filePath);
         if (!imgData)
             return std::unexpected(FW_ERROR(imgData.error(), "Failed to load texture"));
         const std::expected<unsigned int, Error> texture = loadTexture(imgData.value());
-        SPDLOG_ERROR("Loaded texture \"{}\" with dimensions {}x{}", filePath, imgData->width, imgData->height);
+        SPDLOG_TRACE("Loaded texture \"{}\" with dimensions {}x{}", filePath, imgData->width, imgData->height);
         stbi_image_free(imgData->imgData);
         return texture;
     }
 
-    std::expected<unsigned int, Error> loadTexture(const unsigned char* data, int size)
+    std::expected<unsigned int, Error> loadTexture(const unsigned char* data, const int size)
     {
-        std::expected<ImageData, Error> imgData = loadImageMemory(data, size);
+        Expected<ImageData> imgData = loadImageMemory(data, size);
         if (!imgData)
             return std::unexpected(FW_ERROR(imgData.error(), "Failed to load texture from memory"));
         const std::expected<unsigned int, Error> texture = loadTexture(imgData.value());
-        SPDLOG_ERROR("Loaded texture from memory with dimensions %dx%d", imgData->width, imgData->height);
+        SPDLOG_TRACE("Loaded texture from memory with dimensions {}x{}", imgData->width, imgData->height);
         stbi_image_free(imgData->imgData);
         return texture;
     }
@@ -117,7 +116,7 @@ namespace Engine::Loader {
 
             const auto path = filePath.substr(0, extension_index) + "_" + dirMap.at(faceDir) + filePath.substr(extension_index);
 
-            std::expected<ImageData, Error> imgData = loadImage(path.c_str());
+            Expected<ImageData> imgData = loadImage(path.c_str());
             if (!imgData) {
                 glDeleteTextures(1, &textureID);
                 return std::unexpected(FW_ERROR(imgData.error(), "Failed to load cubemap texture"));

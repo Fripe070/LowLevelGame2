@@ -1,14 +1,6 @@
 #pragma once
 #include <array>
 
-#define BUFFERS_MV_FROM_TO(from, to) \
-    to->VAO = from.VAO; \
-    to->VBO = from.VBO; \
-    to->EBO = from.EBO; \
-    from.VAO = 0; \
-    from.VBO = 0; \
-    from.EBO = 0;
-
 
 enum CubeVertIndex {
     BOTTOM_LEFT_FRONT = 0,

@@ -1,10 +1,10 @@
 #pragma once
-#include <engine/loader/shader/shader.h>
+#include <engine/resources/shader.h>
 
 class ScreenOverlay {
   private:
-    Engine::ShaderProgram shader;
-    unsigned int VAO{}, VBO{}, EBO{};
+    std::shared_ptr<Resource::Shader> shader;
+    unsigned int VAO{}, VBO{};
   
   public:
     ScreenOverlay();

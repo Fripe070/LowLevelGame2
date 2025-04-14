@@ -1,7 +1,6 @@
 #include "skybox.h"
 
 #include <array>
-#include <engine/loader/shader/shader.h>
 #include <GL/glew.h>
 
 #include "engine/util/geometry.h"
@@ -37,15 +36,25 @@ Skybox &Skybox::operator=(Skybox &&other) noexcept {
         glDeleteVertexArrays(1, &VAO);
         glDeleteBuffers(1, &VBO);
         glDeleteBuffers(1, &EBO);
-        BUFFERS_MV_FROM_TO(other, this);
+        this->VAO = other.VAO;
+        this->VBO = other.VBO;
+        this->EBO = other.EBO;
+        other.VAO = 0;
+        other.VBO = 0;
+        other.EBO = 0;
     }
     return *this;
 }
 Skybox::Skybox(Skybox &&other) noexcept {
-    BUFFERS_MV_FROM_TO(other, this);
+    this->VAO = other.VAO;
+    this->VBO = other.VBO;
+    this->EBO = other.EBO;
+    other.VAO = 0;
+    other.VBO = 0;
+    other.EBO = 0;
 }
 
-void Skybox::draw(const unsigned int cubemap, const Engine::ShaderProgram &shader) const {
+void Skybox::draw(const unsigned int cubemap, const Resource::Shader &shader) const {
     glDepthFunc(GL_GEQUAL);
 
     shader.setInt("skybox", 0);

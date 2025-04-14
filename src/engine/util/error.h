@@ -15,9 +15,22 @@ struct Error {
     std::shared_ptr<Error> cause;
 };
 
+template<typename T>
+using Expected = std::expected<T, Error>;
+
+/*!
+ * Creates a new error with a message.
+ * @param message The error message.
+ */
 #define ERROR(message) Error{message, ErrorPos{__FILE__, __LINE__}, nullptr}
+/*!
+ * Creates a new error with a referenced cause.
+ * @param error The error that caused this error.
+ * @param message The error message.
+ */
 #define FW_ERROR(error, message) Error{message, ErrorPos{__FILE__, __LINE__}, std::make_shared<Error>(error)}
 
+/*! Transforms an error into a nicely formatted multiline string. */
 inline std::string stringifyError(Error error) {
     std::string message = error.message;
     while (error.cause) {
@@ -32,6 +45,7 @@ inline std::string stringifyError(Error error) {
     }
     return message;
 }
+/*! Logs an error to the console using spdlog with error severity. */
 inline void reportError(const Error& error) {
     SPDLOG_ERROR(stringifyError(error));
 }

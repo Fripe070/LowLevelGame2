@@ -1,5 +1,5 @@
-#include "engine/run.h"
 #include <SDL.h>
+#include "engine/run.h"
 
 int main(int, char**)
 {
