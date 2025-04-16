@@ -55,6 +55,9 @@ namespace Engine {
     std::shared_ptr<Resource::Scene>
     ResourceManager::loadScene(const std::string& scenePath)
     {
+        if (errorScene == nullptr)
+            throw std::runtime_error("Error scene is uninitialised. Refusing to proceed.");
+
         if (scenes.contains(scenePath)) {
             if (scenes[scenePath].expired())
                 scenes.erase(scenePath);
@@ -76,6 +79,9 @@ namespace Engine {
     std::shared_ptr<Resource::ManagedTexture>
     ResourceManager::loadTexture(const std::string& texturePath, const Resource::TextureType type)
     {
+        if (errorTexture == nullptr || errorTexture.get()->textureID == 0)
+            throw std::runtime_error("Error texture is uninitialised or invalid. Refusing to proceed.");
+
         if (textures.contains(texturePath)) {
             if (textures[texturePath].expired())
                 textures.erase(texturePath);
@@ -105,6 +111,9 @@ namespace Engine {
     std::shared_ptr<Resource::Shader>
     ResourceManager::loadShader(const std::map<Resource::ShaderType, std::string>& shaders)
     {
+        if (errorShader == nullptr || errorShader.get()->programID == 0)
+            throw std::runtime_error("Error shader is uninitialised or invalid. Refusing to proceed.");
+
         std::string jointPath; // Used as an identifier for this specific combo of shaders
         for (const auto& [type, path] : shaders)
             jointPath += path + std::to_string(type);

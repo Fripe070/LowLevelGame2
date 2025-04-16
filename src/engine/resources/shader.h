@@ -7,6 +7,11 @@
 
 #include "engine/util/error.h"
 
+namespace Engine
+{
+    class ResourceManager;
+}
+
 namespace Resource
 {
     enum ShaderType
@@ -21,6 +26,10 @@ namespace Resource
 
     class Shader {
     private:
+        friend class Engine::ResourceManager;
+        /*!
+         * OpenGL ID of the linked shader program.
+         */
         unsigned int programID;
     public:
         /*!
