@@ -1,6 +1,7 @@
 #include "resource_manager.h"
 
 #include <numeric>
+#include <spdlog/fmt/ranges.h>
 
 // Generated header files for embedded resources
 #include <error_obj.h>
@@ -55,6 +56,7 @@ namespace Engine {
     std::shared_ptr<Resource::Scene>
     ResourceManager::loadScene(const std::string& scenePath)
     {
+        SPDLOG_DEBUG("Loading scene: {}", scenePath);
         if (errorScene == nullptr)
             throw std::runtime_error("Error scene is uninitialised. Refusing to proceed.");
 
@@ -79,6 +81,7 @@ namespace Engine {
     std::shared_ptr<Resource::ManagedTexture>
     ResourceManager::loadTexture(const std::string& texturePath, const Resource::TextureType type)
     {
+        SPDLOG_DEBUG("Loading texture: {}", texturePath);
         if (errorTexture == nullptr || errorTexture.get()->textureID == 0)
             throw std::runtime_error("Error texture is uninitialised or invalid. Refusing to proceed.");
 
@@ -111,6 +114,7 @@ namespace Engine {
     std::shared_ptr<Resource::Shader>
     ResourceManager::loadShader(const std::map<Resource::ShaderType, std::string>& shaders)
     {
+        SPDLOG_DEBUG("Loading shaders: {}", fmt::join(shaders, " & "));
         if (errorShader == nullptr || errorShader.get()->programID == 0)
             throw std::runtime_error("Error shader is uninitialised or invalid. Refusing to proceed.");
 
