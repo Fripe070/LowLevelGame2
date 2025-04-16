@@ -24,7 +24,6 @@ std::string glErrorString(const GLenum errorCode) {
 GLenum glLogErrors_(const char *file, const int line) {
     GLenum errorCode;
     while ((errorCode = glGetError()) != GL_NO_ERROR) {
-        // logError("%s:%d OpenGL error: (%d) %s", file, line, errorCode, glErrorString(errorCode).c_str());
         spdlog::get("opengl")->error("OpenGL error: ({}) {}", errorCode, glErrorString(errorCode));
     }
     return errorCode;
@@ -33,7 +32,6 @@ GLenum glLogErrors_(const char *file, const int line) {
 GLenum glLogErrorsExtra_(const char *file, const int line, const char *extra) {
     GLenum errorCode;
     while ((errorCode = glGetError()) != GL_NO_ERROR) {
-        // logError("%s:%d OpenGL error %s: (%d) %s", file, line, extra, errorCode, glErrorString(errorCode).c_str());
         spdlog::get("opengl")->error("OpenGL error {}: ({}) {}", extra, errorCode, glErrorString(errorCode));
     }
     return errorCode;
@@ -110,7 +108,6 @@ void LogSDLCallback(void*, int category, SDL_LogPriority priority, const char *m
     };
     const auto err = priorityMap.find(priority);
     const auto logLevel = err != priorityMap.end() ? err->second : spdlog::level::critical;
-    // spdlog::log(logLevel, "{}", message);
     spdlog::get("opengl")->log(logLevel, "{}", message);
 }
 
