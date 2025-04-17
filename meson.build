@@ -67,13 +67,12 @@ static_binaries = [
     ['resources/static/error_shader.frag', 'error_shader_frag'],
 ]
 foreach binary : static_binaries
-    out_header = custom_target(
+    sources += custom_target(
         'embed_binary_' + binary[1],
         input: binary[0],
         output: binary[1] + '.h',
         command: [bin2h, '@INPUT@', '@OUTPUT@'],
     )
-    sources += out_header
 endforeach
 
 
