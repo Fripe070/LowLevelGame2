@@ -1,0 +1,74 @@
+name: Build meson project
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    name: ${{ matrix.os }} / ${{ matrix.compiler }} (${{ matrix.build_type }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        build_type: [release]
+
+        include:
+          # Linux Compilers
+          - os: ubuntu-latest
+            compiler: gcc
+          - os: ubuntu-latest
+            compiler: clang
+
+          # Windows Compilers
+          - os: windows-latest
+            compiler: msvc
+          - os: windows-latest
+            compiler: gcc
+          - os: windows-latest
+            compiler: clang
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up C++ environment
+      uses: aminya/setup-cpp@v1
+      with:
+        ninja: true
+        meson: true
+        cmake: true
+        compiler: ${{ matrix.compiler }}
+
+    - name: Install System Dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgl1-mesa-dev
+        
+    - name: Set reusable workflow outputs
+      id: set_outputs
+      shell: bash
+      run: |
+        echo "build-dir=${{ github.workspace }}/build" >> $GITHUB_OUTPUT
+
+    - name: Configure Meson
+      run: meson setup ${{ steps.set_outputs.outputs.build-dir }} --buildtype=${{ matrix.build_type }}
+
+    - name: Build
+      run: meson compile -C ${{ steps.set_outputs.outputs.build-dir }}
+
+    - name: Upload Build Artifacts
+      if: github.event_name == 'push'
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}
+        path: |
+          ${{ steps.set_outputs.outputs.build-dir }}/lowlevelgame
+          ${{ steps.set_outputs.outputs.build-dir }}/lowlevelgame.exe
+          ${{ github.workspace }}/resources/
+
+    - name: Run Tests
+      run: meson test -C ${{ steps.set_outputs.outputs.build-dir }} --print-errorlogs
