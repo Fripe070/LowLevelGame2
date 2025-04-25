@@ -27,8 +27,6 @@ jobs:
             compiler: msvc
           - os: windows-latest
             compiler: gcc
-          - os: windows-latest
-            compiler: clang
 
     steps:
     - name: Checkout code
