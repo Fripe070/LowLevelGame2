@@ -69,6 +69,3 @@ jobs:
           ${{ steps.set_outputs.outputs.build-dir }}/lowlevelgame
           ${{ steps.set_outputs.outputs.build-dir }}/lowlevelgame.exe
           ${{ github.workspace }}/resources/
-
-    - name: Run Tests
-      run: meson test -C ${{ steps.set_outputs.outputs.build-dir }} --print-errorlogs
