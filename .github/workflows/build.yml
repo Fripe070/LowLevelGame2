@@ -46,7 +46,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update
-        sudo apt-get install -y libgl1-mesa-dev
+        sudo apt-get install -y libglu1-mesa-dev libgl1-mesa-dev
         
     - name: Set reusable workflow outputs
       id: set_outputs
