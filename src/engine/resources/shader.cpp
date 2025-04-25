@@ -173,7 +173,7 @@ namespace Resource::Loading
 
     std::expected<std::string, Error> preprocessShaderSource(std::string shaderSrc) {
         constexpr auto includeDirective = "#include";
-        constexpr auto includeDirectiveLength = strlen(includeDirective);
+        const auto includeDirectiveLength = strlen(includeDirective);
 
         std::vector<std::string> processedFiles; // Avoid infinite recursion and unnecessary file reads
 
