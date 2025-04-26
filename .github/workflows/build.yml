@@ -3,6 +3,7 @@ name: Build meson project
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   build:
@@ -23,6 +24,15 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Cache Meson dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ github.workspace }}/subprojects/*/
+        key: ${{ runner.os }}-meson-${{ hashFiles('**/meson.build', '**/meson_options.txt', '**/subprojects/*.wrap') }}
+        restore-keys: |
+          ${{ runner.os }}-meson-
 
     - name: Set up C++ environment
       uses: aminya/setup-cpp@v1
