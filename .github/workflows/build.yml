@@ -14,19 +14,13 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
         build_type: [release]
+        compiler: [gcc, clang, msvc]
 
-        include:
-          # Linux Compilers
+        exclude:
           - os: ubuntu-latest
-            compiler: gcc
-          - os: ubuntu-latest
-            compiler: clang
-
-          # Windows Compilers
-          - os: windows-latest
             compiler: msvc
-          - os: windows-latest
-            compiler: gcc
+          - os: windows-latest # Issues with meson for whatever reason
+            compiler: clang
 
     steps:
     - name: Checkout code
