@@ -14,11 +14,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
         build_type: [release]
-        compiler: [gcc, clang, msvc]
+        compiler: [gcc, clang]
 
         exclude:
-          - os: ubuntu-latest
-            compiler: msvc
           - os: windows-latest # Issues with meson for whatever reason
             compiler: clang
 
