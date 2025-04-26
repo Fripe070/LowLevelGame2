@@ -60,12 +60,23 @@ jobs:
     - name: Build
       run: meson compile -C ${{ steps.set_outputs.outputs.build-dir }}
 
+
+    - name: Prepare Artifacts (Linux)
+      if: github.event_name == 'push' && runner.os == 'Linux'
+      run: |
+        cp ${{ steps.set_outputs.outputs.build-dir }}/lowlevelgame ${{ github.workspace }}/lowlevelgame
+
+    - name: Prepare Artifacts (Windows)
+      if: github.event_name == 'push' && runner.os == 'Windows'
+      run: |
+        cp ${{ steps.set_outputs.outputs.build-dir }}/lowlevelgame.exe ${{ github.workspace }}/lowlevelgame.exe
+
     - name: Upload Build Artifacts
       if: github.event_name == 'push'
       uses: actions/upload-artifact@v4
       with:
         name: build-${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}
         path: |
-          ${{ steps.set_outputs.outputs.build-dir }}/lowlevelgame
-          ${{ steps.set_outputs.outputs.build-dir }}/lowlevelgame.exe
+          ${{ github.workspace }}/lowlevelgame
+          ${{ github.workspace }}/lowlevelgame.exe
           ${{ github.workspace }}/resources/
