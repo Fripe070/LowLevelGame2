@@ -15,11 +15,12 @@ namespace Engine {
         std::unordered_map<std::string, std::weak_ptr<Resource::Shader>> shaders{};
         std::unordered_map<std::string, std::weak_ptr<Resource::ManagedTexture>> textures{};
         std::unordered_map<std::string, std::weak_ptr<Resource::Scene>> scenes{};
-
+    public:
         std::shared_ptr<Resource::Shader> errorShader;
         std::shared_ptr<Resource::ManagedTexture> errorTexture;
+        std::shared_ptr<Resource::ManagedTexture> errorCubemap;
         std::shared_ptr<Resource::Scene> errorScene;
-    public:
+
         /*!
          * @brief Creates a resource manager.
          * @note The constructor  will not load any resources and the manager will be in a largely INVALID state.
@@ -32,6 +33,7 @@ namespace Engine {
          */
         [[nodiscard]] Expected<void> populateErrorResources();
 
+    public:
         // Shader
         [[nodiscard]] std::shared_ptr<Resource::Shader>
         loadShader(const std::map<Resource::ShaderType, std::string>& shaders);
@@ -44,7 +46,9 @@ namespace Engine {
 
         // Texture
         [[nodiscard]] std::shared_ptr<Resource::ManagedTexture>
-        loadTexture(const std::string &texturePath, Resource::TextureType type = Resource::TextureType::TEXTURE_2D);
+        loadTexture(const std::string &texturePath);
+        [[nodiscard]] std::shared_ptr<Resource::ManagedTexture>
+        loadCubemap(const std::string &cubemapPath);
 
         // Scene
         [[nodiscard]] std::shared_ptr<Resource::Scene>

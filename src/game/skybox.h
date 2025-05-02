@@ -1,16 +1,22 @@
 #pragma once
 #include <engine/resources/shader.h>
 
+#include "engine/resources/texture.h"
+
 class Skybox {
 public:
+    std::shared_ptr<Resource::ManagedTexture> cubemap;
+    std::shared_ptr<Resource::Shader> shader;
+
     Skybox();
+    Skybox(const std::shared_ptr<Resource::ManagedTexture>& cubemap);
     ~Skybox();
-    // TODO: Terrible. Don't pass the shader around like this, instead access it from the resource manager
-    void draw(unsigned int cubemap, const Resource::Shader &shader) const;
+
+    void draw() const;
 
 private:
     unsigned int VAO{}, VBO{}, EBO{};
-
+    void initGL();
 public:
     // Non-copyable
     Skybox(const Skybox&) = delete;

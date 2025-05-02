@@ -6,11 +6,6 @@
 
 namespace Resource
 {
-    enum TextureType {
-        TEXTURE_2D,
-        CUBEMAP
-    };
-
     /*!
      * Class that stores an OpenGL texture ID and deletes it when it goes out of scope
      */
@@ -48,5 +43,31 @@ namespace Resource::Loading
      * @attention If returned successfully, it is YOUR responsibility to free the memory allocated by opengl.
      * @note The file name suffixes are: `_right`, `_left`, `_top`, `_bottom`, `_front`, `_back`.
      */
-    std::expected<unsigned int, Error> loadCubeMap(const std::string& filePath);
+    std::expected<unsigned int, Error> loadCubemap(const std::string& filePath);
+    /*!
+     * Loads a cubemap texture from a set of data.
+     * @param data The data for each side of the cubemap.
+     * @param sizes The sizes of each side of the cubemap.
+     * @return The texture ID if successful, or an error if not.
+     * @attention If returned successfully, it is YOUR responsibility to free the memory allocated by opengl.
+     */
+    std::expected<unsigned int, Error> loadCubemap(
+        const std::array<const unsigned char*, 6>& data,
+        const std::array<int, 6>& sizes);
+
+    /*!
+     * Loads a cubemap texture from a single file to be used for all sides.
+     * @param filePath The path to the file.
+     * @return The texture ID if successful, or an error if not.
+     * @attention If returned successfully, it is YOUR responsibility to free the memory allocated by opengl.
+     */
+    std::expected<unsigned int, Error> loadCubemapSingle(const std::string& filePath);
+    /*!
+     * Loads a cubemap texture from a single byte array to be used for all sides.
+     * @param data Byte array of the image data.
+     * @param size The size of the byte array.
+     * @return The texture ID if successful, or an error if not.
+     * @attention If returned successfully, it is YOUR responsibility to free the memory allocated by opengl.
+     */
+    std::expected<unsigned int, Error> loadCubemapSingle(const unsigned char* data, int size);
 }

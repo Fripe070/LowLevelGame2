@@ -25,6 +25,11 @@ namespace Engine {
         if (!tmpTex.has_value())
             return std::unexpected(FW_ERROR(tmpTex.error(), "Failed to load error texture"));
         errorTexture = std::make_shared<Resource::ManagedTexture>(tmpTex.value());
+        // CUBEMAP
+        const auto tmpCubemap = Resource::Loading::loadCubemapSingle(BIN_ERROR_PNG.data(), BIN_ERROR_PNG.size());
+        if (!tmpCubemap.has_value())
+            return std::unexpected(FW_ERROR(tmpCubemap.error(), "Failed to load error cubemap"));
+        errorCubemap = std::make_shared<Resource::ManagedTexture>(tmpCubemap.value());
 
         // SHADER
         const auto vertShaderID = Resource::Loading::loadGLShaderSource(
@@ -79,10 +84,10 @@ namespace Engine {
     }
 
     std::shared_ptr<Resource::ManagedTexture>
-    ResourceManager::loadTexture(const std::string& texturePath, const Resource::TextureType type)
+    ResourceManager::loadTexture(const std::string& texturePath)
     {
         SPDLOG_DEBUG("Loading texture: {}", texturePath);
-        if (errorTexture == nullptr || errorTexture.get()->textureID == 0)
+        if (errorTexture == nullptr || errorTexture->textureID == 0)
             throw std::runtime_error("Error texture is uninitialised or invalid. Refusing to proceed.");
 
         if (textures.contains(texturePath)) {
@@ -92,14 +97,7 @@ namespace Engine {
                 return textures[texturePath].lock();
         }
 
-        std::expected<unsigned int, Error> textureID;
-        switch (type) {
-            case Resource::TextureType::TEXTURE_2D: textureID = Resource::Loading::loadTexture(texturePath.c_str()); break;
-            case Resource::TextureType::CUBEMAP:    textureID = Resource::Loading::loadCubeMap(texturePath); break;
-            default:
-                reportError(ERROR(fmt::format("Unknown texture type: {}", static_cast<int>(type))));
-                return errorTexture;
-        }
+        std::expected<unsigned int, Error> textureID = Resource::Loading::loadTexture(texturePath.c_str());
         if (!textureID.has_value()) {
             textures[texturePath] = errorTexture;  // Only error once, then use the error texture
             reportError(FW_ERROR(textureID.error(), "Failed to load uncached texture"));
@@ -108,6 +106,34 @@ namespace Engine {
 
         auto ptr = std::make_shared<Resource::ManagedTexture>(textureID.value());
         textures[texturePath] = ptr;
+        return ptr;
+    }
+
+    std::shared_ptr<Resource::ManagedTexture>
+    ResourceManager::loadCubemap(const std::string& cubemapPath)
+    {
+        SPDLOG_DEBUG("Loading cubemap: {}", cubemapPath);
+        if (errorCubemap == nullptr || errorCubemap->textureID == 0)
+            throw std::runtime_error("Error cubemap is uninitialised or invalid. Refusing to proceed.");
+
+        // TODO: This could conflict with a texture with the same name...
+        //  I need to figure out a better solution for identifying resources
+        if (textures.contains(cubemapPath)) {
+            if (textures[cubemapPath].expired())
+                textures.erase(cubemapPath);
+            else
+                return textures[cubemapPath].lock();
+        }
+
+        std::expected<unsigned int, Error> cubemapID = Resource::Loading::loadCubemap(cubemapPath);
+        if (!cubemapID.has_value()) {
+            textures[cubemapPath] = errorCubemap;  // Only error once, then use the error cubemap
+            reportError(FW_ERROR(cubemapID.error(), "Failed to load uncached cubemap"));
+            return errorCubemap;
+        }
+
+        auto ptr = std::make_shared<Resource::ManagedTexture>(cubemapID.value());
+        textures[cubemapPath] = ptr;
         return ptr;
     }
 

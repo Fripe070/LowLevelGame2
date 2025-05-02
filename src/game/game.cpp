@@ -27,7 +27,6 @@ std::unique_ptr<FrameBuffer> frameBuffer;
 std::vector<std::shared_ptr<Resource::Scene>> scenes;
 Skybox *skybox;
 std::shared_ptr<Resource::Shader> mainShader;
-std::shared_ptr<Resource::Shader> sbShader;
 
 bool setupGame() {
     gameState = new GameState();
@@ -54,13 +53,14 @@ bool setupGame() {
     if (!matricesBinding.has_value())
         throw std::runtime_error(stringifyError(FW_ERROR(matricesBinding.error(), "Failed to bind matrices uniform block")));
 
-    sbShader = engineState->resourceManager.loadShader(
+    // TODO: So super duper mega ultra scuffed and a remnant from when we initialised the skybox stuff manually each frame
+    const std::shared_ptr<Resource::Shader> sbShader = engineState->resourceManager.loadShader(
         "resources/assets/shaders/sb_vert.vert", "resources/assets/shaders/sb_frag.frag");
     sbShader->use();
     matricesBinding = sbShader->bindUniformBlock("Matrices", 0);
     if (!matricesBinding.has_value())
         throw std::runtime_error(stringifyError(FW_ERROR(matricesBinding.error(), "Failed to bind matrices uniform block")));
-    skybox = new Skybox();
+    skybox = new Skybox(engineState->resourceManager.loadCubemap("resources/assets/textures/skybox/sky.png"));
 
     glGenBuffers(1, &uboMatrices);
     glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
@@ -169,12 +169,7 @@ bool renderUpdate(const double deltaTime) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 #pragma region Skybox
-    // We render the skybox manually, since we don't need any of the fancy scene stuff
-    sbShader->use();
-
-    auto skyboxTex = engineState->resourceManager.loadTexture(
-        "resources/assets/textures/skybox/sky.png", Resource::CUBEMAP);
-    skybox->draw(skyboxTex->textureID, *sbShader);
+    skybox->draw();
 #pragma endregion
 
 #pragma region "Transfer color buffer to the default framebuffer before rendering overlays"

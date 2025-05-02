@@ -1,6 +1,5 @@
 #include "texture.h"
 
-#include <unordered_map>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
@@ -44,7 +43,7 @@ namespace Resource::Loading {
         return ImageData{width, height, channelCount, imgData};
     }
 
-    GLint getChannelCount(const int channelCount) {
+    GLint getGLChannels(const int channelCount) {
         switch (channelCount) {
             case 1: return GL_RED;
             case 3: return GL_RGB;
@@ -57,7 +56,7 @@ namespace Resource::Loading {
     }
 
     std::expected<unsigned int, Error> loadTexture(const ImageData& imgData) {
-        const GLint format = getChannelCount(imgData.channelCount);
+        const GLint format = getGLChannels(imgData.channelCount);
 
         unsigned int textureID;
         glGenTextures(1, &textureID);
@@ -96,37 +95,162 @@ namespace Resource::Loading {
         return texture;
     }
 
-    std::expected<unsigned int, Error> loadCubeMap(const std::string& filePath) {
+    constexpr std::array<std::string, 6> cubemapFaces = {"right", "left", "top", "bottom", "front", "back"};
+
+    std::expected<unsigned int, Error> loadCubemap(const std::string& filePath) {
         unsigned int textureID;
         glGenTextures(1, &textureID);
         glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 
-        const std::pmr::unordered_map<GLint, std::string> dirMap = {
-            {GL_TEXTURE_CUBE_MAP_POSITIVE_X, "right"},
-            {GL_TEXTURE_CUBE_MAP_NEGATIVE_X, "left"},
-            {GL_TEXTURE_CUBE_MAP_POSITIVE_Y, "top"},
-            {GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, "bottom"},
-            {GL_TEXTURE_CUBE_MAP_POSITIVE_Z, "front"},
-            {GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, "back"}
-        };
-
         const auto extension_index = filePath.find_last_of('.');
-        for (int i = 0; i < 6; i++) {
-            const GLint faceDir = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
+        const auto pathPrefix = filePath.substr(0, extension_index) + "_";
 
-            const auto path = filePath.substr(0, extension_index) + "_" + dirMap.at(faceDir) + filePath.substr(extension_index);
+        ImageData firstData = {};
+        for (int i = 0; i < 6; i++) {
+            const std::string path = pathPrefix + cubemapFaces[i] + filePath.substr(extension_index);
 
             Expected<ImageData> imgData = loadImage(path.c_str());
             if (!imgData) {
                 glDeleteTextures(1, &textureID);
                 return std::unexpected(FW_ERROR(imgData.error(), "Failed to load cubemap texture"));
             }
-            SPDLOG_DEBUG("Loaded cubemap %s texture \"%s\" with dimensions %dx%d", dirMap.at(faceDir).c_str(), path.c_str(), imgData->width, imgData->height);
+            if (imgData->width != imgData->height) {
+                glDeleteTextures(1, &textureID);
+                stbi_image_free(imgData->imgData);
+                return std::unexpected(ERROR("Cubemap texture must be square"));
+            }
+            if (i == 0)
+                firstData = imgData.value();
+            else if (imgData->width != firstData.width || imgData->channelCount != firstData.channelCount) {
+                glDeleteTextures(1, &textureID);
+                stbi_image_free(imgData->imgData);
+                return std::unexpected(ERROR("Cubemap texture faces must have the same dimensions and channel counts"));
+            }
+            SPDLOG_DEBUG("Loaded cubemap %s texture \"%s\" with dimensions %dx%d",
+                cubemapFaces[i].c_str(), path.c_str(), imgData->width, imgData->height);
 
-            const GLint format = getChannelCount(imgData->channelCount);
+            const GLint faceDir = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
+            assert(faceDir >= GL_TEXTURE_CUBE_MAP_POSITIVE_X && faceDir <= GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
+
+            const GLint format = getGLChannels(imgData->channelCount);
+            glTexImage2D(faceDir,
+                0, format, imgData->width, imgData->height, 0, format, GL_UNSIGNED_BYTE, imgData->imgData);
+            stbi_image_free(imgData->imgData);
+        }
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        return textureID;
+    }
+    std::expected<unsigned int, Error> loadCubemap(const std::array<const unsigned char*, 6>& data, const std::array<int, 6>& sizes)
+    {
+        unsigned int textureID;
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+        ImageData firstData = {};
+        for (int i = 0; i < 6; i++) {
+            Expected<ImageData> imgData = loadImageMemory(data[i], sizes[i]);
+            if (!imgData) {
+                glDeleteTextures(1, &textureID);
+                return std::unexpected(FW_ERROR(imgData.error(), "Failed to load cubemap texture"));
+            }
+            if (imgData->width != imgData->height) {
+                glDeleteTextures(1, &textureID);
+                stbi_image_free(imgData->imgData);
+                return std::unexpected(ERROR("Cubemap texture must be square"));
+            }
+            if (i == 0)
+                firstData = imgData.value();
+            else if (imgData->width != firstData.width || imgData->channelCount != firstData.channelCount) {
+                glDeleteTextures(1, &textureID);
+                stbi_image_free(imgData->imgData);
+                return std::unexpected(ERROR("Cubemap texture faces must have the same dimensions and channel counts"));
+            }
+            SPDLOG_DEBUG("Loaded cubemap %d texture with dimensions %dx%d",
+                cubemapFaces[i].c_str(), imgData->width, imgData->height);
+
+            const GLint faceDir = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
+            assert(faceDir >= GL_TEXTURE_CUBE_MAP_POSITIVE_X && faceDir <= GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
+
+            const GLint format = getGLChannels(imgData->channelCount);
+            glTexImage2D(faceDir,
+                0, format, imgData->width, imgData->height, 0, format, GL_UNSIGNED_BYTE, imgData->imgData);
+            stbi_image_free(imgData->imgData);
+        }
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        return textureID;
+    }
+
+    std::expected<unsigned int, Error> loadCubemapSingle(const std::string& filePath)
+    {
+        unsigned int textureID;
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+        Expected<ImageData> imgData = loadImage(filePath.c_str());
+        if (!imgData) {
+            glDeleteTextures(1, &textureID);
+            return std::unexpected(FW_ERROR(imgData.error(), "Failed to load cubemap texture"));
+        }
+        if (imgData->width != imgData->height) {
+            glDeleteTextures(1, &textureID);
+            stbi_image_free(imgData->imgData);
+            return std::unexpected(ERROR("Cubemap texture must be square"));
+        }
+
+        const GLint format = getGLChannels(imgData->channelCount);
+        for (int i = 0; i < 6; i++) {
+            const GLint faceDir = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
+            assert(faceDir >= GL_TEXTURE_CUBE_MAP_POSITIVE_X && faceDir <= GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
             glTexImage2D(faceDir,
                 0, format, imgData->width, imgData->height, 0, format, GL_UNSIGNED_BYTE, imgData->imgData);
         }
+        stbi_image_free(imgData->imgData);
+
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        return textureID;
+    }
+
+    std::expected<unsigned int, Error> loadCubemapSingle(const unsigned char* data, int size)
+    {
+        unsigned int textureID;
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+        Expected<ImageData> imgData = loadImageMemory(data, size);
+        if (!imgData) {
+            glDeleteTextures(1, &textureID);
+            return std::unexpected(FW_ERROR(imgData.error(), "Failed to load cubemap texture"));
+        }
+        if (imgData->width != imgData->height) {
+            glDeleteTextures(1, &textureID);
+            stbi_image_free(imgData->imgData);
+            return std::unexpected(ERROR("Cubemap texture must be square"));
+        }
+
+        const GLint format = getGLChannels(imgData->channelCount);
+        for (int i = 0; i < 6; i++) {
+            const GLint faceDir = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
+            assert(faceDir >= GL_TEXTURE_CUBE_MAP_POSITIVE_X && faceDir <= GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
+            glTexImage2D(faceDir,
+                0, format, imgData->width, imgData->height, 0, format, GL_UNSIGNED_BYTE, imgData->imgData);
+        }
+        stbi_image_free(imgData->imgData);
+
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);

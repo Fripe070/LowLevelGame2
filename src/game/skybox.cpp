@@ -3,12 +3,26 @@
 #include <array>
 #include <GL/glew.h>
 
+#include "engine/state.h"
 #include "engine/util/geometry.h"
 
 
-struct Error;
+void Skybox::draw() const
+{
+    glDepthFunc(GL_GEQUAL);
 
-Skybox::Skybox() {
+    shader->use();
+    shader->setInt("skybox", 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap->textureID);
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, sizeof(CubeIndicesInside) / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
+
+    glDepthFunc(GL_GREATER);  // Our default depth function
+}
+
+void Skybox::initGL() {
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
@@ -24,6 +38,22 @@ Skybox::Skybox() {
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
     glEnableVertexAttribArray(0);
+}
+
+Skybox::Skybox()
+{
+    shader = engineState->resourceManager.loadShader(
+        "resources/assets/shaders/sb_vert.vert", "resources/assets/shaders/sb_frag.frag");
+    this->cubemap = engineState->resourceManager.errorCubemap;
+    initGL();
+}
+
+Skybox::Skybox(const std::shared_ptr<Resource::ManagedTexture>& cubemap)
+{
+    shader = engineState->resourceManager.loadShader(
+        "resources/assets/shaders/sb_vert.vert", "resources/assets/shaders/sb_frag.frag");
+    this->cubemap = cubemap;
+    initGL();
 }
 
 Skybox::~Skybox() {
@@ -52,17 +82,4 @@ Skybox::Skybox(Skybox &&other) noexcept {
     other.VAO = 0;
     other.VBO = 0;
     other.EBO = 0;
-}
-
-void Skybox::draw(const unsigned int cubemap, const Resource::Shader &shader) const {
-    glDepthFunc(GL_GEQUAL);
-
-    shader.setInt("skybox", 0);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
-
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, sizeof(CubeIndicesInside) / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
-
-    glDepthFunc(GL_GREATER);  // Our default depth function
 }
