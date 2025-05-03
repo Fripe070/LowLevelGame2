@@ -68,30 +68,23 @@ void GLAPIENTRY LogGLCallback(
         {GL_DEBUG_TYPE_POP_GROUP, "Pop group"},
         {GL_DEBUG_TYPE_OTHER, "Other"}
     };
-    std::unordered_map<GLenum, const char*> severityMap = {
-        {GL_DEBUG_SEVERITY_HIGH, "High"},
-        {GL_DEBUG_SEVERITY_MEDIUM, "Medium"},
-        {GL_DEBUG_SEVERITY_LOW, "Low"},
-        {GL_DEBUG_SEVERITY_NOTIFICATION, "Notification"}
-    };
-    std::unordered_map<GLenum, spdlog::level::level_enum> severitySDLMap = {
+    std::unordered_map<GLenum, spdlog::level::level_enum> severityMap = {
         {GL_DEBUG_SEVERITY_HIGH, spdlog::level::level_enum::critical},  // Real errors or really dangerous undefined behavior
         {GL_DEBUG_SEVERITY_MEDIUM, spdlog::level::level_enum::err},  // Undefined behavior or major performance issues
         {GL_DEBUG_SEVERITY_LOW, spdlog::level::level_enum::warn},  // Redundant state change or unimportant undefined behavior
         {GL_DEBUG_SEVERITY_NOTIFICATION, spdlog::level::level_enum::trace}
     };
-    const auto errSeverity = severitySDLMap.find(severity);
-    const auto logPriority = errSeverity != severitySDLMap.end() ? errSeverity->second : spdlog::level::critical;
+    const auto errSeverity = severityMap.find(severity);
+    const auto logPriority = errSeverity != severityMap.end() ? errSeverity->second : spdlog::level::critical;
 
 #define KEY_OR_UNKNOWN(map, key) (map.find(key) != map.end() ? map[key] : "Unknown")
     spdlog::get("opengl")->log(
         logPriority,
-        "{} [{}] ({}) {} {}",
+        "{} [{}] ({}) {}",
         KEY_OR_UNKNOWN(sourceMap, source),
         KEY_OR_UNKNOWN(typeMap, type),
         id,
-        KEY_OR_UNKNOWN(severityMap, severity),
-        message
+        KEY_OR_UNKNOWN(severityMap, severity)
     );
 #undef KEY_OR_UNKNOWN
 }
