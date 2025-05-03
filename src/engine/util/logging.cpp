@@ -77,16 +77,14 @@ void GLAPIENTRY LogGLCallback(
     const auto errSeverity = severityMap.find(severity);
     const auto logPriority = errSeverity != severityMap.end() ? errSeverity->second : spdlog::level::critical;
 
-#define KEY_OR_UNKNOWN(map, key) (map.find(key) != map.end() ? map[key] : "Unknown")
     spdlog::get("opengl")->log(
         logPriority,
-        "{} [{}] ({}) {}",
-        KEY_OR_UNKNOWN(sourceMap, source),
-        KEY_OR_UNKNOWN(typeMap, type),
+        "[from:{}] [type:{}] (id:{}) : {}",
+        sourceMap.contains(source) ? sourceMap[source] : "Unknown",
+        typeMap.contains(type) ? typeMap[type] : "Unknown",
         id,
-        KEY_OR_UNKNOWN(severityMap, severity)
+        message
     );
-#undef KEY_OR_UNKNOWN
 }
 
 void LogSDLCallback(void*, int category, SDL_LogPriority priority, const char *message) {
