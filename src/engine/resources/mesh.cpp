@@ -93,6 +93,7 @@ namespace Resource {
         shader->setMat3("mTransposed", glm::mat3(glm::transpose(glm::inverse(modelTransform))));
 
         bindBuffers();
+        assert(!indices.empty() && indices.size() < std::numeric_limits<GLsizei>::max());
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
         return {};
     }
