@@ -119,6 +119,11 @@ namespace Resource::Loading {
         Node resultNode;
         resultNode.transform = UNPACK_MAT4(loadedNode->mTransformation);
 
+        resultNode.meshIndices.reserve(loadedNode->mNumMeshes);
+        for (unsigned int i = 0; i < loadedNode->mNumMeshes; i++) {
+            resultNode.meshIndices.push_back(loadedNode->mMeshes[i]);
+        }
+
         resultNode.children.reserve(loadedNode->mNumChildren);
         for (unsigned int i = 0; i < loadedNode->mNumChildren; i++) {
             Expected<Node> result = processNode(loadedNode->mChildren[i]);
