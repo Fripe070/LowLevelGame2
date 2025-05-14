@@ -1,12 +1,10 @@
-#ifndef ScreenOverlay_H
-#define ScreenOverlay_H
-
-#include <engine/loader/shader/graphics_shader.h>
+#pragma once
+#include <engine/resources/shader.h>
 
 class ScreenOverlay {
   private:
-    Engine::GraphicsShader shader;
-    unsigned int VAO{}, VBO{}, EBO{};
+    std::shared_ptr<Resource::Shader> shader;
+    unsigned int VAO{}, VBO{};
   
   public:
     ScreenOverlay();
@@ -23,4 +21,3 @@ class ScreenOverlay {
 };
 
 
-#endif

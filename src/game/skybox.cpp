@@ -1,12 +1,28 @@
 #include "skybox.h"
 
 #include <array>
-#include <engine/loader/shader/graphics_shader.h>
 #include <GL/glew.h>
-#include <engine/util/geometry.h>
+
+#include "engine/state.h"
+#include "engine/util/geometry.h"
 
 
-Skybox::Skybox() {
+void Skybox::draw() const
+{
+    glDepthFunc(GL_GEQUAL);
+
+    shader->use();
+    shader->setInt("skybox", 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap->textureID);
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, sizeof(CubeIndicesInside) / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
+
+    glDepthFunc(GL_GREATER);  // Our default depth function
+}
+
+void Skybox::initGL() {
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
@@ -24,6 +40,22 @@ Skybox::Skybox() {
     glEnableVertexAttribArray(0);
 }
 
+Skybox::Skybox()
+{
+    shader = engineState->resourceManager.loadShader(
+        "resources/assets/shaders/sb_vert.vert", "resources/assets/shaders/sb_frag.frag");
+    this->cubemap = engineState->resourceManager.errorCubemap;
+    initGL();
+}
+
+Skybox::Skybox(const std::shared_ptr<Resource::ManagedTexture>& cubemap)
+{
+    shader = engineState->resourceManager.loadShader(
+        "resources/assets/shaders/sb_vert.vert", "resources/assets/shaders/sb_frag.frag");
+    this->cubemap = cubemap;
+    initGL();
+}
+
 Skybox::~Skybox() {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
@@ -34,24 +66,20 @@ Skybox &Skybox::operator=(Skybox &&other) noexcept {
         glDeleteVertexArrays(1, &VAO);
         glDeleteBuffers(1, &VBO);
         glDeleteBuffers(1, &EBO);
-        BUFFERS_MV_FROM_TO(other, this);
+        this->VAO = other.VAO;
+        this->VBO = other.VBO;
+        this->EBO = other.EBO;
+        other.VAO = 0;
+        other.VBO = 0;
+        other.EBO = 0;
     }
     return *this;
 }
 Skybox::Skybox(Skybox &&other) noexcept {
-    BUFFERS_MV_FROM_TO(other, this);
-}
-
-std::expected<void, std::string> Skybox::draw(const unsigned int cubemap, const Engine::GraphicsShader &shader) const {
-    glDepthFunc(GL_GEQUAL);
-
-    shader.setInt("skybox", 0);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
-
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, sizeof(CubeIndicesInside) / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
-
-    glDepthFunc(GL_GREATER);  // Our default depth function
-    return {};
+    this->VAO = other.VAO;
+    this->VBO = other.VBO;
+    this->EBO = other.EBO;
+    other.VAO = 0;
+    other.VBO = 0;
+    other.EBO = 0;
 }

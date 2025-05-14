@@ -1,35 +1,35 @@
+#include "run.h"
+
 #include <GL/glew.h>
 #include <SDL.h>
 #include <cmath>
 
-#include "run.h"
-#include "logging.h"
+#include "engine/util/logging.h"
 #include "engine/game.h"
+#include "engine/state.h"
 
-Config config;
-WindowSize windowSize;
-
-StatePackage statePackage = {&config, &windowSize};
+EngineState *engineState;
 
 int run()
 {
-#ifndef NDEBUG
+#pragma region Setup
+    setupLogging();
+    SDL_LogSetOutputFunction(LogSDLCallback, nullptr);
     SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);
-#endif
 
     if (0 > SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
-        logError("Couldn't initialize SDL: %s", SDL_GetError());
+        SPDLOG_ERROR("Couldn't initialize SDL: {}", SDL_GetError());
         return 1;
     }
 
     SDL_Window *sdlWindow = SDL_CreateWindow(
         "LowLevelGame attempt 2 (million)",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        windowSize.width, windowSize.height,
+        1920/2, 1080/2,
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
     );
     if (!sdlWindow) {
-        logError("Couldn't create window: %s", SDL_GetError());
+        SPDLOG_ERROR("Couldn't create window: {}", SDL_GetError());
         SDL_Quit();
         return 1;
     }
@@ -44,7 +44,7 @@ int run()
 
     SDL_GLContext glContext = SDL_GL_CreateContext(sdlWindow);
     if (!glContext) {
-        logError("Couldn't create OpenGL context: %s", SDL_GetError());
+        SPDLOG_ERROR("Couldn't create OpenGL context: {}", SDL_GetError());
         SDL_DestroyWindow(sdlWindow);
         SDL_Quit();
         return -1;
@@ -53,7 +53,8 @@ int run()
 
     const GLenum glewError = glewInit();
     if (glewError != GLEW_OK) {
-        logError("Couldn't initialize GLEW: %s", glewGetErrorString(glewError));
+        // SPDLOG_ERROR("Couldn't initialize GLEW: {}", glewGetErrorString(glewError));
+        SPDLOG_ERROR(fmt::format("Couldn't initialize GLEW: {}", std::string(reinterpret_cast<const char*>(glewGetErrorString(glewError)))));
         SDL_GL_DeleteContext(glContext);
         SDL_DestroyWindow(sdlWindow);
         SDL_Quit();
@@ -64,93 +65,99 @@ int run()
     int glCtxFlags;
     glGetIntegerv(GL_CONTEXT_FLAGS, &glCtxFlags);
     if (glCtxFlags & GL_CONTEXT_FLAG_DEBUG_BIT) {
-        logDebug("OpenGL debug output enabled");
+        SPDLOG_DEBUG("OpenGL debug output enabled");
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallback(MessageCallback, nullptr);
+        glDebugMessageCallback(LogGLCallback, nullptr);
     } else {
-        logWarn("OpenGL debug output not enabled");
+        SPDLOG_WARN("OpenGL debug output not available");
     }
 #endif
 
-    if (!setupGame(statePackage, sdlWindow, glContext)) {
-        logError("Setup failed");
+    // Loaded enough to create the global state
+    engineState = new EngineState(sdlWindow, glContext);
+    Expected<void> managerResult = engineState->resourceManager.populateErrorResources();
+    if (!managerResult.has_value())
+        throw std::runtime_error(stringifyError(FW_ERROR(managerResult.error(),
+            "Failed to load resource manager error resources")));
+
+    if (!setupGame()) {
+        SPDLOG_ERROR("Setup failed");
         goto quitNoShutdown;
     }
+#pragma endregion
 
+#pragma region MainLoop
     {
-        double physicsAccumulator = 0.0;
+        double fixedAccumulator = 0.0;
         Uint64 frameStart = SDL_GetPerformanceCounter();
         while (true) {
 #pragma region DeltaTime
             const Uint64 lastFrameStart = frameStart;
             frameStart = SDL_GetPerformanceCounter();
             double deltaTime = static_cast<double>(frameStart - lastFrameStart) / static_cast<double>(SDL_GetPerformanceFrequency());
-            if (config.deltaTimeLimit > 0 && deltaTime > config.deltaTimeLimit) // Things may get a bit weird if our deltaTime is like 10 seconds
-                deltaTime = config.deltaTimeLimit;
+            if (engineState->config.deltaTimeLimit > 0 && deltaTime > engineState->config.deltaTimeLimit) // Things may get a bit weird if our deltaTime is like 10 seconds
+                deltaTime = engineState->config.deltaTimeLimit;
 
             // TODO: Process inputs instead of sleeping, to mitigate some input lag
-            const double expectedDT = 1.0 / config.maxFPS;
-            if (config.limitFPS && !config.vsync && deltaTime < expectedDT) {
+            const double expectedDT = 1.0 / engineState->config.maxFPS;
+            if (engineState->config.limitFPS && !engineState->config.vsync && deltaTime < expectedDT) {
                 SDL_Delay(static_cast<Uint32>((expectedDT - deltaTime) * 1000.0));
             }
 #pragma endregion
 
-            if (!(*statePackage.isPaused)) {
-                physicsAccumulator += deltaTime;
-                physicsAccumulator = std::fmin(physicsAccumulator, 0.1); // Prevent spiral of death  // TODO: Magic number?
-                const double desiredPhysicsDT = 1.0 / config.physicsTPS;
-                while (physicsAccumulator >= desiredPhysicsDT) {
-                    if (!fixedUpdate(desiredPhysicsDT, statePackage)) {
-                        logError("Physics update failed");
-                        goto quit;
-                    }
-                    physicsAccumulator -= desiredPhysicsDT;
+            fixedAccumulator += deltaTime;
+            fixedAccumulator = std::fmin(fixedAccumulator, 0.1); // Prevent spiral of death  // TODO: Magic number?
+            const double desiredFixedDT = 1.0 / engineState->config.fixedTPS;
+
+            while (fixedAccumulator >= desiredFixedDT) {
+                if (!fixedUpdate(desiredFixedDT)) {
+                    SPDLOG_ERROR("Fixed update failed");
+                    goto quit;
                 }
+                fixedAccumulator -= desiredFixedDT;
             }
 
+            // TODO: Allow recording demos?
             SDL_Event event;
             while (SDL_PollEvent(&event)) {
-                if (handleEvent(event, statePackage)) continue;
+                if (handleEvent(event)) continue;
 
                 switch (event.type) {
                     default: break;
                     case SDL_QUIT:
-                        logDebug("Received quit signal");
+                        SPDLOG_DEBUG("Received quit signal");
                         goto quit;
                     case SDL_WINDOWEVENT:
                         if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-                            windowSize.width = event.window.data1;
-                            windowSize.height = event.window.data2;
-                            glViewport(0, 0, windowSize.width, windowSize.height);
+                            int w, h;
+                            SDL_GL_GetDrawableSize(sdlWindow, &w, &h);
+                            glViewport(0, 0, w, h);
                         }
                         break;
                 }
             }
-            if (*statePackage.shouldRedraw || !*statePackage.isPaused) {
-                const bool renderSuccess = renderUpdate(deltaTime, statePackage);
-                glLogErrors();
-                if (!renderSuccess) {
-                    logError("Render update failed");
-                    goto quit;
-                }
 
-                SDL_GL_SwapWindow(sdlWindow);
-                *statePackage.shouldRedraw = false;
-            }
-            else {
-                SDL_Delay(1);
+            const bool renderSuccess = renderUpdate(deltaTime);
+            glLogErrors();
+            if (!renderSuccess) {
+                SPDLOG_ERROR("Render update failed");
+                goto quit;
             }
         }
     }
+#pragma endregion
 
+#pragma region Shutdown
 quit:
-    shutdownGame(statePackage);
+    shutdownGame();
 quitNoShutdown:
-    logDebug("Shutting down");
+    delete engineState;
+    SPDLOG_DEBUG("Shutting down");
     SDL_GL_DeleteContext(glContext);
     SDL_DestroyWindow(sdlWindow);
     SDL_Quit();
+#pragma endregion
 
     return 0;
 }

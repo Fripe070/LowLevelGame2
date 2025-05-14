@@ -1,0 +1,82 @@
+name: Build meson project
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.os }} / ${{ matrix.compiler }} (${{ matrix.build_type }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        build_type: [release]
+        compiler: [gcc, clang]
+
+        exclude:
+          - os: windows-latest # Issues with meson for whatever reason
+            compiler: clang
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Cache Meson dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ github.workspace }}/subprojects/*/
+        key: ${{ runner.os }}-meson-${{ hashFiles('**/meson.build', '**/meson_options.txt', '**/subprojects/*.wrap') }}
+        restore-keys: |
+          ${{ runner.os }}-meson-
+
+    - name: Set up C++ environment
+      uses: aminya/setup-cpp@v1
+      with:
+        ninja: true
+        meson: true
+        cmake: true
+        compiler: ${{ matrix.compiler }}
+
+    - name: Install System Dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libglu1-mesa-dev libgl1-mesa-dev
+        
+    - name: Set reusable workflow outputs
+      id: set_outputs
+      shell: bash
+      run: |
+        echo "build-dir=${{ github.workspace }}/build" >> $GITHUB_OUTPUT
+
+    - name: Configure Meson
+      run: meson setup ${{ steps.set_outputs.outputs.build-dir }} --buildtype=${{ matrix.build_type }}
+
+    - name: Build
+      run: meson compile -C ${{ steps.set_outputs.outputs.build-dir }}
+
+
+    - name: Prepare Artifacts (Linux)
+      if: github.event_name == 'push' && runner.os == 'Linux'
+      run: |
+        cp ${{ steps.set_outputs.outputs.build-dir }}/lowlevelgame ${{ github.workspace }}/lowlevelgame
+
+    - name: Prepare Artifacts (Windows)
+      if: github.event_name == 'push' && runner.os == 'Windows'
+      run: |
+        cp ${{ steps.set_outputs.outputs.build-dir }}/lowlevelgame.exe ${{ github.workspace }}/lowlevelgame.exe
+
+    - name: Upload Build Artifacts
+      if: github.event_name == 'push'
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}
+        path: |
+          ${{ github.workspace }}/lowlevelgame
+          ${{ github.workspace }}/lowlevelgame.exe
+          ${{ github.workspace }}/resources/

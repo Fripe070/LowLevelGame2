@@ -1,51 +1,30 @@
-#ifndef STATE_H
-#define STATE_H
+#pragma once
 
-#include <vector>
-#include <engine/manager/texture.h>
-#include <engine/manager/scene.h>
-#include <engine/loader/shader/graphics_shader.h>
+#include "engine/typedefs.h"
+#include "game/player.h"
 
-#include "camera.h"
-#include "skybox.h"
-
-struct Settings {
-    // Mouse
+struct GameSettings {
     float sensitivity = 0.1f;
-    // Graphics
+    Degrees baseFov = 45.0f;
+    float clipNear = 0.1f;
+    float clipFar = 100.0f;
+
     bool wireframe = false;
-    // TODO: Add multiple debug modes, like viewing polygons, normals, positions, albedo, disabling post-processing effects, etc
+    bool backfaceCulling = true;
 };
 
-struct PlayerState {
-    Camera camera;
-    CameraController cController;
-
-    explicit PlayerState(const Settings settings): cController(camera, settings.sensitivity) {}
+struct WorldState {
 };
 
-struct LevelState {
-    // TODO: Storing shaders in a random vector is odd. Should they have their own managers and be associated with each thing that needs them?
-    std::vector<Engine::GraphicsShader> shaders;
-    Engine::Manager::TextureManager textureManager;
-    Engine::Manager::SceneManager modelManager;
-
-    std::vector<std::string> modelPaths;
-
-    PlayerState player;
-    Skybox skybox;
-
-    explicit LevelState(const Settings settings): player(settings) {}
-};
-
+// TODO: Make state (or rather parts of it, smartly) savable (including engine state!!!)
 struct GameState {
-    Settings settings;
-    LevelState level;
-    bool isPaused = false;
-    bool shouldRedraw = true;
+    GameSettings settings{};
 
-    explicit GameState(StatePackage &statePackage): settings(), level(settings) {}
+    Player playerState{};
+    WorldState worldState{};
+
+    bool isPaused = false;
 };
 
+extern GameState *gameState;
 
-#endif //STATE_H

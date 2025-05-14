@@ -27,7 +27,11 @@ if not assimp_dep.found()
     assimp_dep = cmake.subproject('assimp', options : assimp_opt).dependency('assimp')
 endif
 
-dependencies = [sdl2_dep, glew_dep, glm_dep, imgui_dep, assimp_dep]
+
+spdlog_options = ['default_library=static', 'compile_library=true', 'werror=false', 'tests=disabled', 'external_fmt=disabled', 'std_format=disabled']
+spdlog_dep = dependency('spdlog', default_options: spdlog_options)
+
+dependencies = [sdl2_dep, glew_dep, glm_dep, imgui_dep, assimp_dep, spdlog_dep]
 
 if host_machine.system() == 'windows'
     sdl2_main_dep = dependency('sdl2main')
@@ -37,28 +41,45 @@ endif
 sources = [
     'src/main.cpp',
     'src/engine/run.cpp',
-    'src/engine/logging.cpp',
-    'src/engine/loader/shader/shader_program.cpp',
-    'src/engine/loader/scene.cpp',
-    'src/engine/loader/texture.cpp',
-    'src/engine/loader/generic.cpp',
-    'src/engine/manager/texture.cpp',
-    'src/engine/manager/scene.cpp',
+    'src/engine/util/logging.cpp',
+    'src/engine/util/file.cpp',
+    'src/engine/resources/shader.cpp',
+    'src/engine/resources/texture.cpp',
+    'src/engine/resources/scene.cpp',
+    'src/engine/resources/mesh.cpp',
     'src/engine/render/overlay.cpp',
     'src/engine/render/frame_buffer.cpp',
+    'src/engine/resources/resource_manager.cpp',
 
     'src/game/game.cpp',
-    'src/game/camera.cpp',
+    'src/game/camera_utils.cpp',
+    'src/game/player.cpp',
     'src/game/skybox.cpp',
     'src/game/gui.cpp',
 ]
 
+
+bin2h = executable('bin2h', 'tools/bin2h.cpp')
+static_binaries = [
+    ['resources/static/error.png', 'error_png'],
+    ['resources/static/error.obj', 'error_obj'],
+    ['resources/static/error_shader.vert', 'error_shader_vert'],
+    ['resources/static/error_shader.frag', 'error_shader_frag'],
+]
+foreach binary : static_binaries
+    sources += custom_target(
+        'embed_binary_' + binary[1],
+        input: binary[0],
+        output: binary[1] + '.h',
+        command: [bin2h, '@INPUT@', '@OUTPUT@'],
+    )
+endforeach
+
+
 exe = executable(
     'lowlevelgame', sources,
-    # win_subsystem: 'windows',  # Supresses stdout on Windows
     include_directories : include_directories('src', 'include'),
     dependencies : dependencies,
     cpp_args : ['-std=c++23']
 )
-
 test('basic', exe)

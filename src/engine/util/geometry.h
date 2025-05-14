@@ -1,15 +1,5 @@
-#ifndef SHAPE_H
-#define SHAPE_H
-
+#pragma once
 #include <array>
-
-#define BUFFERS_MV_FROM_TO(from, to) \
-    to->VAO = from.VAO; \
-    to->VBO = from.VBO; \
-    to->EBO = from.EBO; \
-    from.VAO = 0; \
-    from.VBO = 0; \
-    from.EBO = 0;
 
 
 enum CubeVertIndex {
@@ -72,4 +62,3 @@ constexpr std::array<unsigned int, 2*3> ScreenSpaceQuadIndices = {
     1, 3, 2,
 };
 
-#endif

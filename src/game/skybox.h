@@ -1,31 +1,22 @@
-#ifndef SKYBOX_H
-#define SKYBOX_H
-#include <array>
-#include <expected>
-#include <string>
-#include <vector>
-#include <engine/loader/shader/graphics_shader.h>
-#include <engine/util/geometry.h>
-#include <glm/fwd.hpp>
+#pragma once
+#include <engine/resources/shader.h>
 
-
-namespace Engine {
-    class GraphicsShader;
-    namespace Manager {
-        class TextureManager;
-    }
-}
-
+#include "engine/resources/texture.h"
 
 class Skybox {
 public:
+    std::shared_ptr<Resource::ManagedTexture> cubemap;
+    std::shared_ptr<Resource::Shader> shader;
+
     Skybox();
+    Skybox(const std::shared_ptr<Resource::ManagedTexture>& cubemap);
     ~Skybox();
-    std::expected<void, std::string> draw(unsigned int cubemap, const Engine::GraphicsShader &shader) const;
+
+    void draw() const;
 
 private:
     unsigned int VAO{}, VBO{}, EBO{};
-
+    void initGL();
 public:
     // Non-copyable
     Skybox(const Skybox&) = delete;
@@ -35,4 +26,3 @@ public:
     Skybox& operator=(Skybox&& other) noexcept;
 };
 
-#endif
