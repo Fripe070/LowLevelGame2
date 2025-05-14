@@ -78,8 +78,15 @@ namespace DebugGUI {
         }
         // -1 is adaptive vsync, 1 is normal vsync as a fallback
         // https://wiki.libsdl.org/SDL3/SDL_GL_SetSwapInterval#remarks
-        if (SDL_GL_SetSwapInterval(engineState->config.limitFPS && engineState->config.vsync ? -1 : 0) == -1)
-            SDL_GL_SetSwapInterval(1);
+        if (engineState->config.limitFPS && engineState->config.vsync) {
+            static bool failedSwap = false;
+            if (failedSwap) SDL_GL_SetSwapInterval(1);
+            else if (SDL_GL_SetSwapInterval(-1) == -1) {
+                failedSwap = true;
+                SDL_GL_SetSwapInterval(1);
+            }
+        }
+        else SDL_GL_SetSwapInterval(0);
 
         if (ImGui::CollapsingHeader("Mouse")) {
             ImGui::SliderFloat("Sensitivity", &gameState->settings.sensitivity, 0.01f, 1.0f);

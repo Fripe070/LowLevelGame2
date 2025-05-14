@@ -98,9 +98,13 @@ namespace Resource::Loading {
         // Meshes
         resultScene.meshes.reserve(scene.mNumMeshes);
         for (unsigned int i = 0; i < scene.mNumMeshes; i++) {
+            unsigned int matIndex = scene.mMeshes[i]->mMaterialIndex;
+            if (matIndex >= resultScene.materials.size())
+                return std::unexpected(ERROR(
+                    "Encountered invalid mesh material index " + std::to_string(scene.mMeshes[i]->mMaterialIndex)));
             Expected<Mesh> mesh = processMesh(
                 scene.mMeshes[i],
-                std::make_shared<PBRMaterial>(resultScene.materials[scene.mMeshes[i]->mMaterialIndex])
+                std::make_shared<PBRMaterial>(resultScene.materials[matIndex])
             );
             if (!mesh.has_value())
                 return std::unexpected(FW_ERROR(mesh.error(), "Failed to load mesh "+std::to_string(i)));
@@ -143,6 +147,7 @@ namespace Resource::Loading {
                 "resources/assets/shaders/frag.frag"
             )
         };
+        SPDLOG_TRACE("Loading material \"{}\"", loadedMaterial->GetName().C_Str());
 
         aiString path;
         if (loadedMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
@@ -185,6 +190,8 @@ namespace Resource::Loading {
             for (unsigned int j = 0; j < face.mNumIndices; j++)
                 resultMesh.indices.push_back(face.mIndices[j]);
         }
+
+        resultMesh.rebuildGl();
 
         return resultMesh;
     }

@@ -3,6 +3,8 @@
 #include <engine/state.h>
 #include <engine/resources/resource_manager.h>
 
+#include <GL/glew.h>
+
 namespace Resource {
     Mesh::~Mesh() {
         glDeleteVertexArrays(1, &VAO);
@@ -11,7 +13,7 @@ namespace Resource {
     }
 
     void Mesh::rebuildGl() {
-        // where the "re" in rebuild comes in :3 delete on 0 is no-op
+        // where the "re" in rebuild comes in :3. delete on 0 is no-op
         glDeleteVertexArrays(1, &VAO);
         glDeleteBuffers(1, &VBO);
         glDeleteBuffers(1, &EBO);
@@ -83,14 +85,29 @@ namespace Resource {
     }
 
     Expected<void> Mesh::Draw(const glm::mat4& modelTransform) const {
-        // TODO: POPULATE MATERIAL PROPERTIES INTO SHADER
-        Engine::ResourceManager& resourceManager = engineState->resourceManager;
         const std::shared_ptr<Shader> shader = material->shader;
         if (!shader)
             return std::unexpected(ERROR("Mesh material has no shader"));
         shader->use();
         shader->setMat4("model", modelTransform);
         shader->setMat3("mTransposed", glm::mat3(glm::transpose(glm::inverse(modelTransform))));
+        // Populate shader material uniforms
+        {
+            Engine::ResourceManager& resourceManager = engineState->resourceManager;
+            unsigned int workingIndex = 0;
+#define BIND_TEX(key, value) \
+            shader->setInt("material." key, static_cast<int>(workingIndex)); \
+            glActiveTexture(GL_TEXTURE0 + workingIndex); \
+            glBindTexture(GL_TEXTURE_2D, value ? value->textureID : resourceManager.errorTexture->textureID); \
+            workingIndex++
+
+            BIND_TEX("albedo_tex", material->albedo);
+            BIND_TEX("normal_tex", material->normal);
+            BIND_TEX("roughness_tex", material->roughness);
+            BIND_TEX("metallic_tex", material->metallic);
+            BIND_TEX("ambientOcclusion_tex", material->ambientOcclusion);
+#undef BIND_TEX
+        }
 
         bindBuffers();
         assert(!indices.empty() && indices.size() < std::numeric_limits<GLsizei>::max());

@@ -122,6 +122,7 @@ bool renderUpdate(const double deltaTime) {
     else
         glEnable(GL_CULL_FACE);
 
+    // TODO: FIGURE THIS OUT WITH NEW STATE
     glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4),
         glm::value_ptr(CameraUtils::getProjectionMatrix(gameState->settings, windowWidth, windowHeight)));

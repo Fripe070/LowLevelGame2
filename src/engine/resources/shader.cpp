@@ -1,5 +1,6 @@
 #include "shader.h"
 
+#include <algorithm>
 #include <glm/mat3x3.hpp>
 
 #include "engine/util/file.h"
@@ -219,7 +220,7 @@ namespace Resource::Loading
             const auto includePath = shaderSrc.substr(pathStart, cursor - pathStart);
             cursor++;
 
-            if (std::ranges::find(processedFiles, includePath) != processedFiles.end()) {
+            if (std::find(processedFiles.begin(), processedFiles.end(), includePath) != processedFiles.end()) {
                 shaderSrc.replace(findStart, cursor - findStart, "// ignoring #include " + includePath + " (already included)");
                 continue;
             }

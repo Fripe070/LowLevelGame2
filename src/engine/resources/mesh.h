@@ -30,6 +30,7 @@ namespace Resource {
     public:
         Mesh() = default;
         ~Mesh();
+        std::string name;
 
         /*! Binds the mesh's VAO. */
         void bindBuffers() const;
