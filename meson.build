@@ -32,11 +32,11 @@ tinygltf_dep = dependency('tinygltf', method: 'pkg-config', required: false)  # 
 if not tinygltf_dep.found()
     tinygltf_opt = cmake.subproject_options()
     tinygltf_opt.add_cmake_defines({
-#        'BUILD_SHARED_LIBS' : false,
-#        'CMAKE_BUILD_TYPE' : get_option('buildtype') == 'release' ? 'Release' : 'Debug',
-#        'TINYGLTF_USE_CPP14': true,
-#        'TINYGLTF_HEADER_ONLY' : true,
-#        'TINYGLTF_INSTALL' : false,
+        'BUILD_SHARED_LIBS' : false,
+        'CMAKE_BUILD_TYPE' : get_option('buildtype') == 'release' ? 'Release' : 'Debug',
+        'TINYGLTF_USE_CPP14': true,
+        'TINYGLTF_HEADER_ONLY' : true,
+        'TINYGLTF_INSTALL' : false,
     })
     tinygltf_dep = cmake.subproject('tinygltf', options : tinygltf_opt).dependency('tinygltf')
 endif
