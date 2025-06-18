@@ -132,13 +132,13 @@ namespace DebugGUI {
         // Macro mayhem to not have duplicate code :D
         // Starting to feel like a JS dev
 #define LOG_LEVELS(X) \
-X(spdlog::level::trace, "Trace") \
-X(spdlog::level::debug, "Debug") \
-X(spdlog::level::info, "Info") \
-X(spdlog::level::warn, "Warn") \
-X(spdlog::level::err, "Error") \
-X(spdlog::level::critical, "Critical") \
-X(spdlog::level::off, "Off")
+        X(spdlog::level::trace, "Trace") \
+        X(spdlog::level::debug, "Debug") \
+        X(spdlog::level::info, "Info") \
+        X(spdlog::level::warn, "Warn") \
+        X(spdlog::level::err, "Error") \
+        X(spdlog::level::critical, "Critical") \
+        X(spdlog::level::off, "Off")
 #define DEFINE_LOG_NAME(level, name) name,
 #define DEFINE_LOG_LEVEL(level, name) level,
         constexpr spdlog::level::level_enum logLevels[] = {

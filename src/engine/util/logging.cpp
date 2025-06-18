@@ -105,7 +105,7 @@ void LogSDLCallback(void*, int category, SDL_LogPriority priority, const char *m
 void setupLogging() {
     const auto logger = spdlog::stdout_color_mt("console");
     spdlog::set_default_logger(logger);
-    spdlog::set_level(spdlog::level::debug);
+    spdlog::set_level(spdlog::level::trace);
 
     const auto openglLogger = spdlog::stdout_color_mt("opengl");
     openglLogger->set_level(spdlog::level::debug);
