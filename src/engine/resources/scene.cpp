@@ -6,6 +6,7 @@
 #include <assimp/scene.h>
 #include <engine/state.h>
 
+#include "engine/util/logging.h"
 #include "engine/resources/mesh.h"
 
 // TODO: Put more consideration into this depending on our needs (for example mesh sorting?)
@@ -14,7 +15,7 @@ constexpr auto ASSIMP_FLAGS = (
     aiProcess_Triangulate
     | aiProcess_FlipUVs
     | aiProcess_OptimizeMeshes
-    | aiProcess_OptimizeGraph
+    // | aiProcess_OptimizeGraph
     );
 
 
@@ -58,7 +59,7 @@ namespace Resource
 namespace Resource::Loading {
     Expected<Scene> loadScene(const std::string &path)
     {
-        Assimp::Importer importer;
+        static Assimp::Importer importer;
         const aiScene* loadedScene = importer.ReadFile(path.c_str(), ASSIMP_FLAGS);
         if (!loadedScene || loadedScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !loadedScene->mRootNode)
             return std::unexpected(ERROR(std::string("Failed to load scene file: ") + importer.GetErrorString()));
@@ -70,7 +71,7 @@ namespace Resource::Loading {
     }
     Expected<Scene> loadScene(const unsigned char* data, const int size)
     {
-        Assimp::Importer importer;
+        static Assimp::Importer importer;
         const aiScene* loadedScene = importer.ReadFileFromMemory(data, size, ASSIMP_FLAGS);
         if (!loadedScene || loadedScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !loadedScene->mRootNode)
             return std::unexpected(ERROR(std::string("Failed to load scene data: ") + importer.GetErrorString()));
@@ -152,18 +153,23 @@ namespace Resource::Loading {
         aiString path;
         if (loadedMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
             resultMaterial.albedo = engineState->resourceManager.loadTexture(path.C_Str());
+            SPDLOG_WARN("Loading albedo texture \"{}\"", path.C_Str());
         }
         if (loadedMaterial->GetTexture(aiTextureType_NORMALS, 0, &path) == AI_SUCCESS) {
             resultMaterial.normal = engineState->resourceManager.loadTexture(path.C_Str());
+            SPDLOG_WARN("Loading normal texture \"{}\"", path.C_Str());
         }
         if (loadedMaterial->GetTexture(aiTextureType_SHININESS, 0, &path) == AI_SUCCESS) {
             resultMaterial.roughness = engineState->resourceManager.loadTexture(path.C_Str());
+            SPDLOG_WARN("Loading roughness texture \"{}\"", path.C_Str());
         }
         if (loadedMaterial->GetTexture(aiTextureType_REFLECTION, 0, &path) == AI_SUCCESS) {
             resultMaterial.metallic = engineState->resourceManager.loadTexture(path.C_Str());
+            SPDLOG_WARN("Loading metallic texture \"{}\"", path.C_Str());
         }
         if (loadedMaterial->GetTexture(aiTextureType_AMBIENT_OCCLUSION, 0, &path) == AI_SUCCESS) {
             resultMaterial.ambientOcclusion = engineState->resourceManager.loadTexture(path.C_Str());
+            SPDLOG_WARN("Loading AO texture \"{}\"", path.C_Str());
         }
 
         return resultMaterial;
