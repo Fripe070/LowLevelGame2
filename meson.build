@@ -11,9 +11,10 @@ glew_dep = dependency('glew')
 glm_dep = dependency('glm')
 imgui_dep = dependency('imgui_docking')
 
+cmake = import('cmake')
+
 assimp_dep = dependency('assimp', method: 'pkg-config', required: false)  # required: false is to make meson not die when it can't find assimp
 if not assimp_dep.found()
-    cmake = import('cmake')
     assimp_opt = cmake.subproject_options()
     assimp_opt.add_cmake_defines({
         'BUILD_SHARED_LIBS' : false,
@@ -27,11 +28,23 @@ if not assimp_dep.found()
     assimp_dep = cmake.subproject('assimp', options : assimp_opt).dependency('assimp')
 endif
 
+tinygltf_dep = dependency('tinygltf', method: 'pkg-config', required: false)  # required: false is to make meson not die when it can't find assimp
+if not tinygltf_dep.found()
+    tinygltf_opt = cmake.subproject_options()
+    tinygltf_opt.add_cmake_defines({
+#        'BUILD_SHARED_LIBS' : false,
+#        'CMAKE_BUILD_TYPE' : get_option('buildtype') == 'release' ? 'Release' : 'Debug',
+#        'TINYGLTF_USE_CPP14': true,
+#        'TINYGLTF_HEADER_ONLY' : true,
+#        'TINYGLTF_INSTALL' : false,
+    })
+    tinygltf_dep = cmake.subproject('tinygltf', options : tinygltf_opt).dependency('tinygltf')
+endif
 
 spdlog_options = ['default_library=static', 'compile_library=true', 'werror=false', 'tests=disabled', 'external_fmt=disabled', 'std_format=disabled']
 spdlog_dep = dependency('spdlog', default_options: spdlog_options)
 
-dependencies = [sdl2_dep, glew_dep, glm_dep, imgui_dep, assimp_dep, spdlog_dep]
+dependencies = [sdl2_dep, glew_dep, glm_dep, imgui_dep, assimp_dep, tinygltf_dep, spdlog_dep]
 
 if host_machine.system() == 'windows'
     sdl2_main_dep = dependency('sdl2main')
