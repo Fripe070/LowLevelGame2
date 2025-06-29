@@ -1,6 +1,5 @@
 .vscode/
 .idea/
 
-build/
-subprojects/*/
+cmake-build-*/
 imgui.ini

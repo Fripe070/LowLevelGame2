@@ -4,10 +4,10 @@
 #include <spdlog/fmt/ranges.h>
 
 // Generated header files for embedded resources
-#include <error_obj.h>
-#include <error_png.h>
-#include <error_shader_frag.h>
-#include <error_shader_vert.h>
+#include <error.obj.h>
+#include <error.png.h>
+#include <error_shader.frag.h>
+#include <error_shader.vert.h>
 
 
 namespace Engine {
@@ -21,25 +21,25 @@ namespace Engine {
     Expected<void> ResourceManager::populateErrorResources()
     {
         // TEXTURE
-        const auto tmpTex = Resource::Loading::loadTexture(BIN_ERROR_PNG.data(), BIN_ERROR_PNG.size());
+        const auto tmpTex = Resource::Loading::loadTexture(BINARY_ERROR_PNG.data(), BINARY_ERROR_PNG.size());
         if (!tmpTex.has_value())
             return std::unexpected(FW_ERROR(tmpTex.error(), "Failed to load error texture"));
         errorTexture = std::make_shared<Resource::ManagedTexture>(tmpTex.value());
         // CUBEMAP
-        const auto tmpCubemap = Resource::Loading::loadCubemapSingle(BIN_ERROR_PNG.data(), BIN_ERROR_PNG.size());
+        const auto tmpCubemap = Resource::Loading::loadCubemapSingle(BINARY_ERROR_PNG.data(), BINARY_ERROR_PNG.size());
         if (!tmpCubemap.has_value())
             return std::unexpected(FW_ERROR(tmpCubemap.error(), "Failed to load error cubemap"));
         errorCubemap = std::make_shared<Resource::ManagedTexture>(tmpCubemap.value());
 
         // SHADER
         const auto vertShaderID = Resource::Loading::loadGLShaderSource(
-            std::string(BIN_ERROR_SHADER_VERT.begin(), BIN_ERROR_SHADER_VERT.end()),
+            std::string(BINARY_ERROR_SHADER_VERT.begin(), BINARY_ERROR_SHADER_VERT.end()),
             Resource::ShaderType::VERTEX
         );
         if (!vertShaderID.has_value())
             return std::unexpected(FW_ERROR(vertShaderID.error(), "Failed to load error vertex shader"));
         const auto fragShaderID = Resource::Loading::loadGLShaderSource(
-            std::string(BIN_ERROR_SHADER_FRAG.begin(), BIN_ERROR_SHADER_FRAG.end()),
+            std::string(BINARY_ERROR_SHADER_FRAG.begin(), BINARY_ERROR_SHADER_FRAG.end()),
             Resource::ShaderType::FRAGMENT
         );
         if (!fragShaderID.has_value())
@@ -50,7 +50,7 @@ namespace Engine {
         });
 
         // SCENE
-        std::expected<Resource::Scene, Error> tmpScene = Resource::Loading::loadScene(BIN_ERROR_OBJ.data(), BIN_ERROR_OBJ.size());
+        std::expected<Resource::Scene, Error> tmpScene = Resource::Loading::loadScene(BINARY_ERROR_OBJ.data(), BINARY_ERROR_OBJ.size());
         if (!tmpScene.has_value())
             return std::unexpected(FW_ERROR(tmpScene.error(), "Failed to load error scene"));
         errorScene = std::make_shared<Resource::Scene>(std::move(tmpScene.value()));
