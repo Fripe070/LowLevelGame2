@@ -1,4 +1,4 @@
-name: Build meson project
+name: Build CMake project
 
 on:
   push:
@@ -14,69 +14,72 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        build_type: [release]
+        build_type: [Release]
         compiler: [gcc, clang]
 
         exclude:
-          - os: windows-latest # Issues with meson for whatever reason
+          - os: windows-latest
             compiler: clang
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Cache Meson dependencies
-      uses: actions/cache@v4
-      with:
-        path: |
-          ${{ github.workspace }}/subprojects/*/
-        key: ${{ runner.os }}-meson-${{ hashFiles('**/meson.build', '**/meson_options.txt', '**/subprojects/*.wrap') }}
-        restore-keys: |
-          ${{ runner.os }}-meson-
+      - name: Cache CMake dependencies (FetchContent)
+        uses: actions/cache@v4
+        with:
+          # This path caches the downloaded sources from FetchContent
+          path: ${{ github.workspace }}/build/_deps
+          # The key invalidates the cache when your CMake configuration changes
+          key: ${{ runner.os }}-cmake-deps-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: ${{ runner.os }}-cmake-deps-
 
-    - name: Set up C++ environment
-      uses: aminya/setup-cpp@v1
-      with:
-        ninja: true
-        meson: true
-        cmake: true
-        compiler: ${{ matrix.compiler }}
+      - name: Set up C++ environment
+        uses: aminya/setup-cpp@v1
+        with:
+          ninja: true
+          cmake: true
+          compiler: ${{ matrix.compiler }}
 
-    - name: Install System Dependencies (Linux)
-      if: runner.os == 'Linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libglu1-mesa-dev libgl1-mesa-dev
-        
-    - name: Set reusable workflow outputs
-      id: set_outputs
-      shell: bash
-      run: |
-        echo "build-dir=${{ github.workspace }}/build" >> $GITHUB_OUTPUT
+      - name: Install System Dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libglu1-mesa-dev libgl1-mesa-dev
 
-    - name: Configure Meson
-      run: meson setup ${{ steps.set_outputs.outputs.build-dir }} --buildtype=${{ matrix.build_type }}
+      - name: Set reusable workflow outputs
+        id: set_outputs
+        shell: bash
+        run: |
+          echo "build-dir=${{ github.workspace }}/build" >> $GITHUB_OUTPUT
 
-    - name: Build
-      run: meson compile -C ${{ steps.set_outputs.outputs.build-dir }}
+      - name: Configure CMake
+        run: >
+          cmake -B ${{ steps.set_outputs.outputs.build-dir }}
+          -S ${{ github.workspace }}
+          -G Ninja
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
+      - name: Build
+        run: cmake --build ${{ steps.set_outputs.outputs.build-dir }}
 
-    - name: Prepare Artifacts (Linux)
-      if: github.event_name == 'push' && runner.os == 'Linux'
-      run: |
-        cp ${{ steps.set_outputs.outputs.build-dir }}/lowlevelgame ${{ github.workspace }}/lowlevelgame
+      - name: Prepare Artifacts (Linux)
+        if: github.event_name == 'push' && runner.os == 'Linux'
+        run: |
+          cp ${{ steps.set_outputs.outputs.build-dir }}/lowlevelgame ${{ github.workspace }}/lowlevelgame
 
-    - name: Prepare Artifacts (Windows)
-      if: github.event_name == 'push' && runner.os == 'Windows'
-      run: |
-        cp ${{ steps.set_outputs.outputs.build-dir }}/lowlevelgame.exe ${{ github.workspace }}/lowlevelgame.exe
+      - name: Prepare Artifacts (Windows)
+        if: github.event_name == 'push' && runner.os == 'Windows'
+        run: |
+          cp ${{ steps.set_outputs.outputs.build-dir }}/lowlevelgame.exe ${{ github.workspace }}/lowlevelgame.exe
 
-    - name: Upload Build Artifacts
-      if: github.event_name == 'push'
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}
-        path: |
-          ${{ github.workspace }}/lowlevelgame
-          ${{ github.workspace }}/lowlevelgame.exe
-          ${{ github.workspace }}/resources/
+      - name: Upload Build Artifacts
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}
+          path: |
+            ${{ github.workspace }}/lowlevelgame
+            ${{ github.workspace }}/lowlevelgame.exe
+            ${{ github.workspace }}/resources/
+          if-no-files-found: error
