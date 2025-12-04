@@ -1,8 +1,8 @@
 [wrap-git]
-directory = tinygltf-2.9.6
+directory = tinygltf-2.9.7
 
 url = https://github.com/syoyo/tinygltf.git
-revision = v2.9.6
+revision = v2.9.7
 
 depth = 1
 
