@@ -1,5 +1,6 @@
 #include "texture.h"
 
+#include <filesystem>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
@@ -23,12 +24,14 @@ namespace Resource::Loading {
      * @attention You as the caller are responsible for freeing the allocated memory using `stbi_image_free`.
     */
     Expected<ImageData> loadImage(const char *filePath) {
+        const std::string searchPath = std::filesystem::weakly_canonical(filePath).string();
         int width, height, channelCount;
-        stbi_uc *imgData = stbi_load(filePath, &width, &height, &channelCount, 0);
+        stbi_uc *imgData = stbi_load(searchPath.c_str(), &width, &height, &channelCount, 0);
         if (!imgData) {
             stbi_image_free(imgData);
             return std::unexpected(ERROR(
-                std::string("Failed to load texture: \"") + filePath + "\": " + stbi_failure_reason()));
+                "Failed to load texture: \"" + std::string(filePath) +
+                "\" as \"" + searchPath + "\": " + stbi_failure_reason()));
         }
         return ImageData{width, height, channelCount, imgData};
     }
@@ -77,7 +80,7 @@ namespace Resource::Loading {
     {
         Expected<ImageData> imgData = loadImage(filePath);
         if (!imgData)
-            return std::unexpected(FW_ERROR(imgData.error(), "Failed to load texture"));
+            return std::unexpected(FW_ERROR(imgData.error(), "Failed to load texture from file"));
         const std::expected<unsigned int, Error> texture = loadTexture(imgData.value());
         SPDLOG_TRACE("Loaded texture \"{}\" with dimensions {}x{}", filePath, imgData->width, imgData->height);
         stbi_image_free(imgData->imgData);

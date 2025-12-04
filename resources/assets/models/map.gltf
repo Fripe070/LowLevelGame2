@@ -258,62 +258,62 @@
 		{
 			"mimeType":"image/png",
 			"name":"bush_normal.png",
-			"uri":"../textures/bush/bush_normal.png"
+			"uri":"./resources/assets/textures/bush/bush_normal.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"bush_diffuse.png",
-			"uri":"../textures/bush/bush_diffuse.png"
+			"uri":"./resources/assets/textures/bush/bush_diffuse.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"bush_rm.png",
-			"uri":"../textures/bush/bush_rm.png"
+			"uri":"./resources/assets/textures/bush/bush_rm.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"stone_normal.png",
-			"uri":"../textures/stone/stone_normal.png"
+			"uri":"./resources/assets/textures/stone/stone_normal.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"stone_diffuse.png",
-			"uri":"../textures/stone/stone_diffuse.png"
+			"uri":"./resources/assets/textures/stone/stone_diffuse.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"stone_rm.png",
-			"uri":"../textures/stone/stone_rm.png"
+			"uri":"./resources/assets/textures/stone/stone_rm.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"brick_normal.png",
-			"uri":"../textures/brick/brick_normal.png"
+			"uri":"./resources/assets/textures/brick/brick_normal.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"brick_diffuse.png",
-			"uri":"../textures/brick/brick_diffuse.png"
+			"uri":"./resources/assets/textures/brick/brick_diffuse.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"brick_rm.png",
-			"uri":"../textures/brick/brick_rm.png"
+			"uri":"./resources/assets/textures/brick/brick_rm.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"grass_normal.png",
-			"uri":"../textures/grass/grass_normal.png"
+			"uri":"./resources/assets/textures/grass/grass_normal.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"grass_diffuse.png",
-			"uri":"../textures/grass/grass_diffuse.png"
+			"uri":"./resources/assets/textures/grass/grass_diffuse.png"
 		},
 		{
 			"mimeType":"image/png",
 			"name":"grass_rm.png",
-			"uri":"../textures/grass/grass_rm.png"
+			"uri":"./resources/assets/textures/grass/grass_rm.png"
 		}
 	],
 	"accessors":[

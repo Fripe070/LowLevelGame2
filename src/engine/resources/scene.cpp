@@ -152,24 +152,24 @@ namespace Resource::Loading {
 
         aiString path;
         if (loadedMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
+            SPDLOG_TRACE("Loading albedo texture \"{}\"", path.C_Str());
             resultMaterial.albedo = engineState->resourceManager.loadTexture(path.C_Str());
-            SPDLOG_WARN("Loading albedo texture \"{}\"", path.C_Str());
         }
         if (loadedMaterial->GetTexture(aiTextureType_NORMALS, 0, &path) == AI_SUCCESS) {
+            SPDLOG_TRACE("Loading normal texture \"{}\"", path.C_Str());
             resultMaterial.normal = engineState->resourceManager.loadTexture(path.C_Str());
-            SPDLOG_WARN("Loading normal texture \"{}\"", path.C_Str());
         }
         if (loadedMaterial->GetTexture(aiTextureType_SHININESS, 0, &path) == AI_SUCCESS) {
+            SPDLOG_TRACE("Loading roughness texture \"{}\"", path.C_Str());
             resultMaterial.roughness = engineState->resourceManager.loadTexture(path.C_Str());
-            SPDLOG_WARN("Loading roughness texture \"{}\"", path.C_Str());
         }
         if (loadedMaterial->GetTexture(aiTextureType_REFLECTION, 0, &path) == AI_SUCCESS) {
+            SPDLOG_TRACE("Loading metallic texture \"{}\"", path.C_Str());
             resultMaterial.metallic = engineState->resourceManager.loadTexture(path.C_Str());
-            SPDLOG_WARN("Loading metallic texture \"{}\"", path.C_Str());
         }
         if (loadedMaterial->GetTexture(aiTextureType_AMBIENT_OCCLUSION, 0, &path) == AI_SUCCESS) {
+            SPDLOG_TRACE("Loading AO texture \"{}\"", path.C_Str());
             resultMaterial.ambientOcclusion = engineState->resourceManager.loadTexture(path.C_Str());
-            SPDLOG_WARN("Loading AO texture \"{}\"", path.C_Str());
         }
 
         return resultMaterial;

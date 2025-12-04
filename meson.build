@@ -24,6 +24,7 @@ if not assimp_dep.found()
         'ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT' : false,  # There are like a million of them
 
         'ASSIMP_BUILD_OBJ_IMPORTER' : true,
+        'ASSIMP_BUILD_GLTF_IMPORTER' : true,
     })
     assimp_dep = cmake.subproject('assimp', options : assimp_opt).dependency('assimp')
 endif

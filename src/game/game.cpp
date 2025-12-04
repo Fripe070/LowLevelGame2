@@ -67,7 +67,7 @@ bool setupGame() {
     glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), nullptr, GL_STATIC_DRAW);
     glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
 
-    scenes.push_back(engineState->resourceManager.loadScene("resources/assets/models/map.obj"));
+    scenes.push_back(engineState->resourceManager.loadScene("resources/assets/models/map.gltf"));
 
     return true;
 }
